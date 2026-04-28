@@ -1,5 +1,38 @@
 \chapter{\abstractname}
 
-%TODO: Abstract
+Contract Lifecycle Management (CLM) platforms increasingly rely on large language
+models (LLMs) to automate clause extraction from commercial contracts, and the research
+and vendor communities have advocated multi-agent architectures as a superior
+alternative to single-prompt deployments. Despite this advocacy, no published work has
+rigorously compared multi-agent architectural patterns against single-agent baselines
+across multiple frontier-model families on a standardised contract-analysis benchmark
+under realistic class distributions.
 
+This thesis presents a controlled, statistically tested comparison of five
+architectural configurations --- zero-shot (B1), chain-of-thought (B4), a
+classify-then-extract pipeline (M0), an LLM-routed specialist system (M1), and a
+consolidated specialist ablation (M6) --- evaluated across eleven frontier models from
+the Anthropic, Google, and OpenAI families on 81 long contracts from the CUAD benchmark.
+Evaluation uses a natural $30\%$ positive / $70\%$ negative class distribution, $F_2$
+and $F_1$ as primary metrics, and paired McNemar and bootstrap statistical tests with
+Benjamini--Hochberg correction.
 
+The central finding is that no multi-agent configuration consistently outperforms the
+strongest single-agent baseline on $F_2$: pooled mean $F_2$ across all eleven models
+falls within a 1.1-point band ($\mathrm{B1} = 0.801$, $\mathrm{M0} = 0.794$,
+$\mathrm{M1} = 0.790$). Architectural ranking varies systematically by model family.
+Two mechanistic findings explain the null result. First, the classify-then-extract
+pipeline (M0) suffers a \emph{classification-gate rejection cascade} on Gemini-family
+models, with wrong-rejection rates of $31$--$41\%$ versus $1.5$--$2.7\%$ for the
+single-agent baseline, accounting for $70$--$98\%$ of M0's false negatives. Second, the
+LLM router in M1 achieves near-perfect routing accuracy ($100\%$ on ten of eleven
+models), collapsing to a trivially solvable category-name lookup; M1 is statistically
+indistinguishable from the consolidated single-agent ablation M6 on $F_2$
+($\Delta F_2 = 0.000$), implying that the architectural decomposition contributes
+nothing beyond the prompt content. Multi-agent configurations additionally carry a
+$24\%$--$70\%$ provider-cost premium with no aggregate accuracy benefit, placing the
+zero-shot single-agent baseline on the Pareto frontier.
+
+These results delineate the conditions under which multi-agent designs help, are
+inert, or actively hurt in enterprise CLM, and motivate a practitioner-oriented
+six-gap analysis connecting benchmark performance to production deployment reality.

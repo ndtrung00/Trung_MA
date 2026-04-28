@@ -32,6 +32,11 @@
 \setkomafont{disposition}{\normalfont\bfseries} % use serif font for headings
 \linespread{1.05} % adjust line spread for mathpazo font
 
+% Add half-baseline vertical space between paragraphs.
+% parskip=half is the KOMA-Script-native way to do this; it correctly handles
+% spacing around lists, floats, section headings, and the TOC.
+\KOMAoptions{parskip=half}
+
 % Add table of contents to PDF bookmarks
 \BeforeTOCHead[toc]{{\cleardoublepage\pdfbookmark[0]{\contentsname}{toc}}}
 
