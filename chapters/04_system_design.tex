@@ -2,22 +2,248 @@
 
 \chapter{System Design and Implementation}\label{chapter:system-design}
 
-\section{Architectural Patterns Evaluated}\label{sec:arch-patterns}
-% Overview table of all configurations with one-line descriptions.
+This chapter documents the system that operationalises the configurations of Chapter~3.
+The objective is reproducibility: the architectures are described at a level of detail
+sufficient for an independent team to re-implement them, and the supporting
+infrastructure (prompt registry, model client, observability layer, dashboard, and test
+suite) is described at the same level. Code references in this chapter point to the
+thesis artifact released alongside the document.
 
-\section{Baseline Architectures}\label{sec:baselines}
-% B1 (zero-shot), B4 (chain-of-thought).
+\section{Architectural Patterns Evaluated}\label{sec:sys:patterns}
 
-\section{Multi-Agent Architectures}\label{sec:multi-agent-architectures}
-% M0 (classify-then-extract), M1 (router + specialists), M6 (combined-prompt
-% ablation), M7 (extract-then-verify, if run).
+The five configurations populate three orthogonal axes of the agentic design space:
+\emph{number of stages} (single vs.\ multi-stage), \emph{routing} (none, static, or
+LLM-driven), and \emph{specialisation} (a single generalist agent vs.\ several domain
+specialists vs.\ a consolidated specialist prompt). Table~\ref{tab:configs} summarises
+the five configurations and their position in this space.
 
-\section{Implementation Stack}\label{sec:implementation-stack}
-% LangGraph, Langfuse, model client, prompt registry.
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{lllll}
+    \toprule
+    \textbf{ID} & \textbf{Name} & \textbf{Stages} & \textbf{Routing} &
+    \textbf{Specialisation} \\
+    \midrule
+    B1 & Zero-shot single agent            & 1 & none          & generalist \\
+    B4 & Chain-of-thought single agent      & 1 & none          & generalist + reasoning \\
+    M0 & Classify-then-extract pipeline    & 2 & static (gate) & generalist \\
+    M1 & Orchestrator + 3 specialists      & 2 & LLM router    & three domain specialists \\
+    M6 & Consolidated specialist (ablation) & 1 & none          & one agent, union of specialist prompts \\
+    \bottomrule
+  \end{tabular}
+  \caption{The five evaluated configurations across the three design axes.}
+  \label{tab:configs}
+\end{table}
 
-\section{Traceability and Auditability}\label{sec:traceability}
-% Qualitative description of reasoning trace capture — formerly H4, now a
-% system feature.
+\section{Baseline Architectures}\label{sec:sys:baselines}
 
-\section{Experimental Infrastructure}\label{sec:experimental-infrastructure}
-% Data loading, diagnostics, dashboard for result exploration.
+\paragraph{B1 --- ContractEval replication.}
+B1 is a faithful replication of the zero-shot prompt protocol of
+\cite{liu2025contracteval}. The model receives a single user message containing the
+contract text, the target category name, the category indicator (a short
+attorney-style description of what the category covers, taken from CUAD's annotation
+guidelines), and an explicit instruction to either return the verbatim span(s) of the
+clause or the literal string ``no related clause''. The system message is identical
+across categories. No examples, no chain-of-thought instructions, and no auxiliary
+structure are added. B1 establishes the floor for a competent single-agent reading.
+
+\paragraph{B4 --- Chain-of-thought single agent.}
+B4 retains B1's task framing but explicitly elicits step-by-step reasoning followed by
+a structured final answer. The user prompt instructs the model to reason about the
+category definition, scan the contract for candidate spans, weigh ambiguous matches, and
+only then emit a final \texttt{<answer>...</answer>} block containing either verbatim
+span(s) or ``no related clause''.
+
+The B4 prompt went through one substantive revision during pilot work. The original
+delimiter-based parser extracted any text occurring after a sentinel string, which under
+certain models produced spurious matches: when the chain-of-thought monologue itself
+quoted contract passages, the parser harvested them as if they were the final answer,
+inflating the over-extraction rate. The fix was to enforce a structured-output contract:
+the parser now requires the final block to be enclosed in an explicit answer tag and
+rejects the trace otherwise, with a small repair step that re-prompts the model for a
+structured emission if the tag is missing. Only the post-fix version is in the official
+runs; the parsing-bug runs are retained for reference but excluded from all reported
+statistics.
+
+\section{Multi-Agent Architectures}\label{sec:sys:multiagent}
+
+\paragraph{M0 --- Classify-then-extract pipeline.}
+M0 decomposes the per-category task into two LLM calls. The first call is a binary
+\emph{classifier} agent that receives the contract and the category and returns a single
+yes/no token indicating whether any span of the category is present. The second call is
+an \emph{extractor} agent that is invoked only when the classifier returns yes; it
+receives the same inputs and produces the verbatim span(s). When the classifier returns
+no, the extractor is bypassed and the system records ``no related clause'' as the final
+answer. The two agents share a category indicator but have disjoint prompts: the
+classifier's prompt explicitly forbids span emission, and the extractor's prompt assumes
+presence. M0 implements the simplest form of conditional computation in the design space
+and is the architectural reference for the value of a classification gate.
+
+\paragraph{M1 --- Orchestrator with three specialists.}
+M1 consists of an \emph{orchestrator} that receives the contract and the category and
+routes the request, via an LLM router prompt, to one of three domain specialists. The
+router prompt enumerates the three specialists, gives a one-line description of each,
+and asks for a single category-name decision. The three specialists partition the 41
+CUAD categories as follows:
+
+\begin{itemize}
+  \item \textbf{Risk/Liability specialist} (13 categories): liability caps,
+    indemnification, insurance, warranty, governing law, and similar risk-allocation
+    provisions.
+  \item \textbf{Temporal/Renewal specialist} (11 categories): term, renewal,
+    termination, notice periods, post-termination obligations, and other time-bounded
+    provisions.
+  \item \textbf{IP/Commercial specialist} (17 categories): IP ownership and licence
+    grants, exclusivity, non-compete, audit rights, and commercial covenants.
+\end{itemize}
+
+Categories were assigned to specialists by the author in consultation with the CUAD
+category descriptions; the assignment was fixed before any model was run. Each
+specialist's prompt is a focused reading instruction tuned to its category cluster,
+including category indicators and asymmetry guidance (e.g.\ liability caps require
+recall of monetary thresholds, renewal clauses require recall of conditional triggers).
+The specialist returns a verbatim-span answer in the same schema as the baselines. M1
+thus combines two architectural commitments: routing and decomposition.
+
+\paragraph{M6 --- Consolidated specialist (ablation).}
+M6 is the architectural ablation control. Its prompt is the textual union of the three
+specialist prompts of M1, concatenated into a single agent that handles every category
+itself, with no router, no orchestrator, and no per-category branching. The category
+indicator is selected based on the request, but no decomposition is performed. The point
+of M6 is methodological: it lets us decide, in Chapter~5, whether any benefit M1 enjoys
+over B1 is attributable to architectural decomposition or merely to the more elaborated
+prompt content that the specialists carry. Concretely, M1 vs.\ M6 isolates
+``architecture'', and M6 vs.\ B1 isolates ``prompt content''.
+
+\section{Implementation Stack}\label{sec:sys:stack}
+
+\paragraph{Orchestration.}
+All configurations are implemented as LangGraph \texttt{StateGraph}s~\cite{langgraph2024},
+which let us express the orchestrator/router/specialist topology as typed nodes with
+declared transitions. Each node consumes and emits a structured run-state object
+containing the contract, the category, intermediate decisions (e.g.\ classifier verdict,
+routed specialist), and the in-progress answer. The graph topology is the executable
+representation of the architecture diagrams in Section~\ref{sec:sys:patterns}.
+
+\paragraph{Model client.}
+A unified multi-provider model client wraps Anthropic, OpenAI, Google Vertex AI, and
+Ollama under one synchronous and one streaming interface. The client supports 19 models
+in total but only the 11 listed in Section~\ref{sec:meth:models} are used in official
+runs. Per call it records prompt tokens, completion tokens, cache-read tokens (where
+supported), wall-clock latency, and provider-billed cost. These diagnostics are written
+to the trace and aggregated downstream.
+
+\paragraph{Prompt management.}
+Prompts are stored in a YAML registry with a stable schema. The registry has two roots,
+\texttt{prompts/baselines/} (B1, B4) and \texttt{prompts/specialists/} (the three M1
+specialists, the M6 consolidated prompt, the M0 classifier and extractor), and a
+separate \texttt{indicators/} directory holding the per-category indicator strings
+shared across configurations. The registry is loaded once per run and version-pinned in
+the run metadata.
+
+\paragraph{Observability.}
+Every model call is traced via Langfuse~\cite{langfuse2024} with a structured trace
+format that records the configuration ID, the model identifier, the prompt template
+version, the input tokens, the output tokens, the parsed answer, and the routing or
+classification decision (where applicable). For M1, the trace records the orchestrator
+decision, the routed specialist, and the specialist's answer in a parent-child trace
+structure. We measured trace completeness (fraction of model calls for which all
+expected trace fields were populated) at $95.2\%$ for M1 across the official runs; the
+remaining $4.8\%$ are largely due to provider-side trace truncations on long contracts
+and are flagged in the run logs.
+
+\paragraph{Data and persistence.}
+The CUAD loader implements the 100{,}000-character filter, the natural-prior sampler,
+and the tier partition of Section~\ref{sec:meth:sampling}. It is a deterministic
+component keyed by \texttt{seed=42}. Per-run outputs are persisted as JSONL files
+containing one record per (sample, configuration, model) prediction with full trace
+identifiers, allowing the statistical pipelines (Section~\ref{sec:meth:stats}) to be
+re-run from raw logs.
+
+\paragraph{Language and tooling.}
+The codebase is Python, managed with \texttt{uv}, and the statistical pipelines are
+built on \texttt{pandas}~\cite{pandas2020}, \texttt{numpy}~\cite{harris2020array}, and
+\texttt{scipy}~\cite{virtanen2020scipy}. Bootstrap resampling uses \texttt{numpy}
+random generators with run-level seeds for reproducibility.
+
+\section{Traceability and Auditability}\label{sec:sys:trace}
+
+A property of multi-stage agentic systems that is frequently advertised but rarely
+characterised is \emph{auditability}: the claim that decomposition produces inspectable
+artefacts that enable reviewer trust. We treat auditability as a system property of the
+implementation rather than as a hypothesis to be tested, and document here what the
+system records and what trade-offs that recording entails. This section addresses
+Sub-RQ3 of Chapter~1.
+
+For each clause-level decision, the system captures: (i) the configuration ID and model
+identifier, (ii) the prompt template version and the rendered prompt, (iii) the model's
+full completion, (iv) the parsed final answer with the parser version, (v) the routing
+decision (M1) or classification verdict (M0) where applicable, and (vi) the per-call
+token, cost, and latency diagnostics. M1 traces are structured as parent-child
+relationships: the orchestrator's routing call is the parent, and the routed
+specialist's call is its child. M0 traces analogously expose the classifier as parent
+and the extractor (when invoked) as child.
+
+This trace structure supports three concrete auditability properties. First,
+\emph{decision attribution}: any final answer can be traced to the specific agent that
+produced it and the specific prompt version that elicited it. Second,
+\emph{counterfactual replay}: because prompts and model identifiers are pinned per call,
+re-running the trace with a different model is mechanical, which lets a reviewer ask
+``would this contract have been flagged by a stronger model?'' without re-running the
+full pipeline. Third, \emph{rejection forensics}: when M0 silently returns ``no related
+clause'' on a category, the classifier's verdict is recorded explicitly, which makes the
+failure mode of Section~\ref{sec:res:cascade} (over-rejection) directly visible at
+audit time.
+
+The trade-offs are substantive. Verbose traces increase storage cost (the JSONL
+persistence layer is on the order of gigabytes per full sweep) and, when
+chains-of-thought are recorded, can themselves contain sensitive contract content; we
+therefore distinguish between trace fields that are safe to surface to operators
+(decisions, token counts) and those that should be access-controlled (full prompts and
+completions). Auditability is also a property of the \emph{system}, not of the
+underlying model: the trace is faithful to the call graph but does not certify that the
+model's stated reasoning is its actual reasoning.
+
+\section{Experimental Infrastructure}\label{sec:sys:infra}
+
+\paragraph{Loader and sampling.}
+The CUAD loader is the single source of truth for which contracts and which categories
+enter a run. It enforces the 100{,}000-character filter, applies the natural-prior
+sampler, and emits the tier label for every sample. For the official runs the loader
+produces approximately 2{,}999 samples per run and is identical across configurations,
+ensuring that pairing in Chapter~5's statistical pipeline is well-defined.
+
+\paragraph{Statistical aggregation.}
+A separate aggregation pipeline reads the per-run JSONL outputs, computes the
+per-sample correctness vectors, and emits the McNemar contingency tables, the paired
+bootstrap distributions, and the BH-corrected $p$-value tables. Aggregation is
+deterministic given the JSONL inputs and a fixed bootstrap seed. The pipeline emits
+machine-readable summaries that feed both the thesis tables and the dashboard.
+
+\paragraph{Dashboard.}
+A Next.js dashboard is provided for interactive exploration of experiment outputs,
+including per-model $F_2$ comparisons, per-tier breakdowns, per-call cost and latency
+views, and trace inspection by sample ID. The dashboard is not part of the statistical
+pipeline but is the primary interface used during error analysis and was the channel
+through which the over-extraction failure mode (Chapter~5) was first surfaced visually.
+
+\paragraph{Test suite.}
+An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard, laziness,
+over-extraction), the CUAD loader (filter, sampling determinism, tier assignment), the
+agent topologies (B1, B4, M0, M1, M6 each have at least one end-to-end test against a
+stub model), and the statistical pipelines (McNemar exact, paired bootstrap, BH
+correction, intersection logic for partial runs). The full suite passes prior to every
+official run. Notebook artefacts
+(\texttt{01\_data\_exploration.ipynb},
+\texttt{02\_workflow\_test.ipynb},
+\texttt{03\_baseline\_calibration.ipynb},
+\texttt{04\_multiagent\_experiment.ipynb})
+are retained as reproducible exploratory entry points.
+
+\paragraph{Reproducibility.}
+Reproducibility is supported by three commitments: deterministic sampling under
+\texttt{seed=42}; explicit version pinning of model identifiers in the run metadata;
+and persistence of the full trace bundle (prompts, completions, parsed answers,
+diagnostics) so that downstream statistics can be regenerated from raw logs without
+rerunning models.

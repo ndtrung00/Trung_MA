@@ -2,29 +2,292 @@
 
 \chapter{Methodology}\label{chapter:methodology}
 
-\section{Research Design}\label{sec:research-design}
-% Controlled comparison across baselines and multi-agent configurations on a
-% fixed dataset.
+This chapter specifies the experimental design used to evaluate multi-agent
+architectures for clause extraction in Contract Lifecycle Management (CLM). The chapter
+is organised around the research questions introduced in Chapter~1 and the conceptual
+framing developed in Chapter~2: we contrast a small set of architectural configurations
+on a fixed legal-NLP benchmark, holding model identity and prompt content constant
+within each comparison, and use paired statistical procedures to decide between
+competing hypotheses about architectural value. Where Chapter~2 surveyed the design
+space of agentic systems and the empirical record of LLMs on contract review, this
+chapter operationalises that space into testable configurations and a falsification
+protocol.
 
-\section{Dataset Selection and Justification}\label{sec:dataset-selection}
-% Why CUAD, the long-contract filter rationale, resulting evaluation pool.
+\section{Research Design}\label{sec:meth:design}
 
-\section{Sampling Strategy: Natural Class Distribution}\label{sec:sampling-strategy}
-% The 30/70 positive/negative ratio, why downsampling is required, and why
-% this matters. Framed as a methodological contribution.
+The study follows a controlled comparative design in the spirit of
+\cite{dror2018hitchhikers} and \cite{card2020little}: a fixed evaluation set, a fixed
+metric family, and a small set of clearly-distinguished system configurations whose
+differences are intentionally minimised to a single architectural axis at a time. Each
+configuration is run, end to end, against the same sample of contracts using the same
+eleven LLMs, so that any observed performance difference can be attributed either to
+architecture, to the model, or to their interaction, but not to dataset drift or prompt
+contamination.
 
-\section{Metric Selection}\label{sec:metric-selection}
-% F2 over F1, Jaccard, laziness and over-extraction as asymmetric failure
-% diagnostics, per-tier stratification.
+We evaluate five configurations. Two are single-agent baselines: \textbf{B1}, a
+zero-shot replication of the ContractEval prompt of \cite{liu2025contracteval} delivered
+as a single user message; and \textbf{B4}, a chain-of-thought (CoT) variant that elicits
+step-by-step reasoning and a structured final answer. Three are multi-agent
+configurations: \textbf{M0}, a classify-then-extract pipeline in which a binary
+classifier first decides whether the target category is present and an extractor is
+invoked only conditionally; \textbf{M1}, an orchestrator with three domain specialists
+(Risk/Liability, Temporal/Renewal, IP/Commercial) and an LLM router; and \textbf{M6},
+a single-agent ablation that consolidates the union of all specialist instructions into
+one prompt without routing or pipelining. M6 is the architectural control that isolates
+the contribution of \emph{routing and decomposition} from the contribution of
+\emph{specialist domain knowledge expressed in prompts}.
 
-\section{Hypotheses and Success Criteria}\label{sec:hypotheses-success-criteria}
-% Revised H1, H2, H3 with explicit statistical tests and effect size reporting.
+Three retrieval and verification configurations originally proposed in our
+pre-registration (BM25 baseline B5, BM25+reranker B6, extract-then-verify M7, and an
+ensemble M8) were cut from the main study to keep the comparison space tractable; we
+discuss them as future work in Chapter~7. Holding the design to the five configurations
+above preserves the single-variable ablation principle: M0 vs.\ B1 isolates the value
+of a classification gate; M1 vs.\ M6 isolates the value of routing and decomposition
+given equivalent prompt content; B4 vs.\ B1 isolates the value of explicit reasoning
+under a single agent.
 
-\section{Statistical Methodology}\label{sec:statistical-methodology}
-% McNemar's, bootstrap CIs, Benjamini-Hochberg correction.
+Each (configuration, model) cell yields one official run, for a total of
+$5 \times 11 = 55$ official runs. Within a run the model evaluates one sample at a time
+across all 41 CUAD categories. We log structured traces (Section~\ref{sec:sys:trace})
+sufficient to reconstruct every per-call decision \emph{post hoc}.
 
-\section{Model Selection}\label{sec:model-selection}
-% Which models, why, why proprietary-only for the main comparison.
+\section{Dataset Selection and Justification}\label{sec:meth:data}
 
-\section{Threats to Validity}\label{sec:threats-to-validity}
-% Internal, external, construct, statistical.
+We use the Contract Understanding Atticus Dataset~\cite{hendrycks2021cuad} as the
+evaluation corpus. CUAD is the largest publicly available expert-annotated benchmark
+for commercial-contract clause extraction; it contains 510 contracts with 41 categories
+of legally salient provisions and is the benchmark used by
+ContractEval~\cite{liu2025contracteval} and the majority of recent LLM-based contract
+review work surveyed in Chapter~2. Its annotation is performed by attorneys, its license
+permits research evaluation, and its category taxonomy aligns with the categories that
+legal-tech CLM platforms surface in production review workflows.
+
+For this thesis we restrict evaluation to the 81 CUAD contracts longer than
+100{,}000 characters. Two reasons motivate this filter. First, long-context performance
+is the regime in which agentic decomposition is hypothesised to add value (Chapter~2):
+short contracts can be ingested in a single prompt by every model in our study, so any
+architectural differentiation should be most visible on long ones. Second, long contracts
+approximate the operational distribution of CLM platforms more closely than short addenda
+or one-page NDAs that dominate the lower tail of CUAD. The 81-contract subset yields a
+raw enumeration of $81 \times 41 = 3{,}321$ (contract, category) pairs per evaluation
+pass. After per-run downsampling (Section~\ref{sec:meth:sampling}) each run produces
+approximately 2{,}999 predictions; aggregated across the 55 official runs we analyse
+163{,}644 sample-level predictions after dropping 1{,}297 samples
+($\approx 0.79\%$) for which the model returned a malformed classification token
+(Section~\ref{sec:meth:stats}).
+
+Following CUAD's evaluation convention, ground truth is the union of
+attorney-annotated answer spans for each (contract, category) pair. A category for which
+the annotators marked no span is a true negative (the clause is genuinely absent). This
+convention preserves the natural imbalance of the corpus, which we discuss next.
+
+\section{Sampling Strategy: Natural Class Distribution}\label{sec:meth:sampling}
+
+CUAD is naturally imbalanced toward absence: most categories are absent from most
+contracts. Pilot work for this thesis initially used an \texttt{include\_negative=True}
+configuration that produced an approximately $67\%$ positive~/ $33\%$ negative split
+per run. We replaced this with a \texttt{neg\_ratio=0.7} sampler that produces a $30\%$
+positive~/ $70\%$ negative split, mirroring the natural class prior in the long-contract
+subset. Switching to the natural prior makes one failure mode visible that the
+inflated-positive sampler had masked: under a positive-heavy sample, over-extraction
+(a model emitting text for a category that is in fact absent) is rarely penalised because
+there are few absent samples; under the natural prior, over-extraction directly depresses
+precision and is reflected in $F$-measures. We retain the natural-prior sampler for all
+reported results.
+
+Each run draws samples with a fixed pseudo-random seed (\texttt{seed=42}) so that the
+same (contract, category) pairs are evaluated across configurations within a model. This
+is the basis for paired comparison: every statistical test is computed on the
+intersection of sample IDs across the two configurations being compared, never on
+independent draws. Where partial runs differ in coverage (rare), the intersection is
+taken explicitly and reported.
+
+To assess whether architectures behave differently on rare versus common provisions,
+we partition the 41 CUAD categories into three prevalence \emph{tiers} computed from
+the natural positive rate of each category in the long-contract subset: \emph{common},
+\emph{moderate}, and \emph{rare}. The tier cutpoints are fixed before any model is run
+and are the same across all configurations and models. Per-tier metrics
+(Section~\ref{sec:meth:metrics}) are then reported alongside the pooled metric.
+
+\section{Metric Selection}\label{sec:meth:metrics}
+
+Clause extraction has two natural granularities. At sample level, it is a binary
+classification problem (\emph{is the clause present in this contract?}). At span level,
+it is an extraction problem (\emph{which substring expresses the clause?}). We report
+metrics at both granularities.
+
+The primary metric is the $F_\beta$ score with $\beta = 2$, which weights recall four
+times as heavily as precision. The choice reflects the asymmetry of legal review: a
+missed risky clause is a substantive harm to the downstream user (an attorney or
+contracting party), whereas a falsely flagged clause is corrected cheaply by the
+reviewer in the next stage of the CLM workflow. This recall-favouring asymmetry is
+consistent with how earlier CUAD work has framed
+evaluation~\cite{hendrycks2021cuad,liu2025contracteval}, and we treat $F_2$ as the
+default for hypothesis testing.
+
+We also report standard $F_1$ as a comparison-friendly secondary metric, precision and
+recall separately to expose the failure mode behind any $F_\beta$ change, and span-level
+Jaccard overlap to capture the quality of extracted spans conditional on extraction. Two
+complementary diagnostic rates are tracked: the \emph{laziness rate}, defined as the
+fraction of clause-present samples for which the model output is ``no related clause''
+(i.e.\ silent omission), and its dual, the \emph{over-extraction rate}, defined as the
+fraction of clause-absent samples for which the model returned a non-empty span
+(i.e.\ hallucinated or over-eager flagging). All metrics are reported pooled across the
+41 CUAD categories and broken down per tier (common, moderate, rare).
+
+\section{Hypotheses and Success Criteria}\label{sec:meth:hypotheses}
+
+We pre-register three hypotheses corresponding to the three sub-research-questions of
+Chapter~1. Each is stated neutrally as a falsifiable proposition; the chapter does not
+pre-commit to a result.
+
+\paragraph{H1 (Architectural value).}
+\emph{There exists at least one multi-agent configuration
+$C \in \{\text{M0}, \text{M1}, \text{M6}\}$ that outperforms the strongest single-agent
+baseline $B^\star \in \{\text{B1}, \text{B4}\}$ on $F_2$.} The null is that no such $C$
+exists. The test statistic is McNemar's discordant-pair count between $B^\star$ and $C$,
+computed on per-sample classification correctness ($\mathrm{TP} \cup \mathrm{TN}$
+treated as ``correct''); we use the exact binomial form via
+\texttt{scipy.stats.binomtest}~\cite{mcnemar1947note,virtanen2020scipy}. The decision
+rule is rejection of the null if the BH-corrected two-sided $p$-value falls below
+$\alpha = 0.05$ on at least one such pair, with the $F_2$ direction favouring $C$. The
+effect size reported alongside is the per-model paired bootstrap mean $\Delta F_2$ with
+300 resamples and a $95\%$ percentile confidence
+interval~\cite{efron1979bootstrap}.
+
+\paragraph{H2 (Tier-equity).}
+\emph{Multi-agent architectures reduce the rare--common $F_2$ gap relative to
+single-agent baselines.} Define
+$\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$
+for configuration $C$. The null is
+$\mathrm{Gap}(C_{\text{multi}}) \geq \mathrm{Gap}(B^\star)$.
+Inference uses a per-tier paired bootstrap on the gap difference
+$\Delta\mathrm{Gap} = \mathrm{Gap}(C_{\text{multi}}) - \mathrm{Gap}(B^\star)$ with 300
+resamples and $95\%$ percentile CI; the null is rejected if the upper end of the CI
+lies below zero.
+
+\paragraph{H3 (Architecture vs.\ prompts).}
+\emph{The benefit (if any) of M1 over a single-agent baseline is attributable to the
+architectural decomposition itself, beyond what is achievable by consolidating specialist
+instructions into a single prompt (M6).} The null is that M1 and M6 are statistically
+indistinguishable. The primary test is two-sided McNemar's exact on M1 vs.\ M6
+per-sample correctness; a paired-bootstrap $\Delta F_2$ confidence interval is reported
+as effect size. As a secondary test we compare M0 vs.\ M6 to separate the contribution
+of the classification gate from that of decomposition. Span-level Jaccard is reported
+alongside as a quality-of-output check.
+
+For all three hypotheses we report pooled and per-tier statistics; H1 and H3 use
+BH-corrected $p$-values within their family of pairwise comparisons
+(Section~\ref{sec:meth:stats}). The pre-registered family for H1 is the ten pooled
+pairwise comparisons induced by the five configurations (i.e.\ $\binom{5}{2} = 10$). H2
+is reported as effect-size CIs without an additional FDR correction because it is a
+single directional contrast per (configuration, baseline) pair on a different statistic
+than H1.
+
+\section{Statistical Methodology}\label{sec:meth:stats}
+
+\paragraph{Per-sample paired tests.}
+For each pair of configurations being compared, we compute per-sample correctness as
+the indicator that the model's binary classification matches the ground truth (TP or
+TN). We then form the McNemar discordant pair counts $b$ (correct under $A$, incorrect
+under $B$) and $c$ (incorrect under $A$, correct under $B$) and obtain the two-sided
+exact $p$-value as the binomial tail probability under $\mathrm{Binomial}(b+c, 0.5)$
+\cite{mcnemar1947note}, implemented via
+\texttt{scipy.stats.binomtest}~\cite{virtanen2020scipy}. The exact binomial form is
+preferred over the chi-squared approximation because some discordant counts on
+rare-category subsets are small.
+
+\paragraph{Paired bootstrap.}
+For continuous metrics ($F_2$, $F_1$, Jaccard, gap differences) we use the paired
+non-parametric bootstrap~\cite{efron1979bootstrap,riezler2005pitfalls}. Sample IDs
+(not categories) are resampled with replacement; both configurations are evaluated on
+the resampled IDs to preserve pairing. We use $B = 300$ resamples and report the
+$95\%$ percentile confidence interval. Per-tier bootstraps for H2 resample within tier
+strata. The number of resamples (300) was chosen to balance Monte Carlo error against
+compute cost across 55 runs; we report bootstrap stability as a robustness check in
+Chapter~5.
+
+\paragraph{Multiple-comparison correction.}
+The H1 family is the ten pooled pairwise configuration comparisons, evaluated within
+each model. We apply the Benjamini--Hochberg
+procedure~\cite{benjamini1995controlling} at $\alpha = 0.05$ to control the false
+discovery rate within this family. We report both raw and BH-corrected $p$-values to
+allow the reader to apply alternative thresholds.
+
+\paragraph{Paired comparison protocol.}
+Every test is computed on the intersection of sample IDs between the two configurations,
+never on independent samples. When a model's run is partially missing for some sample
+IDs (e.g.\ because of provider rate limits), the missing samples are dropped
+\emph{symmetrically} from both configurations being compared. The intersection size is
+reported with each test.
+
+\paragraph{Missing-data handling.}
+Some model outputs return a malformed classification token (neither a clean ``yes/no''
+nor a parseable span). Such samples cannot be assigned a TP/FP/TN/FN label and are
+excluded from per-sample tests. Across the entire study this affects 1{,}297 of
+164{,}941 predictions, or $0.79\%$. The exclusion is applied symmetrically per pairwise
+comparison: if a sample is null in either of the two configurations being compared, it
+is dropped from that comparison only. This avoids penalising the configuration that
+happened to produce a parseable answer.
+
+\paragraph{Statistical power.}
+\cite{card2020little} caution that NLP comparisons are frequently under-powered. The
+pairwise sample size after intersection is on the order of $2{,}900$--$3{,}000$ per
+(configuration, model) pair, which is comparable to or larger than the GLUE test sets
+analysed in their meta-study and is sufficient to detect small-to-moderate effects in
+$F_2$ with the bootstrap procedure used here. We do not, however, claim power against
+arbitrarily small effects; the smallest effect size detectable in our design is reported
+alongside each comparison.
+
+\section{Model Selection}\label{sec:meth:models}
+
+We evaluate eleven frontier proprietary models drawn from three families: Anthropic
+(Claude Haiku~4.5, Claude Sonnet~4, Claude Sonnet~4.6, Claude Opus~4.6); Google
+(Gemini~2.5 Flash, Gemini~2.5 Pro, Gemini~3 Flash, Gemini~3.1 Pro); and OpenAI
+(GPT-4.1, GPT-4.1 Mini, GPT-4.1 Nano). The selection covers three deployed model
+families and, within each family, spans a deliberate compute-tier range from light
+(Haiku, Flash, Nano) to heavy (Opus, Pro). The breadth lets us separate effects that
+are model-family-specific (e.g.\ a particular family responding well to
+chain-of-thought) from effects that are architectural in origin. We restrict the main
+analysis to proprietary models because they represent the deployment substrate of
+current commercial CLM platforms, which is the population to which the thesis intends
+to generalise; an open-weights extension is discussed in Chapter~7.
+
+\section{Threats to Validity}\label{sec:meth:threats}
+
+\paragraph{Internal validity.}
+Configuration parity is the central internal-validity concern. We mitigate it by holding
+the underlying CUAD loader, sampling seed, prompt registry, and trace schema constant
+across configurations, and by isolating prompts: the same specialist instructions appear
+in M1 (split across three agents) and M6 (concatenated in one agent), so the textual
+prompt content is the same union in both cases. Temperature and decoding parameters are
+fixed per provider. The chain-of-thought parsing logic for B4 went through one revision
+(an early delimiter-based parser was replaced by structured-output enforcement; see
+Section~\ref{sec:sys:baselines}), and only the post-fix version is included in the
+official runs.
+
+\paragraph{External validity.}
+The evaluation is single-language (English), single-jurisdiction (predominantly
+U.S.\ commercial contracts), and single-corpus (CUAD). Generalisation to other legal
+traditions, languages, or contract types is not guaranteed by these results and is
+discussed explicitly in Chapter~7. We also use a fixed snapshot of each model; provider
+model updates can shift behaviour, and we record exact model identifiers in the run
+metadata.
+
+\paragraph{Construct validity.}
+$F_2$ is a proxy for legal review utility, not a measurement of it. The legal-risk
+asymmetry that motivates $\beta = 2$ is plausible but not measured against actual
+reviewer behaviour, and reviewer cost of inspecting an over-extracted span is
+workflow-dependent. We mitigate this by reporting precision, recall, Jaccard, laziness,
+and over-extraction independently so a reader with a different utility model can
+re-weight.
+
+\paragraph{Statistical validity.}
+Three concerns deserve flagging. First, multiple comparisons inflate false-positive risk;
+we control the family-wise FDR via BH~\cite{benjamini1995controlling} but not all
+secondary contrasts are corrected, and we report this transparently. Second, model
+identity is treated as a fixed factor rather than a random effect, which limits inference
+to the eleven models studied. Third, bootstrap percentile CIs are known to under-cover
+for small samples and skewed statistics~\cite{efron1979bootstrap}; we report bootstrap
+diagnostics in Chapter~5 and treat tail-area $p$-values as decisive only when
+corroborated by the McNemar exact test.
