@@ -1,413 +1,309 @@
 % !TeX root = ../main.tex
 
-\chapter{Literature Review}\label{chapter:literature-review}
+\chapter{Background and Related Work}\label{chapter:literature-review}
 
-This chapter situates the thesis within four threads of prior work: the CLM problem
-space and its enterprise stakes (Section~\ref{sec:lit:clm}), the evolution of contract
-analysis methods from rule-based pipelines to LLMs
-(Sections~\ref{sec:lit:rulebased} and~\ref{sec:lit:llm}), multi-agent systems and
-their reception in legal AI (Section~\ref{sec:lit:mas}), the conditions under which
-multi-agent designs help or hurt (Section~\ref{sec:lit:when}), and evaluation
-methodology in legal NLP (Section~\ref{sec:lit:eval}). The chapter closes with a
-synthesis (Section~\ref{sec:lit:synthesis}) that positions the present work against the
-gap identified in Chapter~1.
+\section{Background}\label{sec:lit:background}
 
-\section{The CLM Problem Space}\label{sec:lit:clm}
+\subsection{Contract Lifecycle Management}\label{sec:lit:clm}
 
-Contract Lifecycle Management denotes the end-to-end set of activities through which
-an organisation authors, negotiates, executes, monitors, renews, and ultimately retires
-its contractual instruments. Practitioners typically partition the lifecycle into a
-request phase, an authoring phase, a negotiation and approval phase, an execution
-phase, and an obligation-management phase, with audit and renewal looping back into
-authoring. From an information-systems perspective, CLM is therefore a long-running,
-multi-stakeholder workflow that sits at the intersection of legal, procurement, finance,
-and operational functions.
+CLM is the end-to-end workflow through which an organisation authors, negotiates,
+executes, monitors, and retires its contractual instruments.
+Figure~\ref{fig:clm-lifecycle} shows the canonical six-stage model.
+The economic surface is large: $\approx\!9\%$ annual revenue loss from poor
+contracting~\cite{worldcc2025benchmark}, with 44\% of U.S.\ legal-task time exposed
+to automation~\cite{goldmansachs2023ai}. Three NLP sub-tasks dominate the
+Execute and Monitor stages: \emph{clause extraction} (locate and bound the span
+instantiating a clause category), \emph{risk identification} (classify extracted
+clauses against playbook standards), and \emph{obligation tracking} (convert executed
+clauses into a structured event calendar).
 
-The economic stakes are large. World Commerce \& Contracting estimates that
-organisations forfeit value equivalent to roughly nine percent of annual revenue through
-poor contracting practices on average, with the figure rising substantially in complex
-industries~\cite{worldcc2025benchmark}. The same source reports that contract-related
-data is dispersed across an average of twenty-four systems within a single organisation,
-and that the majority of executives surveyed regard their contracts as too rigid to
-accommodate change~\cite{worldcc2025benchmark}. Goldman Sachs analysts estimate that
-forty-four percent of legal-task time in the United States is technically exposed to
-automation by generative AI, second only to administrative
-occupations~\cite{goldmansachs2023ai}.
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    stage/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!20,
+                  rounded corners=2pt, minimum width=1.55cm, minimum height=0.55cm,
+                  align=center, font=\scriptsize},
+    >=stealth, thick
+  ]
+    \node[stage] (req)  at (0.0,0) {Request};
+    \node[stage] (auth) at (2.1,0) {Author};
+    \node[stage] (neg)  at (4.2,0) {Negotiate};
+    \node[stage] (exec) at (6.3,0) {Execute};
+    \node[stage] (mon)  at (8.4,0) {Monitor};
+    \node[stage] (ren)  at (10.5,0) {\shortstack{Renew/\\Retire}};
+    \draw[->] (req)  -- (auth);
+    \draw[->] (auth) -- (neg);
+    \draw[->] (neg)  -- (exec);
+    \draw[->] (exec) -- (mon);
+    \draw[->] (mon)  -- (ren);
+    \draw[->, dashed]
+      (ren.south) .. controls (10.5,-0.85) and (2.1,-0.85) ..
+      node[below, font=\scriptsize] {amend / renew}
+      (auth.south);
+    % Highlight NLP-heavy stages
+    \draw[TUMAccentOrange, thick, rounded corners=3pt]
+      (5.5,-0.45) rectangle (9.2, 0.45);
+    \node[font=\scriptsize, TUMAccentOrange] at (7.35,-0.7) {NLP sub-tasks};
+  \end{tikzpicture}
+  \caption{CLM lifecycle. Clause extraction, risk identification, and obligation
+  tracking (highlighted) occur primarily in the Execute and Monitor stages.}
+  \label{fig:clm-lifecycle}
+\end{figure}
 
-The bottleneck within this lifecycle is typically the review stage, in which contracts
-must be parsed against playbooks to identify present clauses, missing clauses,
-deviations from preferred wording, and risk-bearing provisions. Three sub-tasks
-dominate. \emph{Clause extraction} locates and bounds the textual span that instantiates
-a given clause category --- for example, an indemnification clause or a
-change-of-control provision. \emph{Risk identification} classifies extracted clauses
-against playbook standards, flagging deviations that warrant escalation.
-\emph{Obligation tracking} converts executed clauses into a structured calendar of
-duties, milestones, and contingent triggers. Each sub-task amplifies the cost of error:
-a missed indemnification clause produces audit-time financial exposure, a misclassified
-risk produces negotiation-time leverage loss, and an untracked obligation produces
-post-execution non-compliance.
+\subsection{Large Language Models}\label{sec:lit:llm-background}
 
-These three sub-tasks share a structural property that motivates the rest of this
-chapter. They are all, at their core, span-extraction and span-classification problems
-over long, heterogeneous, domain-specific documents --- exactly the regime in which
-information-extraction methodology has evolved over the past two decades.
+An LLM is a neural language model parameterised by $\theta$ that factorises a token
+sequence $\mathbf{x} = (x_1,\dots,x_n)$ autoregressively:
+%
+\begin{equation}\label{eq:llm}
+  P(\mathbf{x};\theta) = \prod_{t=1}^{n} P(x_t \mid x_1,\dots,x_{t-1};\theta).
+\end{equation}
+%
+Training minimises the negative log-likelihood
+$\mathcal{L}(\theta) = -\sum_{t=1}^{n} \log P(x_t \mid x_{<t};\theta)$
+over large text corpora. At inference the model generates $x_t$ by sampling from the
+distribution over the vocabulary conditioned on the preceding context. Instruction
+tuning and reinforcement learning from human feedback (RLHF) align the base model
+toward task-following behaviour without changing the fundamental
+factorisation~\cite{devlin2019bert}.
 
-\section{From Rule-Based to Neural Approaches}\label{sec:lit:rulebased}
+\subsection{Agentic AI and Multi-Agent Systems}\label{sec:lit:mas-background}
 
-Pre-LLM contract analysis was dominated by symbolic and statistical methods. Rule-based
-extractors, often built around regular expressions, gazetteers, and hand-engineered
-grammars, achieved high precision on narrow clause types but degraded sharply on
-contracts whose drafting style departed from the templates encoded in the rules. The
-transition to statistical sequence labelling, exemplified by Conditional Random
-Fields~\cite{lafferty2001crf}, provided a principled probabilistic treatment of span
-boundaries and substantially improved cross-document robustness. The CRF formulation was
-widely adopted for legal information extraction in the 2000s and remained competitive
-through the deep-learning transition.
+An \emph{agent} is an LLM invocation that (i) receives a structured role specification
+and context, (ii) may call tools or sub-agents, and (iii) emits a typed output.
+A \emph{multi-agent system} (MAS) is a directed graph of agents with typed
+message-passing edges; see Figure~\ref{fig:mas-architecture}.
+Key structural dimensions are topology (hierarchical vs.\ peer), routing (static
+pipeline vs.\ LLM-mediated dispatch), specialisation granularity (per-task vs.\
+per-domain vs.\ per-step), and verification structure (none, reflective, debate, or
+judge-agent)~\cite{wu2023autogen,hong2024metagpt,li2023camel}.
 
-The deep-learning era introduced neural sequence labellers that combined bidirectional
-recurrent encoders with CRF output layers. Lample et al.\ demonstrated that
-bidirectional LSTM encoders coupled with a CRF decoding layer outperformed prior
-named-entity recognition systems without hand-engineered features, establishing the
-BiLSTM-CRF architecture as a workhorse for span extraction in legal and biomedical
-domains~\cite{lample2016neural}. The introduction of the Transformer encoder and
-BERT~\cite{devlin2019bert} initiated a further shift, replacing recurrent encoders with
-self-attention and enabling effective transfer from large general-domain corpora to
-small legal corpora through fine-tuning.
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+    box/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!20,
+                rounded corners=2pt, minimum width=2.0cm, minimum height=0.5cm,
+                align=center, font=\small},
+    spec/.style={rectangle, draw=TUMAccentOrange, fill=TUMAccentOrange!15,
+                 rounded corners=2pt, minimum width=1.8cm, minimum height=0.5cm,
+                 align=center, font=\small},
+    >=stealth, thick
+  ]
+    \node[box]  (inp)  at (3,3.6) {Input};
+    \node[box]  (orch) at (3,2.7) {Orchestrator};
+    \node[box]  (rout) at (3,1.8) {Router};
+    \node[spec] (s1)   at (0.5,0.8) {Specialist 1};
+    \node[spec] (s2)   at (3,  0.8) {Specialist 2};
+    \node[spec] (s3)   at (5.5,0.8) {Specialist 3};
+    \node[box]  (out)  at (3,-0.1) {Answer};
+    \draw[->] (inp)  -- (orch);
+    \draw[->] (orch) -- (rout);
+    \draw[->] (rout) -- (s1);
+    \draw[->] (rout) -- (s2);
+    \draw[->] (rout) -- (s3);
+    \draw[->, dashed] (s1.south) .. controls (0.5,0.2) and (2.2,-0.1) .. (out.west);
+    \draw[->] (s2)   -- (out);
+    \draw[->, dashed] (s3.south) .. controls (5.5,0.2) and (3.8,-0.1) .. (out.east);
+    % Labels
+    \node[font=\scriptsize, TUMBlue] at (5.6,2.25) {dispatch};
+    \node[font=\scriptsize, TUMAccentOrange] at (5.8,0.8) {domain experts};
+  \end{tikzpicture}
+  \caption{Canonical hierarchical multi-agent architecture. The orchestrator
+  coordinates; the router dispatches to one specialist per request; specialists return
+  typed answers. Dashed arrows indicate conditional paths.}
+  \label{fig:mas-architecture}
+\end{figure}
 
-Domain-specific pre-training emerged in response to the observation that legal text
-exhibits lexical, syntactic, and discourse properties that differ systematically from
-general-purpose web text. LEGAL-BERT, introduced by Chalkidis et al., investigated
-three adaptation strategies: out-of-the-box use, additional pre-training on legal
-corpora, and pre-training from scratch, and reported that domain pre-training generally
-improved downstream legal NLP performance, with pre-training from scratch giving the
-largest gains in the most domain-shifted tasks~\cite{chalkidis2020legalbert}.
-LEGAL-BERT and its descendants became standard baselines for legal classification and
-extraction tasks throughout the late 2010s and early 2020s.
+\subsection{The CUAD Benchmark}\label{sec:lit:cuad}
 
-Three limitations of the rule-based and BERT-era stack motivated the transition to
-LLMs. First, span-extraction supervision is expensive: legal annotation requires
-lawyer-time, and the expert-annotated CUAD dataset, with its five hundred contracts and
-forty-one categories~\cite{hendrycks2021cuad}, was a large undertaking by the standards
-of legal NLP. Second, BERT-class encoders are limited by their context windows,
-typically 512 tokens, which forces sliding-window inference over long contracts and
-complicates document-level reasoning. Third, BERT-class models do not generalise
-zero-shot to new clause categories: each new category requires labelled examples, which
-is incompatible with the long tail of clause types that arises in production CLM. These
-limitations created the opening that LLM-based contract analysis has, in the past four
-years, attempted to fill.
+CUAD~\cite{hendrycks2021cuad} is the standard public benchmark for commercial-contract
+clause extraction (Table~\ref{tab:cuad-stats}). Each (contract, category) pair is
+labelled with zero or more verbatim attorney-annotated spans; absence of a span is a
+true negative. Category prevalence is heavily skewed toward absence ($\approx\!70\%$
+negative at the instance level), which is why sampling design is a methodological
+lever (Section~\ref{sec:meth:sampling}).
 
-\section{LLMs in Contract Analysis}\label{sec:lit:llm}
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Property} & \textbf{Value} \\
+    \midrule
+    Contracts            & 510 \\
+    Clause categories    & 41 \\
+    Expert annotations   & $>$13{,}000 spans \\
+    Source               & EDGAR commercial filings \\
+    Train / test split   & 399 / 102 \\
+    Task formulation     & Span extraction + binary presence \\
+    License              & CC BY 4.0 \\
+    Long contracts ($>$100k chars) & 81 (used in this thesis) \\
+    \bottomrule
+  \end{tabular}
+  \caption{CUAD dataset statistics~\cite{hendrycks2021cuad}.}
+  \label{tab:cuad-stats}
+\end{table}
 
-The CUAD dataset of Hendrycks et al.\ is the foundational benchmark for clause-level
-contract analysis. It comprises 510 commercial contracts sourced from EDGAR filings,
-with 13{,}000 expert annotations across forty-one clause
-categories~\cite{hendrycks2021cuad}. The original baselines, fine-tuned RoBERTa- and
-DeBERTa-class encoders, achieved best results in the regime of forty-four percent
-precision at eighty percent recall (AUPR-based reporting), which the authors interpreted
-as evidence of a substantial capability gap in 2021. CUAD remains the most widely cited
-public benchmark for contract clause extraction and underpins the evaluation in this
-thesis.
+\section{Contract Analysis Methods}\label{sec:lit:methods}
 
-Two complementary datasets have shaped subsequent work. ContractNLI, introduced by
-Koreeda and Manning, recasts a subset of contract review as document-level natural
-language inference: given a non-disclosure agreement and a hypothesis drawn from a fixed
-set of seventeen, the system must label entailment, contradiction, or neutrality, while
-additionally identifying evidence spans~\cite{koreeda2021contractnli}. MAUD, introduced
-by Wang et al., focuses on merger agreements and provides reading-comprehension
-supervision derived from the American Bar Association's Public Target Deal Points Study,
-with 150 agreements and roughly 39{,}000 examples~\cite{wang2023maud}. LEDGAR,
-introduced by Tuggener et al.~\cite{tuggener2020ledgar}, scales further along the
-multi-label classification axis with approximately 100{,}000 provisions extracted from
-60{,}000 contracts, at the cost of weaker supervision quality. These datasets together
-provide the empirical surface against which LLM-based contract analysis is currently
-evaluated.
+\paragraph{Rule-based and statistical methods.}
+Pre-LLM extraction used regular expressions, gazetteers, and
+CRFs~\cite{lafferty2001crf}. High precision on narrow clause types degraded on
+out-of-template contracts. BiLSTM-CRF~\cite{lample2016neural} improved
+cross-document robustness; BERT-class encoders~\cite{devlin2019bert} then replaced
+recurrent encoders with self-attention, enabling fine-tuning on small legal corpora.
+LEGAL-BERT~\cite{chalkidis2020legalbert} showed domain pre-training improves
+downstream legal NLP performance.
 
-The arrival of GPT-4-class models prompted a wave of human-comparison studies. The
-most-cited example is Martin et al.'s ``Better Call GPT'' study, which compared
-frontier LLMs against junior lawyers and legal-process outsourcers on issue
-identification and issue location in commercial contracts~\cite{martin2024bettercallgpt}.
-The study reports that GPT-4-1106 attained an issue-determination F-score of 0.87,
-tied with legal-process outsourcers and within one point of junior lawyers, while
-completing review in under five minutes per document against the human comparators'
-forty-three to fifty-six minutes. The study additionally reported a 99.97\% cost
-reduction. Although the study is vendor-funded and its quantitative claims should
-therefore be received critically, the directional finding --- that frontier LLMs are
-competitive with junior human reviewers on standardised contract-review tasks --- is
-consistent with subsequent independent evidence.
+\paragraph{LLM-based methods.}
+BERT-class models are limited to 512 tokens, require labelled data per clause
+category, and do not generalise zero-shot. LLMs address all three limitations.
+Martin et al.~\cite{martin2024bettercallgpt} report GPT-4-1106 at $F\!=\!0.87$ on
+issue determination, matching legal-process outsourcers at $\approx\!1/100$ the cost
+(vendor-funded; directional finding replicated independently~\cite{liu2025contracteval}).
+ContractEval~\cite{liu2025contracteval} benchmarks 19 LLMs on CUAD; proprietary
+models outperform open-source, scaling yields diminishing returns for open-source
+models, and reasoning-mode prompting improves span quality but degrades binary
+correctness. Open-source models exhibit a \emph{laziness} failure: defaulting to
+``no related clause'' even when the clause is present.
+Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
 
-The most recent and methodologically careful evaluation of LLMs on CUAD is
-ContractEval, by Liu et al.~\cite{liu2025contracteval}. ContractEval evaluates nineteen
-LLMs (four proprietary and fifteen open-source) on clause-level legal-risk
-identification across forty-one categories, sampling 4{,}128 data points from 102 CUAD
-contracts. The paper reports four findings of direct relevance to the present thesis.
-First, proprietary models outperform open-source models on both correctness and
-effectiveness metrics. Second, scaling open-source models yields diminishing returns.
-Third, ``thinking'' or reasoning-mode prompting improves output effectiveness ---
-measured by Jaccard similarity between predicted and reference spans --- but degrades
-correctness, suggesting that extended reasoning over-complicates simple extraction
-decisions. Fourth, open-source models exhibit a \emph{laziness} failure mode in which
-they default to ``no related clause'' responses even when the relevant text is present
-in the contract; ContractEval quantifies this with a laziness rate metric. The paper
-additionally argues for $F_2$ alongside $F_1$, on the grounds that legal-risk
-asymmetries make missed clauses costlier than spurious clauses.
-
-ContractEval is the closest predecessor to the present thesis in scope and method, and
-we adopt three of its design choices: $F_1$ and $F_2$ as primary correctness metrics,
-Jaccard similarity as an effectiveness metric, and explicit accounting of the laziness
-or wrong-rejection rate. We depart from ContractEval in two respects. First, we evaluate
-\emph{architectures} rather than \emph{models alone}, fixing the family of LLMs and
-varying the orchestration around them. Second, we sample at the natural class
-distribution of CUAD (approximately thirty percent positive) rather than at the more
-positive-heavy ratio that some evaluations use, which we argue exposes over-extraction
-more honestly.
-
-Three persistent limitations of LLM-based contract analysis remain salient regardless
-of evaluation choice. The first is hallucination: LLMs occasionally produce extracted
-spans that are not present in the source contract, a behaviour that is unacceptable in
-legal review and has motivated retrieval-grounded
-designs~\cite{cui2024chatlaw,raptopoulos2025pakton}. The second is prompt sensitivity:
-minor, intent-preserving changes in the prompt can produce substantial changes in
-output, as quantified by Chatterjee et al.'s POSIX prompt-sensitivity
-index~\cite{chatterjee2024posix}. The third is the over-extraction / under-extraction
-tradeoff: zero-shot models tuned to maximise recall on positive-heavy samples can
-over-extract on natural distributions, while models tuned to avoid spurious extractions
-can under-extract on rare categories. These three limitations frame the multi-agent
-intervention.
-
-\section{Multi-Agent Systems for Legal AI}\label{sec:lit:mas}
-
-Multi-agent LLM systems decompose a task across multiple LLM invocations that play
-differentiated roles and communicate through structured messages. The motivation,
-common to general-purpose multi-agent frameworks such as
-AutoGen~\cite{wu2023autogen}, MetaGPT~\cite{hong2024metagpt},
-CAMEL~\cite{li2023camel}, and Mixture-of-Agents~\cite{wang2024moa}, rests on three
-claims: that role specialisation reduces the per-step prompt complexity each agent must
-handle, that decomposition exposes intermediate reasoning to inspection and
-intervention, and that ensembling across agents recovers errors that any single agent
-would commit. Reflexion~\cite{shinn2023reflexion} and Tree-of-Thoughts~\cite{yao2023tot}
-add iterative-refinement and search-style structure on top of single agents, while
-ReAct~\cite{yao2023react} interleaves reasoning with tool calls, and
-Self-Consistency~\cite{wang2023selfconsistency} aggregates multiple stochastic
-completions. Generative Agents demonstrate that long-running social simulations can be
-sustained by LLM agents with memory and reflection~\cite{park2023generative}. Wei et
-al.'s Chain-of-Thought prompting~\cite{wei2022cot} sits beneath all of these as the
-within-agent reasoning primitive.
-
-In the legal domain, three multi-agent systems are most directly relevant to this
-thesis. ChatLaw, in its 2024 revision by Cui et al., reformulates the original
-retrieval-augmented Chinese legal LLM~\cite{cui2024chatlaw} as a multi-agent
-collaborative legal assistant with knowledge-graph-enhanced mixture-of-experts and
-standardised operating procedures modelled on law-firm workflows; the paper reports a
-7.73-point improvement over GPT-4 on Lawbench. PAKTON, by Raptopoulos et al., is a
-fully open-source multi-agent framework for question answering in long legal agreements,
-structured around three specialised agents: an \emph{Archivist} that handles parsing
-and embedding with hierarchical document trees, a \emph{Researcher} that performs
-hybrid graph-aware retrieval, and an \emph{Interrogator} that performs multi-step
-iterative reasoning in a ReAct style~\cite{raptopoulos2025pakton}. PAKTON was accepted
-as an oral presentation at EMNLP 2025 and is benchmarked on ContractNLI and
-LegalBench-RAG. L-MARS, by Wang and Yuan, organises legal question answering as a
-four-agent workflow comprising query decomposition, agentic search across BM25 and
-case-law APIs, judge-style verification of jurisdictional and temporal validity, and
-final summarisation~\cite{wang2025lmars}; the system reports a 38-point improvement
-over zero-shot single-agent on its LegalSearchQA benchmark.
-
-These three systems are valuable demonstrations that multi-agent legal architectures
-can be assembled, but each evaluates a single architectural choice on a single benchmark
-and does not ablate the multi-agent design itself. The empirical question of which
-multi-agent pattern is preferable for clause-level contract analysis under a fixed model
-and task remains underdetermined by this body of work.
-
-The taxonomic axes along which these systems differ are nevertheless relevant for the
-present thesis. Architectures vary in \emph{topology} (hierarchical with an orchestrator
-versus peer with mutual messaging), in \emph{routing} (static pipelines versus dynamic
-LLM-mediated routing versus dictionary-based routing), in \emph{specialisation
-granularity} (one specialist per task type versus one specialist per clause category
-versus one specialist per reasoning step), and in \emph{verification structure} (single
-pass versus reflective revision versus multi-agent debate).
-Table~\ref{tab:lit:mas} summarises a representative selection of multi-agent legal and
-general systems along these axes.
-
-\begin{table}[t]
+\begin{table}[h]
   \centering
   \small
   \begin{tabular}{lllll}
     \toprule
-    \textbf{System} & \textbf{Domain} & \textbf{Topology} & \textbf{Routing} &
-    \textbf{Verification} \\
+    \textbf{Dataset} & \textbf{Task} & \textbf{Size} & \textbf{Categories} &
+    \textbf{Used here} \\
     \midrule
-    ChatLaw v2~\cite{cui2024chatlaw}       & Legal QA (Chinese) & Hierarchical  & SOP-based     & MoE consensus    \\
-    PAKTON~\cite{raptopoulos2025pakton}    & Legal QA/contracts & Pipeline      & Static        & ReAct iterative  \\
-    L-MARS~\cite{wang2025lmars}            & Legal QA/search    & Pipeline      & Static        & Judge agent      \\
-    AutoGen~\cite{wu2023autogen}           & General            & Peer          & Conversational& None (default)   \\
-    MetaGPT~\cite{hong2024metagpt}         & Software dev.      & Hierarchical  & SOP-based     & Review agent     \\
-    MoA~\cite{wang2024moa}                 & General            & Layered ensemble & Broadcast  & Aggregator       \\
+    CUAD~\cite{hendrycks2021cuad}           & Span extraction & 510 contracts  & 41 & \checkmark \\
+    ContractNLI~\cite{koreeda2021contractnli} & Doc-level NLI  & 607 NDAs       & 17 & --- \\
+    MAUD~\cite{wang2023maud}                & Reading comp.  & 152 M\&A agmt. & 152 & --- \\
+    LEDGAR~\cite{tuggener2020ledgar}        & Multi-label cls.& 60k contracts  & 100+ & --- \\
     \bottomrule
   \end{tabular}
-  \caption{Representative multi-agent systems by topology, routing, and verification
-  structure.}
-  \label{tab:lit:mas}
+  \caption{Main contract-analysis benchmarks.}
+  \label{tab:datasets}
 \end{table}
 
-The reported gains in this body of work, while real, must be interpreted carefully.
-ChatLaw v2's 7.73-point improvement is reported relative to GPT-4 on Lawbench, not
-against a comparable multi-agent ablation; the 38-point improvement reported by L-MARS
-is computed against zero-shot single-agent on a benchmark whose construction is itself
-part of the contribution. Without architectural ablations, these gains conflate the
-multi-agent design choice with retrieval, prompting, and benchmark-construction choices
-made in the same systems.
+\section{Multi-Agent Legal AI}\label{sec:lit:mas}
 
-\section{When Multi-Agent Helps and When It Does Not}\label{sec:lit:when}
+Three multi-agent legal AI systems are directly relevant. Table~\ref{tab:mas-survey}
+codes them and the present configurations on five dimensions.
 
-A small but rapidly growing body of recent work has begun to interrogate the conditions
-under which multi-agent designs improve on single-agent designs. Three contributions are
-central to the framing of the present thesis.
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{llllllll}
+    \toprule
+    \textbf{System} & \textbf{Domain} & \textbf{Topology} & \textbf{Routing} &
+    \textbf{Speciali\-sation} & \textbf{Verification} & \textbf{Benchmark} &
+    \textbf{Ablated?} \\
+    \midrule
+    ChatLaw v2~\cite{cui2024chatlaw}
+      & Legal QA (ZH) & Hierarchical & SOP & Per-task
+      & MoE consensus & LawBench & No \\
+    PAKTON~\cite{raptopoulos2025pakton}
+      & Contract QA & Pipeline & Static & Per-step (3)
+      & ReAct iter. & ContractNLI & No \\
+    L-MARS~\cite{wang2025lmars}
+      & Legal search & Pipeline & Static & Per-step (4)
+      & Judge agent & LegalSearchQA & No \\
+    AutoGen~\cite{wu2023autogen}
+      & General & Peer & Conversational & Per-task
+      & None & HumanEval & N/A \\
+    MetaGPT~\cite{hong2024metagpt}
+      & Software dev. & Hierarchical & SOP & Per-role
+      & Review agent & SWE-Bench & No \\
+    MoA~\cite{wang2024moa}
+      & General & Layered & Broadcast & None
+      & Aggregator & MMLU & No \\
+    \midrule
+    B1 / B4 (ours) & CLM / CUAD & Single-agent & None & None / CoT
+      & None & CUAD & \checkmark \\
+    M0 (ours) & CLM / CUAD & Pipeline & Static gate & None
+      & None & CUAD & \checkmark \\
+    M1 (ours) & CLM / CUAD & Hierarchical & LLM & Per-domain (3)
+      & None & CUAD & \checkmark \\
+    M6 (ours) & CLM / CUAD & Single-agent & None & Union prompt
+      & None & CUAD & \checkmark \\
+    \bottomrule
+  \end{tabular}
+  \caption{Multi-agent systems for legal AI coded on five architectural dimensions.
+  All prior systems evaluate a single architecture without an ablation.}
+  \label{tab:mas-survey}
+\end{table}
 
-Gao et al.\ ask, in a paper titled ``Single-agent or Multi-agent Systems? Why Not
-Both?'', whether the empirical advantage of multi-agent systems persists as base-model
-capability improves~\cite{gao2025single}. Their answer, supported by experiments on
-BigCodeBench, SWE-Bench, and the MAST trace set, is that the advantage diminishes for
-frontier models such as o3 and Gemini~2.5~Pro, whose improved long-context reasoning,
-persistent memory, and tool-use absorb the workload that previously required
-decomposition. The authors propose hybrid architectures that localise the error-prone
-agent inside an otherwise single-agent design. The implication for the present thesis is
-that whether multi-agent helps in CLM may depend on the strength of the underlying
-model.
+Reported gains must be interpreted carefully: ChatLaw v2's +7.73-point improvement
+is relative to GPT-4 without a multi-agent ablation; L-MARS's +38 points is against
+zero-shot on a self-constructed benchmark. Neither isolates the multi-agent design
+from retrieval or prompting choices made in the same system.
 
-Cemri et al., in ``Why Do Multi-Agent LLM Systems Fail?'', construct the Multi-Agent
-System Failure Taxonomy (MAST) by analysing more than 200 tasks and 1{,}600 traces
-across seven multi-agent frameworks including AutoGen, MetaGPT, ChatDev, and
-CAMEL~\cite{cemri2025why}. They identify fourteen failure modes grouped into three
-categories: specification and system-design failures (such as disobedience to role
-specification and rigid step repetition), inter-agent misalignment failures (such as
-conversation-history loss and goal drift), and verification-and-termination failures.
-The authors report that simple interventions --- clearer role specification, tighter
-orchestration --- yield only modest gains, of the order of fourteen to fifteen percent,
-suggesting that multi-agent failures arise from fundamental design rather than from
-prompt-level tuning.
+\section{Conditions for Multi-Agent Effectiveness}\label{sec:lit:when}
 
-Bogavelli et al.\ introduce AgentArch, a benchmark that evaluates eighteen agent
-configurations across six frontier LLMs on enterprise workflow tasks~\cite{bogavelli2025agentarch}.
-They report two findings of direct relevance. First, no single agent architecture is
-universally optimal across model families: smaller models can outperform larger models
-when matched to an appropriate architecture, and the architecture that works best for
-one family does not necessarily work best for another. Second, function-calling
-prompting outperforms ReAct-style prompting in multi-agent settings, where ReAct
-produces hallucinated tool calls. Absolute performance is also reported as low:
-best-of-class models reach only 35.3\% on the harder enterprise task and 70.8\% on the
-easier one.
+Three recent studies directly bound the scope of multi-agent benefits.
+Gao et al.~\cite{gao2025single} show the advantage diminishes for frontier models
+(o3, Gemini~2.5~Pro) whose long-context reasoning absorbs workloads that previously
+required decomposition. Cemri et al.~\cite{cemri2025why} identify 14 MAST failure
+modes in $>$1{,}600 traces across 7 frameworks; simple interventions yield only
+14--15\% recovery, suggesting structural rather than prompt-level causes.
+Bogavelli et al.~\cite{bogavelli2025agentarch} (AgentArch: 18 configurations,
+6 frontier models) find no universally optimal architecture --- best-of-class reaches
+only 35.3\% on harder enterprise tasks --- and ReAct-style prompting produces
+hallucinated tool calls in multi-agent settings.
+Sanwal~\cite{sanwal2025layered} proposes external verification at each reasoning
+layer to address unverified intermediate steps in chain-of-thought pipelines.
+Taken together: multi-agent designs help when tasks are decomposable, specialists
+meaningfully outperform a generalist, and the underlying model is weak enough that
+decomposition provides a lever. This thesis empirically tests whether these conditions
+hold for clause-level CUAD extraction.
 
-Reading these three contributions together with Sanwal's Layered Chain-of-Thought
-paper~\cite{sanwal2025layered}, which proposes external verification at each reasoning
-layer to address the unverified-intermediate-step problem of vanilla CoT, and with the
-failure-mode evidence from ContractEval~\cite{liu2025contracteval}, a coherent picture
-emerges. Multi-agent designs are not a free lunch. They help when the task is
-decomposable, when individual specialists can be made meaningfully better than a
-generalist, when the orchestration overhead does not introduce its own failure modes,
-and when the underlying model is weak enough that decomposition still offers a usable
-lever. They hurt when these conditions do not hold. The empirical task of the present
-thesis is to determine which of these conditions hold for clause-level contract analysis
-on CUAD.
+\section{Evaluation Methodology}\label{sec:lit:eval}
 
-\section{Evaluation Methodology in Legal NLP}\label{sec:lit:eval}
-
-Evaluation methodology in legal NLP, particularly for clause-level extraction, has not
-converged on a single protocol, and the choices made in published evaluations materially
-affect the rankings they produce. We treat four methodological axes here: metric
-selection, statistical testing, prompt-sensitivity treatment, and sampling design.
-
-\paragraph{Metric selection.}
-Token-level $F_1$ remains the default for span extraction, but the legal-risk asymmetry
-between false negatives (missed clauses, with downstream financial and compliance
-exposure) and false positives (spurious clauses, recoverable at human review) has
-motivated the use of $F_\beta$ with $\beta > 1$. ContractEval explicitly adopts $F_2$
-alongside $F_1$ on this rationale and additionally reports Jaccard similarity as a
-measure of span effectiveness~\cite{liu2025contracteval}. We follow this convention.
-The choice is not innocuous: $F_2$ favours architectures that retrieve aggressively, and
-an architecture that ranks first on $F_2$ may rank last on precision.
+\paragraph{Metrics.}
+Let TP, FP, FN, TN be per-sample counts, $S$ the predicted span, $T$ the reference
+span. Formal definitions:
+%
+\begin{align}
+  F_\beta &= \frac{(1+\beta^2)\,\text{TP}}{(1+\beta^2)\,\text{TP}
+            + \beta^2\,\text{FN} + \text{FP}}, \quad \beta \in \{1,2\}
+            \label{eq:fbeta} \\[4pt]
+  J(S,T) &= \frac{|S \cap T|}{|S \cup T|}
+            \label{eq:jaccard} \\[4pt]
+  \lambda &= \frac{|\{i : y_i{=}1,\; \hat{y}_i{=}0\}|}{|\{i : y_i{=}1\}|}
+            \qquad \text{(laziness rate)}
+            \label{eq:laziness} \\[4pt]
+  \omega  &= \frac{|\{i : y_i{=}0,\; \hat{y}_i{=}1\}|}{|\{i : y_i{=}0\}|}
+            \qquad \text{(over-extraction rate)}
+            \label{eq:overextract}
+\end{align}
+%
+$\beta{=}2$ weights recall four times as heavily as precision, reflecting the
+legal-risk asymmetry where missed clauses incur downstream financial
+exposure~\cite{hendrycks2021cuad,liu2025contracteval}. Jaccard is reported at span
+level conditional on extraction.
 
 \paragraph{Statistical testing.}
-Dror et al.'s ``Hitchhiker's Guide to Testing Statistical Significance in Natural
-Language Processing''~\cite{dror2018hitchhikers} remains the canonical reference for
-significance testing in NLP. The guide argues that paired tests should be used when
-systems are evaluated on the same instances, that test selection should reflect
-distributional assumptions, and that multiple-comparison correction should be applied
-when many systems are compared. For paired binary outcomes --- system A correct, system
-B incorrect, and the reverse --- McNemar's test~\cite{mcnemar1947note} is the standard.
-For continuous metrics on small samples, paired bootstrap is preferred. The present
-thesis applies McNemar for binary correctness and paired bootstrap for $F_2$
-differences, with Holm-style correction for the family of comparisons under each
-hypothesis.
+Dror et al.~\cite{dror2018hitchhikers} is the canonical reference. For paired binary
+outcomes McNemar's exact test~\cite{mcnemar1947note} is used; for continuous metrics
+the paired non-parametric bootstrap~\cite{efron1979bootstrap,riezler2005pitfalls}
+with 95\% percentile CI. False discovery rate is controlled via
+Benjamini--Hochberg~\cite{benjamini1995controlling} across the 10 pairwise
+configuration comparisons ($\alpha{=}0.05$). A single sampling design and prompt
+template is held fixed across all models; prompt sensitivity is treated as a
+validity threat (Section~\ref{sec:meth:threats}).
 
-\paragraph{Prompt sensitivity.}
-Chatterjee et al.'s POSIX index~\cite{chatterjee2024posix} formalises the observation
-that LLM outputs change under intent-preserving prompt perturbations such as
-paraphrasing, formatting changes, and template substitutions. They report that increased
-parameter count and instruction tuning do not necessarily reduce sensitivity, and that a
-single few-shot exemplar typically reduces sensitivity substantially. The implication
-for legal evaluation is that single-prompt comparisons may be unstable, and the
-architectural ranking between systems can swap under prompt perturbation. We treat
-prompt sensitivity as a methodological constraint: we fix prompt templates per
-architecture across models, document the prompts in full, and discuss prompt sensitivity
-as a threat to validity in Chapter~6.
+\paragraph{Sampling.}
+CUAD's natural clause-presence rate is $\approx\!30\%$ positive at the instance level.
+Evaluations that inflate this ratio produce optimistic precision
+estimates~\cite{liu2025contracteval}. This thesis samples at the natural ratio,
+exposing over-extraction as a primary failure mode.
 
-\paragraph{Sampling design.}
-The most consequential methodological choice in CUAD-based evaluation is the sampling
-ratio between clause-present and clause-absent instances. CUAD's natural distribution
-at the clause-category level is heavily imbalanced toward absences. Evaluations that
-resample to a more positive-heavy ratio --- for example, two-thirds positive --- produce
-optimistic precision estimates because the prior probability of a clause being present
-is artificially elevated. Evaluations that hold the ratio at the natural level expose
-over-extraction more honestly but risk small-sample variance on rare categories. We
-adopt the natural-distribution sampling design at approximately thirty percent positive,
-holding the same sample across architectures and models so that comparisons are paired
-at the instance level.
+\section{Research Gap}\label{sec:lit:synthesis}
 
-The combination of metric, statistical, sensitivity, and sampling choices defines a
-protocol space, and protocols differ substantially across published evaluations. The
-present thesis fixes a single protocol and applies it uniformly across all eleven models
-and five architectures, and reports the protocol explicitly so that other workers can
-replicate or contest it.
-
-\section{Synthesis and Research Positioning}\label{sec:lit:synthesis}
-
-The literature surveyed in this chapter establishes four facts that motivate the
-specific design of the present thesis. First, contract analysis is an enterprise-critical
-task with a substantial economic surface, an established benchmark in
-CUAD~\cite{hendrycks2021cuad}, and a recent baseline-establishing evaluation in
-ContractEval~\cite{liu2025contracteval}. Second, multi-agent systems for legal AI exist
-and are advocated, with notable systems such as ChatLaw~\cite{cui2024chatlaw},
-PAKTON~\cite{raptopoulos2025pakton}, and L-MARS~\cite{wang2025lmars}, but each
-evaluates a single architecture and does not ablate the multi-agent design choice.
-Third, recent cross-domain evidence --- Gao et al.~\cite{gao2025single}, Cemri et
-al.~\cite{cemri2025why}, and Bogavelli et al.~\cite{bogavelli2025agentarch} ---
-challenges the assumption that multi-agent designs are universally beneficial, and
-identifies model-architecture interaction, fourteen named failure modes, and a
-diminishing-returns regime as serious caveats. Fourth, evaluation methodology in legal
-NLP is heterogeneous, and the choice of metric, statistical test, and sampling ratio
-materially shapes the conclusions one can draw.
-
-The gap that this thesis addresses is the absence of a rigorous, paired, statistically
-tested comparison of multi-agent architectural patterns for clause-level contract
-analysis on CUAD, conducted across multiple frontier-model families, under a natural
-class distribution, and with explicit mechanistic diagnosis of failure modes. Sub-RQ1
-asks which architectural pattern is most effective; Sub-RQ2 asks how multi-agent
-compares to single-agent on accuracy and cost; Sub-RQ3 asks which architectural
-decisions enable auditable reasoning traces under the EU AI Act~\cite{euaiact2024} and
-GDPR~\cite{gdpr2016} regimes. The hypotheses H1, H2, and H3, framed in Chapter~1,
-operationalise the comparison.
-
-The methodology developed in Chapter~3 instantiates this protocol: five architectural
-configurations spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed
-specialists, and consolidated specialist prompts; eleven frontier models from three
-families; the CUAD benchmark restricted to long contracts; natural class-distribution
-sampling at approximately thirty percent positive; $F_1$, $F_2$, and Jaccard
-correctness and effectiveness metrics; and McNemar and paired-bootstrap statistical
-tests with multiple-comparison correction. Chapter~4 specifies the implementation,
-including the LangGraph-based orchestration~\cite{langgraph2024} and Langfuse-based
-observability layer~\cite{langfuse2024} that secure the auditable-trace property
-addressed by Sub-RQ3. Chapter~5 reports the results, which, to anticipate, do not
-uniformly favour multi-agent designs and instead reveal a model-family-dependent
-ranking, a classification-gate rejection cascade specific to pipeline decomposition, and
-a near-complete equivalence between LLM-routed specialists and consolidated specialist
-prompts. The interpretation of these findings, and their implications for enterprise CLM
-SaaS design, is taken up in Chapters~6 and~7.
+No published study simultaneously (i) cross-varies multi-agent architecture and
+frontier-model family on CUAD, (ii) samples at the natural class distribution, (iii)
+applies paired statistical tests with multiple-comparison correction, and (iv) ablates
+the multi-agent design against a consolidated single-agent prompt. This thesis
+addresses all four requirements.

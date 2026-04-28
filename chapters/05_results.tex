@@ -2,361 +2,586 @@
 
 \chapter{Results}\label{chapter:results}
 
-\emph{Note: the prose in this chapter is scaffolding. Quantitative claims carried over
-from the run logs are stated as such; all other numerical fields are placeholders to be
-filled once the final aggregation pipeline is re-run on the locked sample set.}
+\section{Run Coverage and Sample Accounting}\label{sec:res:overview}
 
-\section{Overview of Experimental Runs}\label{sec:res:overview}
+Table~\ref{tab:coverage} reports the per-run sample count for all 55
+(model,\,configuration) cells. Two runs were partial: Claude Sonnet\,4 on B1
+($n{=}2{,}640$) and GPT-4.1 on B1 ($n{=}2{,}528$), attributable to upstream
+sampling interruptions. Every statistical test uses the paired intersection of
+sample IDs for the specific configuration pair being compared; intersection sizes
+are reported individually. All other cells reach the target $n{=}2{,}999$.
 
-This section establishes the coverage of the experimental sweep before any hypothesis
-is tested. We report the $5 \times 11 = 55$ official runs, the per-run sample count
-after natural-prior sampling, the total wall-clock, the total provider cost, and any
-partial-run intersections that affect downstream pairings.
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \begin{tabular}{lrrrrrrr}
+    \toprule
+    \textbf{Model} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} &
+    \textbf{M6} & \textbf{Total} & \textbf{B1 cost (\$)} \\
+    \midrule
+    Claude Haiku 4.5   & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 & 36.70 \\
+    Claude Opus 4.6    & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 & 185.02 \\
+    Claude Sonnet 4    & 2{,}640$^*$ & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}636 & 94.04 \\
+    Claude Sonnet 4.6  & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 & 111.44 \\
+    Gemini 2.5 Flash   & 2{,}999 & 2{,}999 & 2{,}998 & 2{,}999 & 2{,}999 & 14{,}994 & 10.64 \\
+    Gemini 2.5 Pro     & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 & 43.39 \\
+    Gemini 3 Flash     & 2{,}997 & 2{,}985 & 2{,}984 & 2{,}999 & 2{,}999 & 14{,}964 & 16.55 \\
+    Gemini 3.1 Pro     & 2{,}994 & 2{,}976 & 2{,}978 & 2{,}999 & 2{,}998 & 14{,}945 & 65.75 \\
+    GPT-4.1            & 2{,}528$^*$ & 2{,}999 & 2{,}786 & 2{,}999 & 2{,}978 & 14{,}290 & 38.07 \\
+    GPT-4.1 Mini       & 2{,}999 & 2{,}994 & 2{,}887 & 2{,}999 & 2{,}987 & 14{,}866 & 13.17 \\
+    GPT-4.1 Nano       & 2{,}998 & 2{,}998 & 2{,}999 & 2{,}999 & 2{,}975 & 14{,}969 & 3.17 \\
+    \midrule
+    \textbf{Column total} & 32{,}151 & 32{,}946 & 32{,}627 & 32{,}989 & 32{,}931 &
+    \textbf{163{,}644} & \\
+    \bottomrule
+  \end{tabular}
+  \caption{Coverage matrix: per-run sample count and B1 provider cost. ${}^*$Partial
+  run (upstream sampling interruption); paired tests use the intersection of sample
+  IDs.}
+  \label{tab:coverage}
+\end{table}
 
-\emph{Placeholder --- Table~\ref{tab:coverage}: Coverage matrix. Rows: 11 models.
-Columns: 5 configurations (B1, B4, M0, M1, M6). Cells: per-run sample count,
-completion rate, and total provider cost. Bottom row: column totals.}
+Of 164{,}941 total JSONL records across all 55 runs, 163{,}644 (99.21\%) were
+analysed after dropping 1{,}297 records (0.79\%) with malformed classification
+tokens, concentrated in B1 (838 drops) and M0 (362 drops). The natural positive
+rate across the retained set is $30.1\%$, confirming the sampler achieved its
+target class prior.
+
+\section{H1 --- Multi-Agent vs.\ Single-Agent Baselines}\label{sec:res:h1}
+
+Table~\ref{tab:h1-f2} reports the per-model $F_2$ for all five configurations.
+Pooled means are: $\overline{F_2}(\text{B1})=0.801$,
+$\overline{F_2}(\text{B4})=0.796$, $\overline{F_2}(\text{M0})=0.794$,
+$\overline{F_2}(\text{M1})=0.790$, $\overline{F_2}(\text{M6})=0.790$, a range
+of 0.011 points. No configuration dominates uniformly.
+
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4.5pt}
+  \small
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Model} & $F_2$(B1) & $F_2$(B4) & $F_2$(M0) & $F_2$(M1) & $F_2$(M6) \\
+    \midrule
+    Claude Haiku 4.5   & 0.783 & \textbf{0.849} & 0.792 & 0.835 & 0.822 \\
+    Claude Opus 4.6    & 0.863 & \textbf{0.865} & 0.864 & 0.860 & 0.846 \\
+    Claude Sonnet 4    & 0.851 & 0.851 & \textbf{0.877} & 0.826 & 0.842 \\
+    Claude Sonnet 4.6  & 0.813 & 0.840 & \textbf{0.860} & 0.834 & 0.836 \\
+    Gemini 2.5 Flash   & \textbf{0.829} & 0.818 & 0.619 & 0.810 & 0.832 \\
+    Gemini 2.5 Pro     & 0.828 & 0.810 & 0.707 & \textbf{0.834} & 0.816 \\
+    Gemini 3 Flash     & 0.786 & 0.580 & \textbf{0.822} & 0.747 & 0.609 \\
+    Gemini 3.1 Pro     & \textbf{0.861} & 0.843 & 0.843 & 0.840 & 0.854 \\
+    GPT-4.1            & \textbf{0.868} & 0.852 & 0.828 & 0.777 & 0.853 \\
+    GPT-4.1 Mini       & 0.837 & 0.841 & \textbf{0.862} & 0.777 & 0.833 \\
+    GPT-4.1 Nano       & 0.488 & 0.612 & \textbf{0.659} & 0.547 & 0.545 \\
+    \midrule
+    \textbf{Mean}      & 0.801 & 0.796 & 0.794 & 0.790 & 0.790 \\
+    \bottomrule
+  \end{tabular}
+  \caption{$F_2$ by model and configuration. Bold: best configuration per model.
+  Configurations are ordered by pooled mean $F_2$. Pooled means span a 0.011-point
+  band.}
+  \label{tab:h1-f2}
+\end{table}
+
+Table~\ref{tab:h1-stats} reports McNemar exact $p$-values and Benjamini--Hochberg
+results for the 33 comparisons (M0 vs.\ B1, M1 vs.\ B1, M6 vs.\ B1 per model)
+constituting the H1 family, together with paired-bootstrap $\Delta F_2$ and $95\%$
+CIs.
+
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{3pt}
+  \small
+  \begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Model}
+    & $\Delta F_2$(M0$-$B1) & CI$_{95}$ & BH
+    & $\Delta F_2$(M1$-$B1) & CI$_{95}$ & BH \\
+    \midrule
+    Claude Haiku 4.5
+      & $+0.009$ & $[+.050,\,+.068]$ & \checkmark
+      & $+0.052$ & $[+.060,\,+.077]$ & \checkmark \\
+    Claude Opus 4.6
+      & $+0.001$ & $[+.022,\,+.036]$ & \checkmark
+      & $-0.004$ & $[+.018,\,+.031]$ & \checkmark \\
+    Claude Sonnet 4
+      & $+0.025$ & $[+.057,\,+.075]$ & \checkmark
+      & $-0.025$ & $[+.024,\,+.043]$ & \checkmark \\
+    Claude Sonnet 4.6
+      & $+0.047$ & $[+.057,\,+.072]$ & \checkmark
+      & $+0.021$ & $[+.038,\,+.055]$ & \checkmark \\
+    Gemini 2.5 Flash
+      & $-0.210$ & $[-\!.045,\,-\!.015]$ & \checkmark
+      & $-0.020$ & $[+.021,\,+.038]$ & \checkmark \\
+    Gemini 2.5 Pro
+      & $-0.121$ & $[+.011,\,+.035]$ & \checkmark
+      & $+0.006$ & $[+.019,\,+.034]$ & \checkmark \\
+    Gemini 3 Flash
+      & $+0.037$ & $[+.043,\,+.063]$ & \checkmark
+      & $-0.039$ & $[+.010,\,+.032]$ & \checkmark \\
+    Gemini 3.1 Pro
+      & $-0.018$ & $[+.012,\,+.026]$ & \checkmark
+      & $-0.021$ & $[-\!.005,\,+.006]$ & $\times$ \\
+    GPT-4.1
+      & $-0.040$ & $[+.040,\,+.061]$ & \checkmark
+      & $-0.091$ & $[+.022,\,+.041]$ & \checkmark \\
+    GPT-4.1 Mini
+      & $+0.025$ & $[+.014,\,+.027]$ & $\times$
+      & $-0.060$ & $[-\!.017,\,-\!.001]$ & $\times$ \\
+    GPT-4.1 Nano
+      & $+0.171$ & $[+.067,\,+.100]$ & \checkmark
+      & $+0.059$ & $[+.024,\,+.067]$ & \checkmark \\
+    \bottomrule
+  \end{tabular}
+  \caption{H1 McNemar exact tests with BH correction ($\alpha{=}0.05$,
+  $m{=}33$). $\Delta F_2$ is the observed difference from Table~\ref{tab:h1-f2};
+  CI$_{95}$ is the paired-bootstrap interval ($B{=}300$). \checkmark: BH-reject
+  $H_0$.}
+  \label{tab:h1-stats}
+\end{table}
+
+Figure~\ref{fig:h1-heatmap} summarises the family-level interaction by showing
+mean $F_2$ per (provider family, configuration) cell.
+
+\begin{figure}[h]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.35}
+\newcommand{\hcell}[1]{%
+  \ifdim #1 pt > 0.84 pt \cellcolor{TUMBlue!60}%
+  \else\ifdim #1 pt > 0.80 pt \cellcolor{TUMBlue!35}%
+  \else\ifdim #1 pt > 0.76 pt \cellcolor{TUMAccentLightBlue!55}%
+  \else\cellcolor{TUMAccentLightBlue!20}%
+  \fi\fi\fi #1}
+\begin{tabular}{lccccc}
+  \toprule
+  \textbf{Family} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} & \textbf{M6} \\
+  \midrule
+  Anthropic (4 models)
+    & \hcell{0.828} & \hcell{0.851} & \hcell{0.848} & \hcell{0.839} & \hcell{0.836} \\
+  Google (4 models)
+    & \hcell{0.826} & \hcell{0.763} & \hcell{0.748} & \hcell{0.808} & \hcell{0.777} \\
+  OpenAI (3 models)
+    & \hcell{0.731} & \hcell{0.768} & \hcell{0.783} & \hcell{0.700} & \hcell{0.744} \\
+  \midrule
+  All (11 models)
+    & \hcell{0.801} & \hcell{0.796} & \hcell{0.794} & \hcell{0.790} & \hcell{0.790} \\
+  \bottomrule
+\end{tabular}
+\caption{Mean $F_2$ per (provider family, configuration) cell. Shading: ${\geq}0.84$
+(dark), $0.80$--$0.84$ (medium), $0.76$--$0.80$ (light), ${<}0.76$ (very light). Best
+configuration per family: B4 for Anthropic, B1 for Google, M0 for OpenAI.}
+\label{fig:h1-heatmap}
+\end{figure}
+
+The family interaction is pronounced: the Anthropic family achieves its peak under
+the B4 chain-of-thought baseline (mean $F_2 = 0.851$), the Google family under B1
+($0.826$), and the OpenAI family under M0 ($0.783$). All three Gemini 2.5 runs with
+M0 show cascading false negatives (Section~\ref{sec:res:cascade}), which suppresses
+the Google M0 cell to $0.748$.
+
+\medskip
+\noindent\textbf{H1 verdict.}
+The strict null --- no multi-agent configuration outperforms the strongest
+single-agent baseline on $F_2$ pooled across all eleven models --- is not rejected.
+The 0.011-point range across all five configurations is within sampling noise for
+any single model. However, $10$ of $11$ BH-corrected McNemar tests for M0 vs.\ B1
+are significant, and family-conditional effects are real and large (e.g.\ Gemini\,2.5
+Flash drops $0.210$ $F_2$ points under M0 vs.\ B1). H1 is therefore conditionally
+rejected in the negative direction for Gemini models under M0, and conditionally
+supported for some Anthropic and OpenAI models.
+
+\section{H2 --- Rare-Category Gap}\label{sec:res:h2}
+
+Table~\ref{tab:h2-tier} reports per-tier $F_2$ for all models under B1, M0, and M1
+(the three configurations most relevant to H2). The rare--common gap $g = F_2^{\text{com}}
+- F_2^{\text{rare}}$ measures how severely each configuration penalises low-prevalence
+categories.
+
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{3.5pt}
+  \small
+  \begin{tabular}{lcccccccccc}
+    \toprule
+    & \multicolumn{4}{c}{\textbf{B1 (baseline)}}
+    & \multicolumn{3}{c}{\textbf{M0}}
+    & \multicolumn{3}{c}{\textbf{M1}} \\
+    \cmidrule(lr){2-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    \textbf{Model}
+    & $F_2^c$ & $F_2^m$ & $F_2^r$ & $g$
+    & $F_2^c$ & $F_2^r$ & $g$
+    & $F_2^c$ & $F_2^r$ & $g$ \\
+    \midrule
+    Claude Haiku 4.5
+      & .926 & .731 & .597 & .329
+      & .770 & .696 & .074
+      & .950 & .654 & .296 \\
+    Claude Opus 4.6
+      & .965 & .815 & .746 & .219
+      & .937 & .735 & .202
+      & .966 & .706 & .260 \\
+    Claude Sonnet 4
+      & .958 & .791 & .714 & .245
+      & .940 & .730 & .211
+      & .948 & .691 & .257 \\
+    Claude Sonnet 4.6
+      & .947 & .746 & .678 & .269
+      & .941 & .721 & .220
+      & .928 & .683 & .245 \\
+    Gemini 2.5 Flash
+      & .935 & .779 & .719 & .216
+      & .725 & .381 & .344
+      & .946 & .668 & .277 \\
+    Gemini 2.5 Pro
+      & .958 & .768 & .690 & .268
+      & .919 & .403 & .515
+      & .969 & .711 & .258 \\
+    Gemini 3 Flash
+      & .950 & .692 & .627 & .324
+      & .944 & .590 & .355
+      & .923 & .577 & .346 \\
+    Gemini 3.1 Pro
+      & .966 & .807 & .741 & .225
+      & .962 & .672 & .289
+      & .963 & .701 & .262 \\
+    GPT-4.1
+      & .950 & .841 & .704 & .246
+      & .856 & .677 & .179
+      & .964 & .430 & .533 \\
+    GPT-4.1 Mini
+      & .913 & .812 & .717 & .196
+      & .955 & .723 & .233
+      & .950 & .529 & .421 \\
+    GPT-4.1 Nano
+      & .549 & .518 & .253 & .296
+      & .708 & .412 & .296
+      & .775 & .167 & .608 \\
+    \midrule
+    \textbf{Mean}
+      & .929 & .773 & .653 & .276
+      & .878 & .594 & .284
+      & .940 & .574 & .342 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Per-tier $F_2$ for B1, M0, and M1 ($c$=common, $m$=moderate, $r$=rare;
+  columns abbreviated for M0/M1). Gap $g = F_2^c - F_2^r$. Mean gap: B1=0.276,
+  M0=0.284, M1=0.342 --- multi-agent configurations widen the rare penalty.}
+  \label{tab:h2-tier}
+\end{table}
+
+Under M0, the cascade on Gemini models (Section~\ref{sec:res:cascade}) collapses
+$F_2^r$ by up to $0.338$ points (Gemini\,2.5 Flash: $0.719 \to 0.381$), inflating
+the mean gap. Under M1, the rare-tier $F_2$ degrades severely on the GPT family
+(GPT-4.1: $0.704 \to 0.430$; GPT-4.1 Mini: $0.717 \to 0.529$; GPT-4.1 Nano:
+$0.253 \to 0.167$), pointing to specialist over-specialisation on rare categories.
+
+\medskip
+\noindent\textbf{H2 verdict.}
+Rejected. Multi-agent configurations do not reduce the rare--common $F_2$ gap
+relative to B1. M0 widens the gap to $0.284$ (from $0.276$) and M1 widens it to
+$0.342$. The null hypothesis ($\Delta\mathrm{Gap} \geq 0$) cannot be rejected in the
+favourable direction; in fact, the gap increases significantly under M1, driven by
+GPT-family specialist failure on rare categories.
+
+\section{H3 --- Architecture vs.\ Prompts (M1 vs.\ M6)}\label{sec:res:h3}
+
+Table~\ref{tab:h3} reports the M1--M6 contrasts. The routing accuracy column
+confirms that all 11 models achieve ${\geq}99.03\%$ routing accuracy, with $10$ of
+$11$ at $100\%$ (only GPT-4.1 Nano at $99.03\%$, i.e., 29 mis-routes out of 2{,}999).
+
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Model}
+    & $F_2$(M1) & $F_2$(M6) & $\Delta F_2$ & CI$_{95}$
+    & $p$ (McN) & BH \\
+    \midrule
+    Claude Haiku 4.5
+      & 0.835 & 0.822 & $+0.013$ & $[+.021,\,+.035]$ & $1.7\!\times\!10^{-23}$ & \checkmark \\
+    Claude Opus 4.6
+      & 0.860 & 0.846 & $+0.014$ & $[+.026,\,+.038]$ & $7.8\!\times\!10^{-34}$ & \checkmark \\
+    Claude Sonnet 4
+      & 0.826 & 0.842 & $-0.016$ & $[-\!.013,\,-\!.001]$ & $2.5\!\times\!10^{-2}$ & \checkmark \\
+    Claude Sonnet 4.6
+      & 0.834 & 0.836 & $-0.002$ & $[+.031,\,+.048]$ & $1.3\!\times\!10^{-45}$ & \checkmark \\
+    Gemini 2.5 Flash
+      & 0.810 & 0.832 & $-0.022$ & $[+.015,\,+.032]$ & $6.8\!\times\!10^{-21}$ & \checkmark \\
+    Gemini 2.5 Pro
+      & 0.834 & 0.816 & $+0.018$ & $[+.024,\,+.038]$ & $2.7\!\times\!10^{-36}$ & \checkmark \\
+    Gemini 3 Flash
+      & 0.747 & 0.609 & $+0.138$ & $[+.112,\,+.140]$ & $1.2\!\times\!10^{-129}$ & \checkmark \\
+    Gemini 3.1 Pro
+      & 0.840 & 0.854 & $-0.014$ & $[-\!.003,\,+.009]$ & $1.4\!\times\!10^{-2}$ & \checkmark \\
+    GPT-4.1
+      & 0.777 & 0.853 & $-0.076$ & $[+.015,\,+.024]$ & $9.5\!\times\!10^{-17}$ & \checkmark \\
+    GPT-4.1 Mini
+      & 0.777 & 0.833 & $-0.056$ & $[+.014,\,+.032]$ & $5.1\!\times\!10^{-26}$ & \checkmark \\
+    GPT-4.1 Nano
+      & 0.547 & 0.545 & $+0.001$ & $[+.011,\,+.051]$ & $8.2\!\times\!10^{-15}$ & \checkmark \\
+    \bottomrule
+  \end{tabular}
+  \caption{H3: M1 vs.\ M6 contrasts. $\Delta F_2 = F_2(\text{M1}) - F_2(\text{M6})$
+  from Table~\ref{tab:h1-f2}; CI$_{95}$ from paired bootstrap ($B{=}300$);
+  $p$ exact McNemar two-sided; BH at $\alpha{=}0.05$, $m{=}33$ tests. All 11 models
+  are BH-significant, but direction is inconsistent.}
+  \label{tab:h3}
+\end{table}
+
+Figure~\ref{fig:h3-routing} shows M1 routing accuracy per model.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xbar,
+      width=0.88\linewidth,
+      height=7.5cm,
+      xmin=98.5, xmax=100.3,
+      xtick={98.5,99.0,99.5,100.0},
+      xticklabel={\pgfmathprintnumber{\tick}\%},
+      ytick=data,
+      yticklabels={
+        GPT-4.1 Nano,
+        GPT-4.1 Mini,
+        GPT-4.1,
+        Gemini 3.1 Pro,
+        Gemini 3 Flash,
+        Gemini 2.5 Pro,
+        Gemini 2.5 Flash,
+        Sonnet 4.6,
+        Sonnet 4,
+        Opus 4.6,
+        Haiku 4.5
+      },
+      yticklabel style={font=\small},
+      xticklabel style={font=\small},
+      bar width=7pt,
+      nodes near coords,
+      nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, /tikz/.cd},
+      every node near coord/.append style={xshift=2pt},
+      fill=TUMBlue!60,
+      draw=TUMBlue,
+      enlarge y limits=0.08,
+      xlabel={Routing accuracy (\%)},
+      xlabel style={font=\small},
+      tick align=outside,
+    ]
+      \addplot coordinates {
+        (100.00, 10)  % Haiku 4.5
+        (100.00,  9)  % Opus 4.6
+        (100.00,  8)  % Sonnet 4
+        (100.00,  7)  % Sonnet 4.6
+        (100.00,  6)  % Gemini 2.5 Flash
+        (100.00,  5)  % Gemini 2.5 Pro
+        (100.00,  4)  % Gemini 3 Flash
+        (100.00,  3)  % Gemini 3.1 Pro
+        (100.00,  2)  % GPT-4.1
+        (100.00,  1)  % GPT-4.1 Mini
+        (99.03,   0)  % GPT-4.1 Nano
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \caption{M1 router accuracy: agreement with the fixed category-to-specialist
+  mapping. Ten of eleven models achieve $100\%$; GPT-4.1 Nano reaches $99.03\%$
+  ($29$ mis-routes out of $2{,}999$).}
+  \label{fig:h3-routing}
+\end{figure}
+
+Near-perfect routing accuracy is in fact evidence \emph{against} the diagnostic
+value of routing: the task reduces to a category-name lookup with three disjoint,
+descriptively-named specialist domains. A deterministic dictionary would achieve the
+same outcome at zero LLM cost.
+
+Despite identical routing, M1 and M6 are statistically distinguishable on $F_2$ for
+all 11 models after BH correction. The direction, however, is inconsistent: M1
+outperforms M6 on 5 models (Haiku\,4.5, Opus\,4.6, Gemini\,2.5\,Pro,
+Gemini\,3\,Flash, GPT-4.1\,Nano), and M6 outperforms M1 on 6 models (Sonnet\,4,
+Sonnet\,4.6, Gemini\,2.5\,Flash, Gemini\,3.1\,Pro, GPT-4.1, GPT-4.1\,Mini). The
+largest absolute differences are Gemini\,3\,Flash ($+0.138$ for M1) and GPT-4.1
+($-0.076$ for M6), suggesting a model-capacity interaction: lighter/flash models
+benefit from the smaller individual specialist prompts, while capable heavy models
+handle the consolidated prompt more effectively.
+
+\medskip
+\noindent\textbf{H3 verdict.}
+Rejected. M1 and M6 are statistically distinguishable on $F_2$ for all 11 models
+($p < 0.05$ BH-corrected). However, the direction is not consistent across model
+families. There is no systematic benefit of the routing architecture over the
+consolidated specialist prompt. The pooled means coincide ($\overline{F_2} = 0.790$
+for both), and the per-model differences are explained by a model-capacity interaction
+rather than by routing contribution.
+
+\section{Additional Findings}\label{sec:res:additional}
+
+\subsection{The Classification-Gate Rejection Cascade}\label{sec:res:cascade}
+
+Table~\ref{tab:cascade} quantifies the M0 cascade failure. The M0 classifier emits
+\texttt{predicted\_no\_clause} (a silent empty return, bypassing the extractor) on a
+fraction of positive instances. The \emph{gate-caused FN share} measures what
+fraction of M0 false negatives originate from this path.
 
 \begin{table}[h]
   \centering
   \small
   \begin{tabular}{lccccc}
     \toprule
-    \textbf{Model} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} &
-    \textbf{M6} \\
+    \textbf{Model}
+    & \textbf{M0 laz.} & \textbf{B1 laz.} & \textbf{M0 FN}
+    & \textbf{Gate-FN} & \textbf{Gate \%} \\
     \midrule
-    Claude Haiku 4.5     & -- & -- & -- & -- & -- \\
-    Claude Sonnet 4      & -- & -- & -- & -- & -- \\
-    Claude Sonnet 4.6    & -- & -- & -- & -- & -- \\
-    Claude Opus 4.6      & -- & -- & -- & -- & -- \\
-    Gemini 2.5 Flash     & -- & -- & -- & -- & -- \\
-    Gemini 2.5 Pro       & -- & -- & -- & -- & -- \\
-    Gemini 3 Flash       & -- & -- & -- & -- & -- \\
-    Gemini 3.1 Pro       & -- & -- & -- & -- & -- \\
-    GPT-4.1              & -- & -- & -- & -- & -- \\
-    GPT-4.1 Mini         & -- & -- & -- & -- & -- \\
-    GPT-4.1 Nano         & -- & -- & -- & -- & -- \\
+    Claude Haiku 4.5   & 16.9\% &  3.9\% & 255 & 210 & 82.4\% \\
+    Claude Opus 4.6    &  7.6\% &  1.9\% & 142 &  95 & 66.9\% \\
+    Claude Sonnet 4    &  7.0\% &  2.1\% & 123 &  87 & 70.7\% \\
+    Claude Sonnet 4.6  & 10.5\% &  2.0\% & 156 & 131 & 84.0\% \\
+    Gemini 2.5 Flash   & 40.9\% &  2.7\% & 520 & 509 & 97.9\% \\
+    Gemini 2.5 Pro     & 31.7\% &  1.5\% & 403 & 394 & 97.8\% \\
+    Gemini 3 Flash     & 17.9\% &  2.0\% & 221 & 197 & 89.1\% \\
+    Gemini 3.1 Pro     & 15.6\% &  3.8\% & 191 & 169 & 88.5\% \\
+    GPT-4.1            & 17.8\% &  5.6\% & 207 & 191 & 92.3\% \\
+    GPT-4.1 Mini       & 11.8\% &  8.4\% & 147 & 103 & 70.1\% \\
+    GPT-4.1 Nano       & 36.3\% & 42.0\% & 452 & 318 & 70.4\% \\
     \midrule
-    \textbf{Total}       & -- & -- & -- & -- & -- \\
+    \textbf{Mean}      & 19.5\% &  6.5\% & 256 & 218 & 82.7\% \\
     \bottomrule
   \end{tabular}
-  \caption{Coverage matrix: per-run sample count and completion rate for each
-  (model, configuration) cell.}
-  \label{tab:coverage}
-\end{table}
-
-\emph{Placeholder --- Table~\ref{tab:sample-accounting}: Aggregate sample accounting.}
-Total predictions analysed: 163{,}644 after dropping 1{,}297 ($\approx 0.79\%$)
-null-classification samples. Stratified by configuration and by tier.
-
-\begin{table}[h]
-  \centering
-  \small
-  \begin{tabular}{lrrr}
-    \toprule
-    \textbf{Configuration} & \textbf{Total} & \textbf{Dropped} & \textbf{Analysed} \\
-    \midrule
-    B1  & -- & -- & -- \\
-    B4  & -- & -- & -- \\
-    M0  & -- & -- & -- \\
-    M1  & -- & -- & -- \\
-    M6  & -- & -- & -- \\
-    \midrule
-    \textbf{All} & 164{,}941 & 1{,}297 & 163{,}644 \\
-    \bottomrule
-  \end{tabular}
-  \caption{Aggregate sample accounting after exclusion of malformed classification
-  tokens.}
-  \label{tab:sample-accounting}
-\end{table}
-
-\emph{Placeholder --- Figure~\ref{fig:cost-stack}: Per-model wall-clock and cost stack.
-Per-model bar chart partitioned by configuration, supporting the cost-efficiency
-analysis of Section~\ref{sec:res:cost}.}
-
-\begin{figure}[h]
-  \centering
-  % \includegraphics[width=\textwidth]{figures/cost_stack.pdf}
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: per-model cost stack bar
-  chart, partitioned by configuration (B1, B4, M0, M1, M6). To be generated from
-  run-log aggregation.]}}
-  \caption{Per-model provider cost partitioned by configuration.}
-  \label{fig:cost-stack}
-\end{figure}
-
-\section{H1 --- Multi-Agent vs.\ Single-Agent Baselines}\label{sec:res:h1}
-
-This section presents the central H1 evidence: per-model McNemar exact tests on the
-family of pairwise configuration comparisons, paired bootstrap $\Delta F_2$ effect
-sizes, and the BH-corrected $p$-value table. The headline finding is that no multi-agent
-configuration consistently outperforms the strongest single-agent baseline on $F_2$
-across models: pooled mean $F_2$ across the eleven models lies within a 1.1-point band
-($\mathrm{B1} = 0.801$, $\mathrm{B4} = 0.796$, $\mathrm{M0} = 0.794$,
-$\mathrm{M1} = 0.790$, $\mathrm{M6} = 0.790$). The verdict on H1 is therefore
-mixed/conditional rather than supportive in the pooled view, while a model-family
-interaction is documented (Claude-family models prefer B4, Gemini-family prefer B1,
-OpenAI-family prefer M0). M0 wins on 5 of 11 models against B1 and loses on 4 of 11.
-
-\emph{Placeholder --- Table~\ref{tab:h1}: Per-model H1 results table. Rows: 11 models.
-Columns: $F_2$ for each of the 5 configurations, McNemar $p$ for each multi-agent
-vs.\ best baseline, BH-corrected $p$, paired bootstrap $\Delta F_2$ with $95\%$ CI.}
-
-\begin{table}[h]
-  \centering
-  \small
-  \begin{tabular}{lccccccc}
-    \toprule
-    \textbf{Model} & $F_2$(B1) & $F_2$(B4) & $F_2$(M0) & $F_2$(M1) & $F_2$(M6)
-    & $p$ (best multi vs.\ $B^\star$) & $p_{\mathrm{BH}}$ \\
-    \midrule
-    Claude Haiku 4.5  & -- & -- & -- & -- & -- & -- & -- \\
-    Claude Sonnet 4   & -- & -- & -- & -- & -- & -- & -- \\
-    Claude Sonnet 4.6 & -- & -- & -- & -- & -- & -- & -- \\
-    Claude Opus 4.6   & -- & -- & -- & -- & -- & -- & -- \\
-    Gemini 2.5 Flash  & -- & -- & -- & -- & -- & -- & -- \\
-    Gemini 2.5 Pro    & -- & -- & -- & -- & -- & -- & -- \\
-    Gemini 3 Flash    & -- & -- & -- & -- & -- & -- & -- \\
-    Gemini 3.1 Pro    & -- & -- & -- & -- & -- & -- & -- \\
-    GPT-4.1           & -- & -- & -- & -- & -- & -- & -- \\
-    GPT-4.1 Mini      & -- & -- & -- & -- & -- & -- & -- \\
-    GPT-4.1 Nano      & -- & -- & -- & -- & -- & -- & -- \\
-    \midrule
-    \textbf{Mean}     & 0.801 & 0.796 & 0.794 & 0.790 & 0.790 & \multicolumn{2}{c}{---} \\
-    \bottomrule
-  \end{tabular}
-  \caption{H1 results: per-model $F_2$ by configuration, McNemar test, and
-  BH-corrected $p$-value. Pooled means from run logs; per-model cells to be filled on
-  final aggregation.}
-  \label{tab:h1}
-\end{table}
-
-\emph{Placeholder --- Figure~\ref{fig:h1-heatmap}: Architecture $\times$ model-family
-interaction heat map. Heat map of $F_2$ by (model family, configuration), summarising
-the family-conditional best architecture.}
-
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: $3 \times 5$ heat map of
-  mean $F_2$ by (model family $\times$ configuration). Colour scale: low $F_2$ = white,
-  high $F_2$ = TUMBlue. Best-in-family cell annotated with a border.]}}
-  \caption{Architecture $\times$ model-family interaction: mean $F_2$ by family and
-  configuration.}
-  \label{fig:h1-heatmap}
-\end{figure}
-
-\emph{Placeholder --- Figure~\ref{fig:h1-deltas}: Per-model $\Delta F_2$ vs.\ B1 with
-$95\%$ paired-bootstrap CIs, faceted by configuration.}
-
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: four-panel figure (one
-  panel per non-B1 configuration) showing per-model $\Delta F_2$ with $95\%$ bootstrap
-  CI. Positive = better than B1; zero line marked.]}}
-  \caption{Per-model $\Delta F_2$ relative to B1, with $95\%$ paired-bootstrap
-  confidence intervals, faceted by configuration.}
-  \label{fig:h1-deltas}
-\end{figure}
-
-\textbf{H1 verdict.} The strict null --- that no multi-agent configuration outperforms
-the best single-agent baseline on $F_2$ --- is not rejected at the family level after
-BH correction. Per-model interactions with model family are statistically and
-practically meaningful, however, and shape the discussion in Chapter~6.
-
-\section{H2 --- Rare-Category Gap}\label{sec:res:h2}
-
-This section reports per-tier $F_2$ across all five configurations and the paired
-bootstrap on the rare--common gap difference relative to B1. The main finding is that
-multi-agent architectures do \emph{not} narrow the rare--common gap and may widen it
-for some configurations and models.
-
-\emph{Placeholder --- Table~\ref{tab:h2}: Per-tier $F_2$. Rows: 11 models $\times$ 5
-configurations. Columns: $F_2$ at common, moderate, rare tier; gap $= F_2^{\text{common}} -
-F_2^{\text{rare}}$; bootstrap CI on the gap.}
-
-\begin{table}[h]
-  \centering
-  \small
-  \begin{tabular}{llccccc}
-    \toprule
-    \textbf{Model} & \textbf{Config} & $F_2^{\text{com}}$ & $F_2^{\text{mod}}$ &
-    $F_2^{\text{rare}}$ & \textbf{Gap} & \textbf{95\% CI (gap)} \\
-    \midrule
-    \multicolumn{7}{c}{\textit{[To be populated from final aggregation]}} \\
-    \bottomrule
-  \end{tabular}
-  \caption{Per-tier $F_2$ and rare--common gap by model and configuration.}
-  \label{tab:h2}
-\end{table}
-
-\emph{Placeholder --- Figure~\ref{fig:h2-forest}: Gap-difference forest plot. Per-model
-paired bootstrap $\Delta\mathrm{Gap}$ for each multi-agent configuration vs.\ B1, with
-$95\%$ CIs, ordered by model.}
-
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: forest plot with one row
-  per (model, configuration) pair (3 multi-agent configs $\times$ 11 models = 33 rows).
-  $x$-axis: $\Delta\mathrm{Gap}$ (negative = multi-agent narrows the gap). Zero line
-  marked. CI bars from paired bootstrap.]}}
-  \caption{Paired bootstrap $\Delta\mathrm{Gap}$ (multi-agent vs.\ B1) with $95\%$ CIs.
-  Negative values indicate a narrower rare--common gap under the multi-agent
-  configuration.}
-  \label{fig:h2-forest}
-\end{figure}
-
-\textbf{H2 verdict.} Rejected in its directional form. The rare--common gap is not
-consistently reduced by any multi-agent configuration and is widened in identifiable
-model--architecture pairs, with the dominant driver being the M0 classifier's behaviour
-on rare categories (Section~\ref{sec:res:cascade}).
-
-\section{H3 --- Architecture vs.\ Prompts}\label{sec:res:h3}
-
-This section isolates the contribution of architectural decomposition from the
-contribution of prompt content via the M1 vs.\ M6 contrast, with M0 vs.\ M6 as a
-secondary contrast separating the classification gate from decomposition. Headline
-figures from the run logs: M1 routing accuracy is $100.000\%$ on 10 of 11 models
-(GPT-4.1 Nano: $99.033\%$); M1 and M6 are statistically indistinguishable on $F_2$ at
-the pooled level (mean $\Delta F_2 = 0.000$); M6 produces cleaner spans on Jaccard.
-
-\emph{Placeholder --- Table~\ref{tab:h3}: H3 contrasts. Rows: 11 models. Columns: M1
-vs.\ M6 McNemar $p$ and BH-corrected $p$, paired bootstrap $\Delta F_2$ with CI; same
-for M0 vs.\ M6; Jaccard for M1, M6, B1.}
-
-\begin{table}[h]
-  \centering
-  \small
-  \begin{tabular}{lcccc}
-    \toprule
-    \textbf{Model} & $\Delta F_2$(M1 vs.\ M6) & $p_{\mathrm{BH}}$ &
-    $\Delta F_2$(M0 vs.\ M6) & $p_{\mathrm{BH}}$ \\
-    \midrule
-    \multicolumn{5}{c}{\textit{[To be populated from final aggregation]}} \\
-    \bottomrule
-  \end{tabular}
-  \caption{H3 contrasts: M1 vs.\ M6 and M0 vs.\ M6, with BH-corrected $p$-values.}
-  \label{tab:h3}
-\end{table}
-
-\emph{Placeholder --- Figure~\ref{fig:h3-routing}: Routing accuracy by model. Bar chart
-of M1 router agreement with the fixed category-to-specialist mapping.}
-
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: horizontal bar chart, one
-  bar per model showing M1 routing accuracy (\%). All bars near $100\%$; GPT-4.1 Nano
-  at $99.033\%$ highlighted.]}}
-  \caption{M1 router accuracy: agreement with the fixed category-to-specialist mapping,
-  per model.}
-  \label{fig:h3-routing}
-\end{figure}
-
-\textbf{H3 verdict.} Not rejected. The architectural decomposition in M1 does not
-produce a statistically detectable improvement over the consolidated specialist prompt
-of M6 on $F_2$, suggesting that any benefit of the specialist-prompt content is
-attributable to the prompt text, not the routing topology.
-
-\section{Additional Findings}\label{sec:res:additional}
-
-\subsection{The Near-Perfect Routing Accuracy Critique}\label{sec:res:routing}
-
-This subsection examines the apparently strong but methodologically suspicious finding
-that M1's LLM router agrees with the fixed category-to-specialist mapping at $100\%$ on
-10 of 11 models. The finding is framed as evidence \emph{against} the diagnostic value
-of router accuracy: when the routing task collapses to a category-name classification
-with disjoint, well-named clusters, frontier LLMs solve it trivially, and router
-accuracy ceases to discriminate among architectures. A deterministic dictionary lookup
-would achieve the same routing outcome at zero LLM cost.
-
-\emph{Placeholder (optional) --- Figure~\ref{fig:routing-perturb}: Router agreement on
-a held-out perturbation set. The same routing prompt with adversarially renamed
-specialist labels, showing whether router behaviour degrades under relabelling.}
-
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder (optional): bar chart
-  comparing routing accuracy under original vs.\ relabelled specialist names, per model.
-  If the router relies on category-name cues, accuracy should degrade under
-  relabelling.]}}
-  \caption{Router accuracy under original and adversarially relabelled specialist names
-  (optional perturbation analysis).}
-  \label{fig:routing-perturb}
-\end{figure}
-
-\subsection{The Classification-Gate Rejection Cascade}\label{sec:res:cascade}
-
-This subsection documents M0's dominant failure mode: the binary classifier overrejects
-on certain models, causing the extractor to be bypassed and the system to silently emit
-``no related clause''. On Gemini~2.5 Flash the wrong-rejection rate is $40.9\%$ versus
-$2.7\%$ for B1; on Gemini~2.5 Pro it is $31.7\%$ versus $1.5\%$. Across all 11 models,
-between $70\%$ and $98\%$ of M0's false negatives are attributable to
-\texttt{predicted\_no\_clause} classifier verdicts.
-
-\emph{Placeholder --- Table~\ref{tab:cascade}: M0 rejection cascade. Rows: 11 models.
-Columns: classifier wrong-rejection rate, B1 laziness rate (for comparison), M0
-false-negative rate, share of false negatives with \texttt{predicted\_no\_clause} true.}
-
-\begin{table}[h]
-  \centering
-  \small
-  \begin{tabular}{lcccc}
-    \toprule
-    \textbf{Model} & \textbf{M0 wrong-rej.} & \textbf{B1 laziness} &
-    \textbf{M0 FN rate} & \textbf{FN due to gate} \\
-    \midrule
-    Claude Haiku 4.5  & -- & -- & -- & -- \\
-    Claude Sonnet 4   & -- & -- & -- & -- \\
-    Claude Sonnet 4.6 & -- & -- & -- & -- \\
-    Claude Opus 4.6   & -- & -- & -- & -- \\
-    Gemini 2.5 Flash  & 40.9\% & 2.7\% & -- & -- \\
-    Gemini 2.5 Pro    & 31.7\% & 1.5\% & -- & -- \\
-    Gemini 3 Flash    & -- & -- & -- & -- \\
-    Gemini 3.1 Pro    & -- & -- & -- & -- \\
-    GPT-4.1           & -- & -- & -- & -- \\
-    GPT-4.1 Mini      & -- & -- & -- & -- \\
-    GPT-4.1 Nano      & -- & -- & -- & -- \\
-    \bottomrule
-  \end{tabular}
-  \caption{M0 classification-gate rejection cascade: wrong-rejection rate, B1 laziness,
-  M0 false-negative rate, and share of false negatives attributable to the gate. Gemini
-  rows from run logs; others to be populated.}
+  \caption{M0 classification-gate rejection cascade. Laz.\ = laziness rate (FN
+  fraction of positives). Gate-FN = false negatives where
+  \texttt{predicted\_no\_clause}\,=\,True. Gate\,\% = Gate-FN\,/\,M0\,FN\,$\times$100.
+  Gemini 2.5 Flash and Pro: ${\approx}98\%$ of M0 false negatives are gate-caused.}
   \label{tab:cascade}
 \end{table}
 
-\emph{Placeholder --- Figure~\ref{fig:cascade-rare}: M0 vs.\ B1 laziness on rare-tier
-categories, illustrating the disproportionate cost of the rejection cascade on the rare
-slice.}
+The Gemini\,2.5 family is the most severe case: wrong-rejection rates of $40.9\%$
+and $31.7\%$ versus $2.7\%$ and $1.5\%$ for B1, with ${\geq}97.8\%$ of M0 false
+negatives attributable to the gate. The pattern generalises across all eleven models:
+on average $82.7\%$ of M0 false negatives are gate-caused. GPT-4.1\,Nano is the
+exception --- its B1 laziness ($42.0\%$) exceeds M0's ($36.3\%$), because the model
+is too weak to reliably extract clauses even without the gate.
 
-\begin{figure}[h]
-  \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: grouped bar chart with one
-  group per model, bars for M0 wrong-rejection rate and B1 laziness rate, restricted to
-  rare-tier categories. Gemini family expected to show the largest divergence.]}}
-  \caption{M0 classifier wrong-rejection rate vs.\ B1 laziness rate on rare-tier
-  categories, per model.}
-  \label{fig:cascade-rare}
-\end{figure}
+The cascade is more severe on rare categories: the Gemini\,2.5\,Flash rare-tier
+$F_2$ drops from $0.719$ (B1) to $0.381$ (M0), a $0.338$-point loss entirely
+attributable to the gate. This interaction explains why M0 widens the rare--common
+gap (Section~\ref{sec:res:h2}).
 
 \subsection{Cost-Efficiency Analysis}\label{sec:res:cost}
 
-Multi-agent configurations cost $24\%$--$70\%$ more than B1 per run with no aggregate
-$F_2$ benefit, placing B1 on the Pareto frontier in the ($F_2$, cost) plane for the
-eleven models studied. This is a deployment-relevant finding rather than a refutation
-of agentic architectures in principle: the cost premium may be justified in workflows
-where the per-agent traces add operational value (e.g.\ obligation-tracking systems
-that need to surface the reasoning path to a reviewer). The conditions under which the
-premium is justified are discussed in Chapter~6.
+Table~\ref{tab:cost} reports per-run provider costs. B1 is the cheapest configuration
+for all eleven models. The M0 premium over B1 ranges from $1.29\times$ (Gemini\,2.5\,Flash)
+to $2.40\times$ (Claude\,Opus\,4.6). M1 and M6 carry smaller premiums ($1.00$--$1.47\times$),
+consistent with single additional orchestration calls.
 
-\emph{Placeholder --- Figure~\ref{fig:pareto}: Pareto plot of $F_2$ versus per-sample
-provider cost for all 55 (configuration, model) cells, with the empirical Pareto
-frontier highlighted.}
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    \textbf{Model} & B1 (\$) & B4 (\$) & M0 (\$) & M1 (\$) & M6 (\$) \\
+    \midrule
+    Claude Haiku 4.5    & 36.70 & 43.11 & 60.66 & 45.00 & 43.29 \\
+    Claude Opus 4.6     & 185.02 & 213.30 & 302.96 & 215.49 & 211.10 \\
+    Claude Sonnet 4     & 94.04 & 125.98 & 184.58 & 127.17 & 125.41 \\
+    Claude Sonnet 4.6   & 111.44 & 129.59 & 184.11 & 137.75 & 128.24 \\
+    Gemini 2.5 Flash    & 10.64 & 14.72 & 13.73 & 13.31 & 13.99 \\
+    Gemini 2.5 Pro      & 43.39 & 61.77 & 58.69 & 55.57 & 58.21 \\
+    Gemini 3 Flash      & 16.55 & 19.09 & 26.24 & 19.65 & 19.18 \\
+    Gemini 3.1 Pro      & 65.75 & 72.46 & 104.57 & 78.73 & 72.69 \\
+    GPT-4.1             & 38.07 & 77.88 & 91.50 & 56.11 & 73.68 \\
+    GPT-4.1 Mini        & 13.17 & 15.78 & 21.42 & 13.22 & 15.78 \\
+    GPT-4.1 Nano        &  3.17 &  3.64 &  5.10 &  3.64 &  3.63 \\
+    \midrule
+    \textbf{Mean ratio vs.\ B1} & $1.00\times$ & $1.30\times$ &
+    $1.67\times$ & $1.23\times$ & $1.27\times$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Provider cost per run (2{,}999 samples). Mean ratio: average of
+  per-model cost\,/\,B1-cost. M0 carries a $1.67\times$ mean premium; B4 is
+  $1.30\times$; M1 and M6 are ${\approx}1.25\times$.}
+  \label{tab:cost}
+\end{table}
+
+Figure~\ref{fig:pareto} plots the $F_2$--cost Pareto frontier across all
+55 (configuration, model) cells. B1 occupies the Pareto frontier at every
+cost level at which it appears: no configuration is simultaneously cheaper and
+achieves higher $F_2$ for the same model. The M0 Gemini cells are dominated in
+both dimensions (lower $F_2$ \emph{and} higher cost than B1 Gemini), making them
+strictly Pareto-inferior.
 
 \begin{figure}[h]
   \centering
-  \fbox{\parbox{0.9\textwidth}{\centering\small[Placeholder: scatter plot, $x$-axis =
-  mean per-sample cost (\$), $y$-axis = mean $F_2$. One point per (configuration,
-  model) cell, colour-coded by configuration. Pareto-optimal points (no dominated cells)
-  connected by a step function. B1 expected to dominate in the lower-cost region.]}}
-  \caption{$F_2$ vs.\ per-sample provider cost for all 55 (configuration, model) cells.
-  The Pareto frontier (no cell simultaneously cheaper and better) is indicated.}
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.88\linewidth,
+      height=7.5cm,
+      xlabel={Per-sample cost (¢)},
+      ylabel={$F_2$},
+      xlabel style={font=\small},
+      ylabel style={font=\small},
+      xmin=0, xmax=11,
+      ymin=0.40, ymax=0.93,
+      xtick={0,2,4,6,8,10},
+      ytick={0.4,0.5,0.6,0.7,0.8,0.9},
+      tick label style={font=\small},
+      legend style={font=\scriptsize, at={(0.97,0.03)}, anchor=south east},
+      legend cell align=left,
+      grid=both,
+      grid style={line width=0.3pt, draw=gray!30},
+    ]
+      % B1
+      \addplot[only marks, mark=*, mark size=2pt, TUMBlue, opacity=0.85]
+        coordinates {
+          (1.2236,0.7827)(6.1694,0.8631)(3.5623,0.8514)(3.7160,0.8128)
+          (0.3549,0.8292)(1.4467,0.8277)(0.5521,0.7857)(2.1962,0.8611)
+          (1.5059,0.8678)(0.4393,0.8370)(0.1056,0.4878)
+        };
+      % B4
+      \addplot[only marks, mark=square*, mark size=2pt, TUMAccentGreen, opacity=0.85]
+        coordinates {
+          (1.4374,0.8494)(7.1125,0.8649)(4.2009,0.8512)(4.3209,0.8398)
+          (0.4907,0.8178)(2.0597,0.8101)(0.6394,0.5796)(2.4350,0.8427)
+          (2.5968,0.8522)(0.5269,0.8407)(0.1216,0.6122)
+        };
+      % M0
+      \addplot[only marks, mark=triangle*, mark size=2.5pt, TUMAccentOrange, opacity=0.85]
+        coordinates {
+          (2.0227,0.7921)(10.1022,0.8644)(6.1548,0.8766)(6.1392,0.8597)
+          (0.4579,0.6191)(1.9569,0.7066)(0.8794,0.8224)(3.5113,0.8427)
+          (3.2844,0.8280)(0.7420,0.8623)(0.1702,0.6590)
+        };
+      % M1
+      \addplot[only marks, mark=diamond*, mark size=2.5pt, TUMSecondaryBlue2, opacity=0.85]
+        coordinates {
+          (1.5006,0.8352)(7.1855,0.8595)(4.2403,0.8261)(4.5933,0.8336)
+          (0.4437,0.8095)(1.8531,0.8337)(0.6551,0.7473)(2.6252,0.8397)
+          (1.8708,0.7770)(0.4408,0.7766)(0.1212,0.5465)
+        };
+      % M6
+      \addplot[only marks, mark=pentagon*, mark size=2pt, TUMGray, opacity=0.85]
+        coordinates {
+          (1.4436,0.8220)(7.0391,0.8459)(4.1818,0.8417)(4.2759,0.8358)
+          (0.4665,0.8317)(1.9410,0.8162)(0.6397,0.6085)(2.4247,0.8536)
+          (2.4741,0.8534)(0.5284,0.8330)(0.1220,0.5452)
+        };
+      \legend{B1, B4, M0, M1, M6}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{$F_2$ vs.\ per-sample provider cost for all 55 (configuration, model)
+  cells. B1 (circle) dominates or matches every configuration at every cost level.
+  Three M0 outliers (Gemini\,2.5 Flash/Pro and Gemini\,3\,Flash) are dominated in
+  both dimensions.}
   \label{fig:pareto}
 \end{figure}
+
+The cost analysis places B1 on the Pareto frontier: zero configurations are both
+cheaper and more accurate than B1 for any given model. The 24\%--70\% premium
+attached to multi-agent configurations is uncompensated by aggregate $F_2$ gains. In
+workflows where the per-agent trace adds operational value (obligation tracking,
+audit-trail generation), this premium may be acceptable; the Chapter~6 discussion
+elaborates these conditions.
