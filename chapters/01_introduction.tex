@@ -2,87 +2,131 @@
 
 \chapter{Introduction}\label{chapter:introduction}
 
-Organisations forfeit $\approx\!9\%$ of annual revenue through poor contracting
-practices~\cite{worldcc2025benchmark}; 83\% of executives report contracts too rigid
-to accommodate change, with data dispersed across 24 systems on
-average~\cite{worldcc2025benchmark}. Goldman Sachs estimate 44\% of U.S.\ legal-task
-time is technically automatable by generative AI --- second-highest exposure across all
-professions~\cite{goldmansachs2023ai}. Frontier LLMs match junior lawyers on
-issue-identification F-scores ($0.87$ vs.\ $0.88$) while reducing review time by
-$\approx\!100\times$~\cite{martin2024bettercallgpt}, and independent benchmarks
-confirm competitiveness on standardised clause-extraction
-tasks~\cite{hendrycks2021cuad,liu2025contracteval}. Single-prompt deployments
-nonetheless dominate commercial CLM, and production failures --- hallucination, prompt
-sensitivity~\cite{chatterjee2024posix}, and
-laziness~\cite{liu2025contracteval} --- remain difficult to localise and remediate.
+\section{Motivation}\label{sec:motivation}
 
-Multi-agent architectures are the proposed remedy: decomposing clause analysis into
-specialised cooperating agents to improve recall, explainability, and regulatory
-compliance under the EU~AI~Act~\cite{euaiact2024} and
+Contract Lifecycle Management (CLM) is the workflow through which an organisation authors,
+negotiates, executes, monitors, and retires its contractual instruments. The economic surface
+is large: organisations forfeit value equivalent to roughly 9\% of annual revenue through
+poor contracting practices, with contract data dispersed across an average of 24 systems and
+83\% of executives reporting their contracts too rigid to accommodate
+change~\cite{worldcc2025benchmark}. Goldman Sachs estimate 44\% of U.S.\ legal-task time is
+technically automatable by generative AI --- second-highest exposure across all
+professions~\cite{goldmansachs2023ai}.
+
+Frontier large language models (LLMs) match junior lawyers on issue-identification
+$F$-scores ($0.87$ vs.\ $0.88$) while reducing review time by
+$\approx\!100\times$~\cite{martin2024bettercallgpt}, and independent benchmarks confirm
+competitiveness on standardised clause-extraction
+tasks~\cite{hendrycks2021cuad,liu2025contracteval}. Single-prompt deployments nonetheless
+dominate commercial CLM, and three production failures persist: hallucination, prompt
+sensitivity~\cite{chatterjee2024posix}, and laziness --- the silent default to
+``no related clause'' even when the clause is present in the
+contract~\cite{liu2025contracteval}.
+
+Multi-agent architectures are the proposed remedy. Decomposing clause analysis into
+specialised agents promises improved recall through specialisation, improved explainability
+through inspectable inter-agent traces, and addresses transparency and traceability
+requirements under Article~13 of the EU~AI~Act~\cite{euaiact2024} and Article~22 of the
 GDPR~\cite{gdpr2016}. Frameworks including AutoGen~\cite{wu2023autogen},
-MetaGPT~\cite{hong2024metagpt}, and
-Mixture-of-Agents~\cite{wang2024moa} make such architectures cheap to assemble.
-Yet existing legal multi-agent systems --- ChatLaw~\cite{cui2024chatlaw},
-PAKTON~\cite{raptopoulos2025pakton}, L-MARS~\cite{wang2025lmars} --- each
-evaluate a single architecture on a single benchmark without ablating the architectural
-choice itself. Cross-domain evidence questions whether multi-agent designs help at all
-once base-model capability is high~\cite{gao2025single}, and a 14-category failure
-taxonomy shows modest gains from simple fixes~\cite{cemri2025why}. No published
-study cross-varies both architecture and frontier-model family on CUAD under a natural
-class distribution with paired statistical tests.
+MetaGPT~\cite{hong2024metagpt}, and Mixture-of-Agents~\cite{wang2024moa} have made such
+architectures cheap to assemble. Whether they actually improve contract analysis is,
+however, an open empirical question.
 
-\medskip
-\noindent\textbf{Research Questions.}
+\section{Research Gap}\label{sec:gap}
 
-\noindent\textbf{Main RQ:} Under what conditions do multi-agent architectures improve
-contract-analysis accuracy, efficiency, and explainability, and which patterns are most
-effective?
+Three observations motivate the gap this thesis addresses.
+
+First, existing legal multi-agent systems --- ChatLaw~\cite{cui2024chatlaw},
+PAKTON~\cite{raptopoulos2025pakton}, L-MARS~\cite{wang2025lmars} --- each evaluate a single
+architecture on a single benchmark without ablating the architectural choice itself. The
+empirical question of which multi-agent pattern is preferable for clause-level contract
+analysis under a fixed model and task remains empirically unresolved.
+
+Second, recent cross-domain work questions whether multi-agent designs help at all once
+base-model capability is high. Gao et al.\ show diminishing returns for frontier models
+whose long-context reasoning absorbs the workload that previously required
+decomposition~\cite{gao2025single}. Cemri et al.\ construct a 14-mode failure taxonomy
+across seven multi-agent frameworks and report only modest 14--15\% recovery from simple
+interventions, suggesting structural rather than prompt-level causes~\cite{cemri2025why}.
+Bogavelli et al.\ find no universally optimal architecture across frontier models on
+enterprise tasks, with model--architecture interaction dominating absolute architectural
+ranking~\cite{bogavelli2025agentarch}.
+
+Third, prior CUAD evaluations have used inconsistent sampling designs. Evaluations at
+inflated positive ratios produce optimistic precision estimates because few absent samples
+are tested, masking the dual failure mode of over-extraction.
+
+No published study simultaneously (i) cross-varies multi-agent architecture and
+frontier-model family on CUAD, (ii) samples at the natural class distribution, (iii)
+applies paired statistical tests with multiple-comparison correction, and (iv) ablates the
+multi-agent design against a consolidated single-agent prompt. This thesis addresses all
+four requirements.
+
+\section{Research Questions}\label{sec:rqs}
+
+\noindent\textbf{Main RQ.} Under what conditions do multi-agent architectures improve
+contract analysis accuracy, efficiency, and explainability in enterprise CLM systems, and
+which architectural patterns are most effective?
 
 \begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=2pt]
-  \item[\textbf{RQ1.}] Which pattern --- pipeline decomposition, specialist routing,
-    or consolidated prompting --- achieves the highest clause-extraction $F_2$?
-  \item[\textbf{RQ2.}] How do multi-agent configurations compare to single-agent
-    baselines in $F_2$ and provider cost across clause categories and contract lengths?
-  \item[\textbf{RQ3.}] Which architectural decisions produce auditable reasoning
-    traces, and what tradeoffs do they introduce?
+  \item[\textbf{RQ1.}] Under what model-family and prevalence conditions does each
+    architectural pattern --- pipeline decomposition, specialist routing, or consolidated
+    prompting --- achieve the highest $F_2$?
+  \item[\textbf{RQ2.}] How do multi-agent configurations compare to single-agent baselines
+    in $F_2$ and provider cost across clause categories and contract lengths?
+  \item[\textbf{RQ3.}] Which architectural decisions produce auditable reasoning traces,
+    and what tradeoffs do they introduce?
 \end{description}
 
-\medskip
-\noindent\textbf{Hypotheses.}
+\section{Hypotheses}\label{sec:hypotheses}
 
 \begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=2pt]
-  \item[\textbf{H1.}] At least one multi-agent configuration outperforms the
-    strongest single-agent baseline on $F_2$ (McNemar exact, $\alpha{=}0.05$,
-    BH-corrected).
+  \item[\textbf{H1.}] At least one multi-agent configuration outperforms the strongest
+    single-agent baseline on $F_2$ (McNemar exact, $\alpha{=}0.05$, BH-corrected).
   \item[\textbf{H2.}] Multi-agent configurations reduce the rare--common $F_2$ gap
     relative to single-agent baselines (paired bootstrap on gap difference, 95\% CI).
-  \item[\textbf{H3.}] The LLM-routed specialist system M1 is statistically
-    distinguishable from the consolidated specialist ablation M6 on $F_2$
-    (two-sided McNemar exact).
+  \item[\textbf{H3.}] The LLM-routed specialist system M1 is statistically distinguishable
+    from the consolidated specialist ablation M6 on $F_2$ (two-sided McNemar exact).
 \end{description}
 
-\medskip
-\noindent\textbf{Contributions.}
+RQ3 is addressed by system design rather than statistical hypothesis test; the auditability
+properties of the implementation are documented in \S\ref{sec:auditability}.
 
-\begin{enumerate}[leftmargin=2em, itemsep=2pt]
-  \item \textbf{Sampling correction.}  A 30\%/70\% positive/negative sampler for
-    CUAD that exposes over-extraction as the dominant zero-shot failure mode.
-  \item \textbf{Cross-architecture benchmark.}  $5 \times 11 = 55$ runs across five
-    configurations and eleven frontier models on 81 CUAD long contracts,
-    yielding 163{,}644 analysed predictions.
-  \item \textbf{Failure-mode identification.}  Naming and quantifying the
-    \emph{classification-gate rejection cascade} in M0: $70$--$98\%$ of M0 false
-    negatives traced to the classifier gate on Gemini-family models.
-  \item \textbf{Routing critique.}  Showing M1's LLM router achieves $100\%$
-    accuracy on 10/11 models and is statistically indistinguishable from the
-    deterministic-lookup ablation M6 ($\Delta F_2 = 0.000$).
-  \item \textbf{Practitioner analysis.}  A six-gap analysis mapping CUAD
-    performance to enterprise CLM deployment reality.
-\end{enumerate}
+\section{Contributions}\label{sec:contributions}
 
-\medskip
-\noindent Chapter~2 surveys background and related work.
-Chapter~3 specifies methodology.
-Chapter~4 documents the implementation.
-Chapter~5 reports empirical results.
-Chapters~6 and~7 discuss and conclude.
+\begin{description}[leftmargin=3em, labelwidth=2.5em, itemsep=4pt]
+  \item[\textbf{C1}] \textbf{Cross-architecture benchmark.} The first cross-family
+    cross-architecture comparison on CUAD: 5 architectural configurations $\times$ 11
+    frontier models, yielding 163{,}644 paired sample-level predictions analysed with
+    McNemar exact tests, paired bootstrap, and Benjamini--Hochberg correction.
+  \item[\textbf{C2}] \textbf{Model-scale gradient.} Architectural ranking is not constant
+    across the model panel: larger models achieve their best $F_2$ under simpler
+    single-agent baselines, while lighter or weaker models gain from structured
+    decomposition. No architecture is universally optimal --- pooled $F_2$ across all five
+    configurations spans a 0.011-point band.
+  \item[\textbf{C3}] \textbf{Classification-gate cascade.} A failure mode of
+    pipeline-decomposition multi-agent architectures, named and quantified: the upstream
+    classifier accounts for the majority of false negatives, propagating silent rejections
+    downstream. The cascade is severe --- Gemini~2.5~Flash's wrong-rejection rate jumps
+    from 2.7\% under a single-agent baseline to 40.9\% in the pipeline --- and its
+    direction depends on the base model's laziness profile, harming low-laziness models and
+    helping high-laziness ones, making the effect predictable from a single-agent baseline
+    run.
+  \item[\textbf{C4}] \textbf{Routing redundancy with span-quality degradation.} The LLM
+    router in the specialist architecture is empirically redundant: it agrees with a
+    deterministic category-to-specialist mapping on every model in the panel --- 100\%
+    routing accuracy on 10 of 11 models --- and the consolidated single-agent ablation
+    matches it on $F_2$ while producing cleaner spans. The routing topology adds cost
+    without architectural benefit.
+\end{description}
+
+A methodological observation underpins all four contributions. The thesis samples at
+CUAD's natural 30\%/70\% positive/negative class ratio rather than the inflated positive
+ratios used in some prior work, exposing over-extraction as the dominant zero-shot failure
+mode that positive-heavy sampling masks (\S\ref{sec:sampling}).
+
+\section{Thesis Outline}\label{sec:outline}
+
+Chapter~2 surveys background and related work. Chapter~3 specifies methodology.
+Chapter~4 documents the implementation. Chapter~5 reports empirical results.
+Chapters~6 and~7 discuss findings and conclude.

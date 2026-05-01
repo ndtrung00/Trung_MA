@@ -1,42 +1,32 @@
 \chapter{\abstractname}
 
-Contract Lifecycle Management (CLM) platforms increasingly rely on large language
-models (LLMs) to automate clause extraction from commercial contracts, and the research
-and vendor communities have advocated multi-agent architectures as a superior
-alternative to single-prompt deployments. Despite this advocacy, no published work has
-rigorously compared multi-agent architectural patterns against single-agent baselines
-across multiple frontier-model families on a standardised contract-analysis benchmark
-under realistic class distributions.
+Contract Lifecycle Management platforms increasingly rely on large language models to
+automate clause extraction from commercial contracts, and both research and vendor
+communities have advocated multi-agent architectures as a superior alternative to
+single-prompt deployments. The empirical case for this advocacy is, however, thin:
+existing legal multi-agent systems each evaluate a single architecture on a single
+benchmark, no published work has compared multi-agent patterns to single-agent baselines
+across multiple frontier-model families, and recent cross-domain work suggests that
+multi-agent gains diminish as base-model capability rises.
 
-This thesis presents a controlled, statistically tested comparison of five
-architectural configurations --- zero-shot (B1), chain-of-thought (B4), a
-classify-then-extract pipeline (M0), an LLM-routed specialist system (M1), and a
-consolidated specialist ablation (M6) --- evaluated across eleven frontier models from
-the Anthropic, Google, and OpenAI families on 81 long contracts from the CUAD benchmark.
-Evaluation uses a natural $30\%$ positive / $70\%$ negative class distribution, $F_2$
-and $F_1$ as primary metrics, and paired McNemar and bootstrap statistical tests with
-Benjamini--Hochberg correction.
+This thesis presents the first controlled cross-architecture cross-model comparison of
+multi-agent designs for clause extraction on the CUAD benchmark. Five configurations
+spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed specialists,
+and a consolidated single-agent ablation are evaluated across eleven frontier models from
+three providers, yielding 163{,}644 paired predictions analysed with paired statistical
+tests at the natural class distribution.
 
-The central finding is that no multi-agent configuration consistently outperforms the
-strongest single-agent baseline on $F_2$: pooled mean $F_2$ across all eleven models
-falls within a 1.1-point band ($\mathrm{B1}{=}0.801$, $\mathrm{B4}{=}0.796$,
-$\mathrm{M0}{=}0.794$, $\mathrm{M1}{=}0.790$, $\mathrm{M6}{=}0.790$). Architectural
-ranking varies systematically by model family: Anthropic models peak under B4
-($\overline{F_2}{=}0.851$), Google models under B1 ($0.826$), and OpenAI models under
-M0 ($0.783$). Two mechanistic findings explain the pooled null result. First, the
-classify-then-extract pipeline (M0) suffers a \emph{classification-gate rejection
-cascade} on Gemini-family models, with wrong-rejection rates of $31.7\%$--$40.9\%$
-versus $1.5\%$--$2.7\%$ for the single-agent baseline, accounting for
-$97.8\%$--$97.9\%$ of M0's false negatives on those models. Second, the LLM router
-in M1 achieves near-perfect routing accuracy ($100\%$ on ten of eleven models),
-collapsing to a trivially solvable category-name lookup; M1 and M6 are statistically
-distinguishable on $F_2$ for all eleven models (BH-corrected McNemar, $p < 0.05$),
-but the direction is inconsistent across families and the pooled means coincide
-($\overline{F_2}{=}0.790$ for both), indicating that the routing topology itself
-contributes no systematic benefit. Multi-agent configurations carry a
-$1.23\times$--$1.67\times$ provider-cost premium relative to B1 with no aggregate
-accuracy benefit, placing the zero-shot single-agent baseline on the Pareto frontier.
+No multi-agent configuration consistently outperforms the strongest single-agent
+baseline. Pooled accuracy across the eleven models falls within a one-point band, and
+architectural ranking varies with model scale rather than model family: larger models
+perform best under simpler baselines, while lighter models gain from structured
+decomposition. Two mechanisms explain the null result. The pipeline architecture exhibits
+a \emph{classification-gate rejection cascade} --- its upstream classifier silently
+overrejects on some models --- and the LLM router in the specialist architecture is
+empirically redundant: it converges to a deterministic category lookup and produces
+lower-quality span outputs than the consolidated ablation. Multi-agent configurations
+carry a $24\%$--$70\%$ cost premium without aggregate accuracy benefit.
 
-These results delineate the conditions under which multi-agent designs help, are
-inert, or actively hurt in enterprise CLM, and motivate a practitioner-oriented
-six-gap analysis connecting benchmark performance to production deployment reality.
+These results delineate when multi-agent designs help, are inert, or actively hurt in
+enterprise CLM, and motivate a practitioner-oriented analysis of the gap between
+benchmark performance and production deployment.
