@@ -186,12 +186,15 @@ repository of hundreds or thousands of contracts, then the relevant subset
 is extracted from. This pipeline introduces challenges --- cross-contract
 consistency, deduplication, result aggregation --- that no current public
 benchmark addresses, and it shifts the architecture's value proposition from
-extraction accuracy to retrieval-extraction integration. The M0
-classify-then-extract pattern is the simplest non-trivial member of the
-retrieve-then-extract family. The cascade failure mode of
+extraction accuracy to retrieval-extraction integration. Multi-agent designs
+in which a retrieval agent precedes an extraction agent are a natural fit
+for this workflow, and the M0 classify-then-extract pattern is the simplest
+non-trivial member of that family. The cascade failure mode of
 Section~\ref{sec:disc:cascade} therefore has direct deployment relevance:
-the same cascade dynamics that suppress M0 recall on Gemini~2.5 will
-suppress retrieval-extraction recall in production.
+the same upstream-rejection dynamics that suppress M0 recall on Gemini~2.5
+will plausibly suppress retrieval-extraction recall in production. A
+controlled retrieve-then-extract benchmark on a multi-contract corpus is
+identified as future work in Chapter~\ref{chapter:conclusion}.
 
 \paragraph{3. Clause taxonomies are domain-specific and open-ended.}
 The forty-one CUAD categories cover general commercial provisions.
