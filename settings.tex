@@ -21,7 +21,16 @@
 \usepackage{listings}
 \usepackage{lstautogobble}
 \usepackage{tikz}
-\usetikzlibrary{positioning, shapes.geometric, arrows}
+\usetikzlibrary{positioning, shapes.geometric, arrows, arrows.meta}
+\usepackage[skins]{tcolorbox}           % styled prompt / trace boxes
+\newtcolorbox{promptbox}[1]{            % \begin{promptbox}{Title}
+  title={\small\bfseries #1},
+  colback=TUMAccentLightBlue!8,
+  colframe=TUMBlue,
+  boxrule=0.5pt,
+  left=6pt, right=6pt, top=4pt, bottom=4pt,
+  fontupper=\small\itshape
+}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage{booktabs}

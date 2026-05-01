@@ -2,248 +2,485 @@
 
 \chapter{System Design and Implementation}\label{chapter:system-design}
 
-This chapter documents the system that operationalises the configurations of Chapter~3.
-The objective is reproducibility: the architectures are described at a level of detail
-sufficient for an independent team to re-implement them, and the supporting
-infrastructure (prompt registry, model client, observability layer, dashboard, and test
-suite) is described at the same level. Code references in this chapter point to the
-thesis artifact released alongside the document.
+This chapter operationalises the five configurations of
+Chapter~\ref{chapter:methodology}. The objective is reproducibility: architectures,
+prompts, state schemas, and trace formats are described at a level of detail sufficient
+for an independent team to re-implement them from the released artefact.
+Section~\ref{sec:sys:components} presents the component diagram and shared data flow.
+Section~\ref{sec:sys:stack} gives the implementation stack.
+Section~\ref{sec:sys:shared} defines the run-state schema and prompt registry shared
+by all configurations. Sections~\ref{sec:sys:baselines} and~\ref{sec:sys:multiagent}
+specify the per-configuration implementations, including the prompts and routing logic
+that distinguish M1 from M6. Section~\ref{sec:auditability} documents the trace schema
+underwriting the auditability analysis of Sub-RQ3.
+Section~\ref{sec:sys:infra} covers the loader, statistical pipeline, and
+reproducibility commitments. The configuration table is in
+Chapter~\ref{chapter:methodology} (Table~\ref{tab:configs}) and is not repeated here.
 
-\section{Architectural Patterns Evaluated}\label{sec:sys:patterns}
+\section{System Components and Data Flow}\label{sec:sys:components}
 
-The five configurations populate three orthogonal axes of the agentic design space:
-\emph{number of stages} (single vs.\ multi-stage), \emph{routing} (none, static, or
-LLM-driven), and \emph{specialisation} (a single generalist agent vs.\ several domain
-specialists vs.\ a consolidated specialist prompt). Table~\ref{tab:configs} summarises
-the five configurations and their position in this space.
+Figure~\ref{fig:sys-components} shows the static component view. A run is initiated
+by the experiment driver, which loads CUAD samples through the deterministic loader,
+resolves prompts through the registry, and dispatches each sample to one of the five
+LangGraph state machines via a unified model client. Every model call is mirrored to
+the trace store; final answers are persisted as JSONL records consumed by the
+statistical pipeline and the inspection dashboard.
 
-\begin{table}[h]
+\begin{figure}[h]
   \centering
-  \small
-  \begin{tabular}{lllll}
-    \toprule
-    \textbf{ID} & \textbf{Name} & \textbf{Stages} & \textbf{Routing} &
-    \textbf{Specialisation} \\
-    \midrule
-    B1 & Zero-shot single agent            & 1 & none          & generalist \\
-    B4 & Chain-of-thought single agent      & 1 & none          & generalist + reasoning \\
-    M0 & Classify-then-extract pipeline    & 2 & static (gate) & generalist \\
-    M1 & Orchestrator + 3 specialists      & 2 & LLM router    & three domain specialists \\
-    M6 & Consolidated specialist (ablation) & 1 & none          & one agent, union of specialist prompts \\
-    \bottomrule
-  \end{tabular}
-  \caption{The five evaluated configurations across the three design axes.}
-  \label{tab:configs}
-\end{table}
+  \begin{tikzpicture}[
+    comp/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!20,
+                 rounded corners=2pt, minimum width=2.3cm, minimum height=0.6cm,
+                 align=center, font=\scriptsize},
+    store/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!8,
+                  dashed, minimum width=2.0cm, minimum height=0.6cm,
+                  align=center, font=\scriptsize},
+    ext/.style={rectangle, draw=TUMAccentOrange, fill=TUMAccentOrange!10,
+                rounded corners=2pt, minimum width=1.8cm, minimum height=0.5cm,
+                align=center, font=\scriptsize},
+    >=stealth, thick, node distance=0.55cm
+  ]
+    \node[comp]  (driver) at (0.0,  4.0) {Experiment\\Driver};
+    \node[store] (cuad)   at (-4.5, 2.4) {CUAD\\test.json};
+    \node[comp]  (loader) at (-2.3, 2.4) {Loader \&\\Sampler};
+    \node[store] (reg)    at (0.0,  2.4) {Prompt\\Registry};
+    \node[comp]  (graph)  at (2.5,  2.4) {LangGraph\\StateGraph};
+    \node[comp]  (client) at (5.2,  2.4) {Model Client\\(multi-provider)};
+    \node[ext]   (anth)   at (3.7,  0.9) {Anthropic};
+    \node[ext]   (oai)    at (5.4,  0.9) {OpenAI};
+    \node[ext]   (goog)   at (7.0,  0.9) {Google};
+    \node[store] (lf)     at (1.0,  0.9) {Langfuse\\traces};
+    \node[store] (jsonl)  at (-1.4, 0.9) {Predictions\\(JSONL)};
+    \node[comp]  (stats)  at (-3.7, 0.9) {Statistical\\Pipeline};
+    \node[comp]  (dash)   at (-3.7,-0.4) {Dashboard\\(Next.js)};
+    \draw[->] (driver) -- (loader);
+    \draw[->] (driver) -- (reg);
+    \draw[->] (driver) -- (graph);
+    \draw[->] (cuad)   -- (loader);
+    \draw[->] (loader) -- (graph);
+    \draw[->] (reg)    -- (graph);
+    \draw[->] (graph)  -- (client);
+    \draw[->] (client) -- (anth);
+    \draw[->] (client) -- (oai);
+    \draw[->] (client) -- (goog);
+    \draw[->] (client) -- (lf);
+    \draw[->] (graph)  -- (jsonl);
+    \draw[->] (jsonl)  -- (stats);
+    \draw[->] (jsonl)  -- (dash);
+    \draw[->] (lf.west) to[out=180,in=0] (dash.east);
+  \end{tikzpicture}
+  \caption{System components. Solid-border boxes: thesis code; dashed-border boxes:
+  data stores; orange boxes: external provider APIs. The loader, registry, and client
+  are configuration-agnostic; only the StateGraph topology varies across B1--M6.}
+  \label{fig:sys-components}
+\end{figure}
+
+\section{Implementation Stack}\label{sec:sys:stack}
+
+The codebase is Python~3.11, managed with \texttt{uv}. Orchestration uses
+LangGraph~\cite{langgraph2024}; observability uses Langfuse~\cite{langfuse2024};
+the statistical pipeline uses \texttt{pandas}~\cite{pandas2020},
+\texttt{numpy}~\cite{harris2020array}, and \texttt{scipy}~\cite{virtanen2020scipy}.
+Provider SDKs are wrapped in a unified \texttt{ModelClient} that records, per call,
+prompt tokens, completion tokens, cache-read tokens (where supported), wall-clock
+latency, and provider-billed cost. The wrapper supports 19 model identifiers; only
+the 11 listed in Table~\ref{tab:models} are exercised in official runs.
+
+\section{Shared Abstractions}\label{sec:sys:shared}
+
+\paragraph{Graph state.}
+Every configuration is a LangGraph \texttt{StateGraph} over a shared
+\texttt{GraphState} object (Listing~\ref{lst:state}). Using a shared schema enforces
+configuration parity: no configuration has access to fields another lacks, and the
+JSONL persistence format is identical across all five configurations.
+
+\begin{lstlisting}[language=Python, caption={GraphState schema (abridged from
+  \texttt{src/agents/state.py}).}, label={lst:state},
+  basicstyle=\footnotesize\ttfamily, frame=single]
+class GraphState(TypedDict, total=False):
+    # Inputs (unchanged throughout graph)
+    contract_text:      str
+    category:           str   # one of 41 CUAD category names
+    question:           str   # CUAD annotation-guideline question text
+
+    # Routing (set by orchestrator node --- M1 only)
+    specialist_name:    str   # "risk_liability" | "temporal_renewal" | "ip_commercial"
+
+    # Extraction (set by specialist or baseline node)
+    extraction_result:  ExtractionResult | None
+
+    # Validation (set by validation node)
+    validated:          bool
+    validation_notes:   str
+
+    # Final output
+    final_result:       ExtractionResult | None
+
+    # Trace: append-reducer accumulates entries across all nodes
+    trace: Annotated[list[dict[str, Any]], append_trace]
+
+    error: str | None
+\end{lstlisting}
+
+\paragraph{Prompt registry.}
+Prompts are stored as YAML and loaded once per run; the schema version hash is
+written to the run metadata so prompt drift is detectable post-hoc. Two roots:
+\texttt{prompts/baselines/} (B1, B4, and the M0 classifier and extractor) and
+\texttt{prompts/specialists/} (the three M1 domain specialists and the M6
+consolidated prompt). A shared \texttt{system/} directory holds anti-laziness
+instructions and the verbatim-span output contract, referenced by all configurations,
+ensuring that the behavioural guard-rails are identical across B1, B4, M0, M1,
+and M6.
+
+\paragraph{Common parser.}
+A single parser converts every model completion to a canonical
+\texttt{(spans: list[str]~|~None)} representation. For B1, the parser accepts
+verbatim quoted spans or the literal string ``no related clause''. For B4 and
+M0-extractor, the parser additionally requires a \texttt{<answer>...</answer>} tag
+and issues a single repair re-prompt if the tag is absent. On persistent failure the
+record is marked \texttt{parser\_status="rejected"} and excluded from official
+statistics (1{,}297 of 164{,}941 predictions, $0.79\%$).
 
 \section{Baseline Architectures}\label{sec:sys:baselines}
 
-\paragraph{B1 --- ContractEval replication.}
-B1 is a faithful replication of the zero-shot prompt protocol of
-\cite{liu2025contracteval}. The model receives a single user message containing the
-contract text, the target category name, the category indicator (a short
-attorney-style description of what the category covers, taken from CUAD's annotation
-guidelines), and an explicit instruction to either return the verbatim span(s) of the
-clause or the literal string ``no related clause''. The system message is identical
-across categories. No examples, no chain-of-thought instructions, and no auxiliary
-structure are added. B1 establishes the floor for a competent single-agent reading.
+\paragraph{B1 --- Zero-shot single agent.}
+B1 replicates the zero-shot prompt protocol of~\cite{liu2025contracteval}. The model
+receives one user message containing the contract text, the target category name, the
+category indicator, and an explicit instruction to return verbatim span(s) or the
+literal string ``no related clause''. No examples, no chain-of-thought directives.
+
+\begin{promptbox}{B1: zero-shot user template}
+You are reviewing a commercial contract. Determine whether the contract contains
+any clause(s) of the category below. If yes, return the verbatim span(s); each span
+must appear exactly as in the contract. If no, return exactly: ``no related clause''.
+
+\textbf{Category:} \{\{category\}\} \quad
+\textbf{Description:} \{\{category\_indicator\}\}
+
+\textbf{Contract:} \{\{contract\_text\}\}
+\end{promptbox}
 
 \paragraph{B4 --- Chain-of-thought single agent.}
-B4 retains B1's task framing but explicitly elicits step-by-step reasoning followed by
-a structured final answer. The user prompt instructs the model to reason about the
-category definition, scan the contract for candidate spans, weigh ambiguous matches, and
-only then emit a final \texttt{<answer>...</answer>} block containing either verbatim
-span(s) or ``no related clause''.
-
-The B4 prompt went through one substantive revision during pilot work. The original
-delimiter-based parser extracted any text occurring after a sentinel string, which under
-certain models produced spurious matches: when the chain-of-thought monologue itself
-quoted contract passages, the parser harvested them as if they were the final answer,
-inflating the over-extraction rate. The fix was to enforce a structured-output contract:
-the parser now requires the final block to be enclosed in an explicit answer tag and
-rejects the trace otherwise, with a small repair step that re-prompts the model for a
-structured emission if the tag is missing. Only the post-fix version is in the official
-runs; the parsing-bug runs are retained for reference but excluded from all reported
+B4 retains B1's task framing but elicits explicit step-by-step reasoning before a
+final structured answer. The model is instructed to restate what the category covers,
+scan for candidate spans, weigh ambiguous matches against the indicator, and emit a
+final \texttt{<answer>...</answer>} block. A parsing bug in pilot work caused
+contract passages quoted inside the chain-of-thought to be harvested as answers,
+inflating $\omega$ (Eq.~\ref{eq:overextract}); the fix enforces the answer tag via
+the common parser of Section~\ref{sec:sys:shared}. Only post-fix runs enter official
 statistics.
 
 \section{Multi-Agent Architectures}\label{sec:sys:multiagent}
 
-\paragraph{M0 --- Classify-then-extract pipeline.}
-M0 decomposes the per-category task into two LLM calls. The first call is a binary
-\emph{classifier} agent that receives the contract and the category and returns a single
-yes/no token indicating whether any span of the category is present. The second call is
-an \emph{extractor} agent that is invoked only when the classifier returns yes; it
-receives the same inputs and produces the verbatim span(s). When the classifier returns
-no, the extractor is bypassed and the system records ``no related clause'' as the final
-answer. The two agents share a category indicator but have disjoint prompts: the
-classifier's prompt explicitly forbids span emission, and the extractor's prompt assumes
-presence. M0 implements the simplest form of conditional computation in the design space
-and is the architectural reference for the value of a classification gate.
+\paragraph{M0 --- Classify-then-extract.}
+M0 decomposes each (contract, category) task into two sequential LLM calls. The
+\emph{classifier} returns a single yes/no token; the \emph{extractor} is invoked
+only if the classifier returns yes. The two agents share the category indicator but
+have disjoint prompts: the classifier is forbidden to emit spans, the extractor
+assumes presence. Listing~\ref{lst:m0-prompts} excerpts both prompts;
+Listing~\ref{lst:m0-graph} shows the LangGraph construction.
+
+\begin{lstlisting}[caption={M0 classifier and extractor prompts (abridged).},
+  label={lst:m0-prompts}, basicstyle=\footnotesize\ttfamily, frame=single]
+# --- classifier ---
+Decide whether the contract contains any clause of the category below.
+Return exactly one token: "yes" or "no". Do not return spans.
+Category: {{category}}   Description: {{category_indicator}}
+Contract: {{contract_text}}
+
+# --- extractor (invoked only when classifier returned "yes") ---
+The contract contains at least one clause of the category below.
+Return the verbatim span(s) wrapped in <answer>...</answer>.
+\end{lstlisting}
+
+\begin{lstlisting}[language=Python, caption={M0 LangGraph construction.},
+  label={lst:m0-graph}, basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{TUMBlue}, frame=single]
+g = StateGraph(GraphState)
+g.add_node("classify", classify_node)
+g.add_node("extract",  extract_node)
+g.set_entry_point("classify")
+g.add_conditional_edges(
+    "classify",
+    lambda s: "extract" if s["classifier_verdict"] == "yes" else END,
+    {"extract": "extract", END: END},
+)
+g.add_edge("extract", END)
+\end{lstlisting}
 
 \paragraph{M1 --- Orchestrator with three specialists.}
-M1 consists of an \emph{orchestrator} that receives the contract and the category and
-routes the request, via an LLM router prompt, to one of three domain specialists. The
-router prompt enumerates the three specialists, gives a one-line description of each,
-and asks for a single category-name decision. The three specialists partition the 41
-CUAD categories as follows:
+M1 routes each request to one of three domain specialists via an LLM router. The
+category-to-specialist assignment is documented in Table~\ref{tab:specialist-map};
+it is fixed before any model is run and is committed as \texttt{CATEGORY\_ROUTING}
+in \texttt{src/agents/orchestrator.py}.
 
-\begin{itemize}
-  \item \textbf{Risk/Liability specialist} (13 categories): liability caps,
-    indemnification, insurance, warranty, governing law, and similar risk-allocation
-    provisions.
-  \item \textbf{Temporal/Renewal specialist} (11 categories): term, renewal,
-    termination, notice periods, post-termination obligations, and other time-bounded
-    provisions.
-  \item \textbf{IP/Commercial specialist} (17 categories): IP ownership and licence
-    grants, exclusivity, non-compete, audit rights, and commercial covenants.
-\end{itemize}
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \begin{tabular}{p{3.8cm} p{3.9cm} p{4.5cm}}
+    \toprule
+    \textbf{Risk/Liability (13)} &
+    \textbf{Temporal/Renewal (11)} &
+    \textbf{IP/Commercial (17)} \\
+    \midrule
+    Cap on Liability               & Document Name                     & IP Ownership Assignment \\
+    Uncapped Liability             & Parties                           & Joint IP Ownership \\
+    Liquidated Damages             & Agreement Date                    & License Grant \\
+    Insurance                      & Effective Date                    & Non-Transferable License \\
+    Warranty Duration              & Expiration Date                   & Affiliate License-Licensor \\
+    Audit Rights                   & Renewal Term                      & Affiliate License-Licensee \\
+    Non-Disparagement              & Notice Period to Terminate Renewal & Unlimited License \\
+    Covenant Not to Sue            & Termination for Convenience       & Irrevocable or Perpetual License \\
+    Third Party Beneficiary        & Anti-Assignment                   & Source Code Escrow \\
+    Most Favored Nation            & ROFR/ROFO/ROFN                    & Exclusivity \\
+    Change of Control              & Governing Law                     & Non-Compete \\
+    Post-Termination Services      &                                   & No-Solicit of Customers \\
+    Minimum Commitment             &                                   & No-Solicit of Employees \\
+                                   &                                   & Competitive Restriction Exception \\
+                                   &                                   & Revenue/Profit Sharing \\
+                                   &                                   & Price Restrictions \\
+                                   &                                   & Volume Restriction \\
+    \bottomrule
+  \end{tabular}
+  \caption{Category-to-specialist assignment used by M1. All 41 CUAD categories are
+  listed; the mapping is fixed before any model is run.}
+  \label{tab:specialist-map}
+\end{table}
 
-Categories were assigned to specialists by the author in consultation with the CUAD
-category descriptions; the assignment was fixed before any model was run. Each
-specialist's prompt is a focused reading instruction tuned to its category cluster,
-including category indicators and asymmetry guidance (e.g.\ liability caps require
-recall of monetary thresholds, renewal clauses require recall of conditional triggers).
-The specialist returns a verbatim-span answer in the same schema as the baselines. M1
-thus combines two architectural commitments: routing and decomposition.
+The router system prompt is reproduced verbatim below from
+\texttt{ROUTING\_SYSTEM\_PROMPT} in the artefact. Routing accuracy across the
+11-model panel is reported in Section~\ref{sec:res:h3}.
 
-\paragraph{M6 --- Consolidated specialist (ablation).}
+\begin{promptbox}{M1 router system prompt (verbatim from \texttt{src/agents/orchestrator.py})}
+You are a routing agent for a contract analysis system. Your job is to read a
+question about a contract clause and decide which specialist should handle it.
+
+\textbf{risk\_liability} --- Expert in risk allocation, liability, and protective
+provisions. Covers: liability caps and uncapped liability, liquidated damages,
+insurance requirements, warranty duration, audit rights, non-disparagement, covenants
+not to sue, third-party beneficiaries, most favored nation clauses, change of control
+provisions, post-termination services, and minimum commitments.
+
+\textbf{temporal\_renewal} --- Expert in temporal aspects, document identification,
+and contract lifecycle. Covers: document name and party identification,
+agreement/effective/expiration dates, renewal terms and notice periods for renewal
+termination, termination for convenience, anti-assignment provisions, rights of first
+refusal/offer/negotiation, and governing law.
+
+\textbf{ip\_commercial} --- Expert in intellectual property rights and commercial
+restrictions. Covers: IP ownership and assignment, joint IP ownership, license grants
+(transferability, affiliate licenses, unlimited/perpetual licenses), source code
+escrow, exclusivity, non-compete and non-solicitation clauses, competitive restriction
+exceptions, revenue/profit sharing, price restrictions, and volume restrictions.
+
+Respond with ONLY a JSON object:
+\{"specialist": "<name>", "reasoning": "<brief explanation>"\}
+\end{promptbox}
+
+Each specialist's prompt is a focused reading instruction for its cluster. The
+Risk/Liability specialist is shown below; Temporal and IP/Commercial follow the same
+template.
+
+\begin{promptbox}{M1 Risk/Liability specialist system prompt (abridged)}
+You are a contract analyst specialising in risk-allocation provisions: liability
+caps, uncapped exclusions, indemnification, insurance, warranty, audit rights,
+non-disparagement, third-party beneficiaries, most-favored-nation, change of control,
+post-termination services, and minimum commitments. For these categories, recall of
+monetary thresholds and explicit carve-outs (``except for...'', ``not in excess
+of...'') is critical and preferred over summary paraphrase.
+
+Return the verbatim span(s) of any clause of the category below, or ``no related
+clause'' if none is present.
+
+\textbf{Category:} \{\{category\}\} \quad
+\textbf{Description:} \{\{category\_indicator\}\}
+
+\textbf{Contract:} \{\{contract\_text\}\}
+\end{promptbox}
+
+Figure~\ref{fig:m1-sequence} traces a single M1 invocation, showing the parent--child
+call structure reproduced in the Langfuse trace.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+    actor/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!20,
+                  rounded corners=2pt, minimum width=1.9cm, minimum height=0.38cm,
+                  font=\scriptsize, align=center},
+    >=stealth, thick
+  ]
+    \node[actor] (drv) at (0,    0) {Driver};
+    \node[actor] (orc) at (2.9,  0) {Orchestrator};
+    \node[actor] (rou) at (5.8,  0) {Router};
+    \node[actor] (spc) at (8.7,  0) {Specialist};
+    \node[actor] (trc) at (11.6, 0) {Trace};
+
+    \foreach \x in {0, 2.9, 5.8, 8.7, 11.6}
+      \draw[dashed, TUMGray] (\x, -0.25) -- (\x, -3.8);
+
+    \draw[->] (0,-0.6)   -- node[above,font=\tiny]{(contract, category)}  (2.9,-0.6);
+    \draw[->] (2.9,-1.1) -- node[above,font=\tiny]{route request}         (5.8,-1.1);
+    \draw[->] (5.8,-1.5) -- node[above,font=\tiny]{router call (parent)}  (11.6,-1.5);
+    \draw[->] (5.8,-1.9) -- node[above,font=\tiny]{specialist key}        (2.9,-1.9);
+    \draw[->] (2.9,-2.3) -- node[above,font=\tiny]{dispatch}              (8.7,-2.3);
+    \draw[->] (8.7,-2.7) -- node[above,font=\tiny]{specialist call (child)} (11.6,-2.7);
+    \draw[->] (8.7,-3.1) -- node[above,font=\tiny]{spans}                 (2.9,-3.1);
+    \draw[->] (2.9,-3.5) -- node[above,font=\tiny]{final answer}          (0,-3.5);
+  \end{tikzpicture}
+  \caption{M1 sequence diagram for a single (contract, category) invocation.
+  The router call is the Langfuse parent; the specialist call is its child.}
+  \label{fig:m1-sequence}
+\end{figure}
+
+\paragraph{M6 --- Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
 M6 is the architectural ablation control. Its prompt is the textual union of the three
-specialist prompts of M1, concatenated into a single agent that handles every category
-itself, with no router, no orchestrator, and no per-category branching. The category
-indicator is selected based on the request, but no decomposition is performed. The point
-of M6 is methodological: it lets us decide, in Chapter~5, whether any benefit M1 enjoys
-over B1 is attributable to architectural decomposition or merely to the more elaborated
-prompt content that the specialists carry. Concretely, M1 vs.\ M6 isolates
-``architecture'', and M6 vs.\ B1 isolates ``prompt content''.
+M1 specialist prompts, concatenated into a single agent with no router, no
+orchestrator, and no per-category branching:
+%
+\begin{equation*}
+  \texttt{prompt}_{\text{M6}} = \mathrm{join}\!\left(
+    \texttt{prompt}_{\text{risk}},\;
+    \texttt{prompt}_{\text{temporal}},\;
+    \texttt{prompt}_{\text{ip}}
+  \right)
+\end{equation*}
+%
+The three preambles are separated by domain headings; the verbatim-span output
+contract is stated once at the end. M6's purpose is methodological: M1 vs.\ M6
+isolates routing and decomposition; M6 vs.\ B1 isolates prompt content. Together
+the two contrasts decompose the M1-vs-B1 delta into an architectural component and a
+prompt-content component, which is the basis for the routing-redundancy finding in
+Section~\ref{sec:res:h3}.
 
-\section{Implementation Stack}\label{sec:sys:stack}
+\section{Observability and Trace Schema}\label{sec:sys:trace}\label{sec:auditability}
 
-\paragraph{Orchestration.}
-All configurations are implemented as LangGraph \texttt{StateGraph}s~\cite{langgraph2024},
-which let us express the orchestrator/router/specialist topology as typed nodes with
-declared transitions. Each node consumes and emits a structured run-state object
-containing the contract, the category, intermediate decisions (e.g.\ classifier verdict,
-routed specialist), and the in-progress answer. The graph topology is the executable
-representation of the architecture diagrams in Section~\ref{sec:sys:patterns}.
+\paragraph{What is recorded.}
+For each clause-level decision the system captures:
+(i)~configuration ID and model identifier;
+(ii)~prompt template ID, version, and rendered prompt;
+(iii)~full model completion;
+(iv)~parsed final answer with parser version and status;
+(v)~routing decision (M1) or classifier verdict (M0) where applicable;
+(vi)~per-call token counts, billed cost, and wall-clock latency.
+M1 traces are parent--child structured: the router call is the parent, the specialist
+call is its child. Listing~\ref{lst:trace} shows a representative M1 record.
 
-\paragraph{Model client.}
-A unified multi-provider model client wraps Anthropic, OpenAI, Google Vertex AI, and
-Ollama under one synchronous and one streaming interface. The client supports 19 models
-in total but only the 11 listed in Section~\ref{sec:meth:models} are used in official
-runs. Per call it records prompt tokens, completion tokens, cache-read tokens (where
-supported), wall-clock latency, and provider-billed cost. These diagnostics are written
-to the trace and aggregated downstream.
+\begin{lstlisting}[caption={Representative M1 trace record (abridged JSONL).},
+  label={lst:trace}, basicstyle=\scriptsize\ttfamily, frame=single]
+{
+  "contract_id": "CUAD_0231",
+  "category":    "Cap On Liability",
+  "config_id":   "M1",
+  "model_id":    "claude-sonnet-4-6-20251001",
+  "calls": [
+    { "role":       "router",
+      "prompt_id":  "m1_router/v3",
+      "completion": "{\"specialist\":\"risk_liability\",\"reasoning\":\"...\"}",
+      "tokens_in":  412,   "tokens_out": 18,
+      "latency_ms": 380,   "cost_usd": 0.0008,
+      "parent_id":  null },
+    { "role":       "specialist_risk_liability",
+      "prompt_id":  "m1_spec_risk/v2",
+      "completion": "<answer>The aggregate liability ... shall not exceed ...</answer>",
+      "tokens_in":  14820, "tokens_out": 96,
+      "latency_ms": 4210,  "cost_usd": 0.0470,
+      "parent_id":  "router" }
+  ],
+  "final_answer":  "The aggregate liability ... shall not exceed ...",
+  "parser_status": "ok"
+}
+\end{lstlisting}
 
-\paragraph{Prompt management.}
-Prompts are stored in a YAML registry with a stable schema. The registry has two roots,
-\texttt{prompts/baselines/} (B1, B4) and \texttt{prompts/specialists/} (the three M1
-specialists, the M6 consolidated prompt, the M0 classifier and extractor), and a
-separate \texttt{indicators/} directory holding the per-category indicator strings
-shared across configurations. The registry is loaded once per run and version-pinned in
-the run metadata.
+\paragraph{Auditability properties.}
+The trace structure supports three concrete properties. First,
+\emph{decision attribution}: any final answer is traceable to the specific agent,
+prompt version, and model that produced it. Second, \emph{counterfactual replay}:
+because prompts and model identifiers are pinned per call, a reviewer can re-run a
+single call under a different model without re-running the pipeline. Third,
+\emph{rejection forensics}: when M0 silently returns ``no related clause'', the
+classifier's verdict is recorded explicitly, making the classification-gate cascade
+of Section~\ref{sec:res:cascade} visible at audit time as an upstream rejection
+rather than an unobservable absence.
 
-\paragraph{Observability.}
-Every model call is traced via Langfuse~\cite{langfuse2024} with a structured trace
-format that records the configuration ID, the model identifier, the prompt template
-version, the input tokens, the output tokens, the parsed answer, and the routing or
-classification decision (where applicable). For M1, the trace records the orchestrator
-decision, the routed specialist, and the specialist's answer in a parent-child trace
-structure. We measured trace completeness (fraction of model calls for which all
-expected trace fields were populated) at $95.2\%$ for M1 across the official runs; the
-remaining $4.8\%$ are largely due to provider-side trace truncations on long contracts
-and are flagged in the run logs.
+\paragraph{Trade-offs and limits.}
+The JSONL persistence layer is on the order of gigabytes per full sweep, and trace
+fields containing rendered prompts and full completions inherit the contract's
+confidentiality classification. The system distinguishes between decision-level fields
+(configuration, verdict, token counts) safe to surface to operators, and
+content-level fields (rendered prompts, full completions) that are access-controlled.
+The trace is faithful to the call graph, not to the model's internal computation:
+a chain-of-thought trace records what the model emitted, not what it computed.
 
-\paragraph{Data and persistence.}
-The CUAD loader implements the 100{,}000-character filter, the natural-prior sampler,
-and the tier partition of Section~\ref{sec:meth:sampling}. It is a deterministic
-component keyed by \texttt{seed=42}. Per-run outputs are persisted as JSONL files
-containing one record per (sample, configuration, model) prediction with full trace
-identifiers, allowing the statistical pipelines (Section~\ref{sec:meth:stats}) to be
-re-run from raw logs.
-
-\paragraph{Language and tooling.}
-The codebase is Python, managed with \texttt{uv}, and the statistical pipelines are
-built on \texttt{pandas}~\cite{pandas2020}, \texttt{numpy}~\cite{harris2020array}, and
-\texttt{scipy}~\cite{virtanen2020scipy}. Bootstrap resampling uses \texttt{numpy}
-random generators with run-level seeds for reproducibility.
-
-\section{Traceability and Auditability}\label{sec:sys:trace}\label{sec:auditability}
-
-A property of multi-stage agentic systems that is frequently advertised but rarely
-characterised is \emph{auditability}: the claim that decomposition produces inspectable
-artefacts that enable reviewer trust. We treat auditability as a system property of the
-implementation rather than as a hypothesis to be tested, and document here what the
-system records and what trade-offs that recording entails. This section addresses
-Sub-RQ3 of Chapter~1.
-
-For each clause-level decision, the system captures: (i) the configuration ID and model
-identifier, (ii) the prompt template version and the rendered prompt, (iii) the model's
-full completion, (iv) the parsed final answer with the parser version, (v) the routing
-decision (M1) or classification verdict (M0) where applicable, and (vi) the per-call
-token, cost, and latency diagnostics. M1 traces are structured as parent-child
-relationships: the orchestrator's routing call is the parent, and the routed
-specialist's call is its child. M0 traces analogously expose the classifier as parent
-and the extractor (when invoked) as child.
-
-This trace structure supports three concrete auditability properties. First,
-\emph{decision attribution}: any final answer can be traced to the specific agent that
-produced it and the specific prompt version that elicited it. Second,
-\emph{counterfactual replay}: because prompts and model identifiers are pinned per call,
-re-running the trace with a different model is mechanical, which lets a reviewer ask
-``would this contract have been flagged by a stronger model?'' without re-running the
-full pipeline. Third, \emph{rejection forensics}: when M0 silently returns ``no related
-clause'' on a category, the classifier's verdict is recorded explicitly, which makes the
-failure mode of Section~\ref{sec:res:cascade} (over-rejection) directly visible at
-audit time.
-
-The trade-offs are substantive. Verbose traces increase storage cost (the JSONL
-persistence layer is on the order of gigabytes per full sweep) and, when
-chains-of-thought are recorded, can themselves contain sensitive contract content; we
-therefore distinguish between trace fields that are safe to surface to operators
-(decisions, token counts) and those that should be access-controlled (full prompts and
-completions). Auditability is also a property of the \emph{system}, not of the
-underlying model: the trace is faithful to the call graph but does not certify that the
-model's stated reasoning is its actual reasoning.
+\paragraph{Trace completeness.}
+Trace completeness --- the fraction of model calls for which all expected fields are
+populated --- was $95.2\%$ for M1 across official runs. The remaining $4.8\%$ are
+provider-side truncations on long contracts and are flagged in the run logs.
 
 \section{Experimental Infrastructure}\label{sec:sys:infra}
 
-\paragraph{Loader and sampling.}
-The CUAD loader is the single source of truth for which contracts and which categories
-enter a run. It enforces the 100{,}000-character filter, applies the natural-prior
-sampler, and emits the tier label for every sample. For the official runs the loader
-produces approximately 2{,}999 samples per run and is identical across configurations,
-ensuring that pairing in Chapter~5's statistical pipeline is well-defined.
+\paragraph{Loader and sampler.}
+The CUAD loader is the single source of truth for which contracts and categories
+enter a run. It applies the 100{,}000-character filter, the \texttt{neg\_ratio=0.7}
+natural-prior sampler of Section~\ref{sec:meth:sampling}, and the prevalence-tier
+partition. It is deterministic under \texttt{seed=42} and produces the identical
+$\approx\!2{,}999$-sample envelope across all five configurations, making paired
+tests in Chapter~\ref{chapter:results} well-defined at the (contract, category)
+level.
 
 \paragraph{Statistical aggregation.}
-A separate aggregation pipeline reads the per-run JSONL outputs, computes the
-per-sample correctness vectors, and emits the McNemar contingency tables, the paired
-bootstrap distributions, and the BH-corrected $p$-value tables. Aggregation is
-deterministic given the JSONL inputs and a fixed bootstrap seed. The pipeline emits
-machine-readable summaries that feed both the thesis tables and the dashboard.
+A separate aggregation pipeline reads per-run JSONL outputs, computes per-sample
+correctness vectors, and emits the McNemar contingency tables, paired bootstrap
+distributions, and BH-corrected $p$-value tables of Section~\ref{sec:meth:stats}.
+Aggregation is deterministic given the JSONL inputs and a fixed bootstrap seed;
+intermediate artefacts are persisted so results can be regenerated without
+rerunning models.
 
 \paragraph{Dashboard.}
-A Next.js dashboard is provided for interactive exploration of experiment outputs,
-including per-model $F_2$ comparisons, per-tier breakdowns, per-call cost and latency
-views, and trace inspection by sample ID. The dashboard is not part of the statistical
-pipeline but is the primary interface used during error analysis and was the channel
-through which the over-extraction failure mode (Chapter~5) was first surfaced visually.
+A Next.js dashboard supports interactive exploration: per-model $F_2$ comparisons,
+per-tier breakdowns, per-call cost and latency views, and trace inspection by sample
+ID. The over-extraction failure mode in Chapter~\ref{chapter:results} was first
+surfaced visually through the dashboard's per-category $\omega$ panel.
 
-\paragraph{Test suite.}
-An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard, laziness,
-over-extraction), the CUAD loader (filter, sampling determinism, tier assignment), the
-agent topologies (B1, B4, M0, M1, M6 each have at least one end-to-end test against a
-stub model), and the statistical pipelines (McNemar exact, paired bootstrap, BH
-correction, intersection logic for partial runs). The full suite passes prior to every
-official run. Notebook artefacts
-(\texttt{01\_data\_exploration.ipynb},
-\texttt{02\_workflow\_test.ipynb},
-\texttt{03\_baseline\_calibration.ipynb},
-\texttt{04\_multiagent\_experiment.ipynb})
-are retained as reproducible exploratory entry points.
+\paragraph{Test suite and repository layout.}
+An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard, $\lambda$,
+$\omega$), the loader (filter, sampling determinism, tier assignment), the agent
+topologies (each of B1, B4, M0, M1, M6 has at least one end-to-end test against a
+stub model), and the statistical pipelines (McNemar, bootstrap, BH correction).
+The full suite passes prior to every official run. The repository is organised as in
+Listing~\ref{lst:repo}.
+
+\begin{lstlisting}[caption={Repository layout (abridged).},
+  label={lst:repo}, basicstyle=\footnotesize\ttfamily, frame=single]
+agentic-ai-for-clm/
+  src/
+    agents/       # GraphState, orchestrator, 3 specialists, validation
+    baselines/    # zero_shot (B1), chain_of_thought (B4), combined (M6)
+    data/         # CUAD loader, sampler, tier partition
+    evaluation/   # F1/F2/Jaccard/laziness/over-extraction
+    models/       # ModelClient, diagnostics, config registry (19 models)
+    prompts/      # PromptRegistry + YAML loader
+  prompts/
+    baselines/    # zero_shot.yaml, chain_of_thought.yaml
+    specialists/  # risk_liability.yaml, temporal_renewal.yaml, ip_commercial.yaml
+    system/       # extraction_base.yaml (shared anti-laziness instructions)
+  configs/experiments/
+    baselines.yaml       # B1, B4 parameters and calibration targets
+    multiagent.yaml      # M1, M6 parameters and success criteria
+  experiments/results/   # per-run summary JSON + intermediate JSONL
+  dashboard/             # Next.js inspection UI (TypeScript, Recharts)
+  tests/                 # 81 unit + integration tests
+  notebooks/
+    01_data_exploration.ipynb
+    02_workflow_test.ipynb
+    03_baseline_calibration.ipynb   # B1, B4 only
+    04_multiagent_experiment.ipynb  # M1, M6 + statistical comparison
+\end{lstlisting}
 
 \paragraph{Reproducibility.}
-Reproducibility is supported by three commitments: deterministic sampling under
-\texttt{seed=42}; explicit version pinning of model identifiers in the run metadata;
-and persistence of the full trace bundle (prompts, completions, parsed answers,
-diagnostics) so that downstream statistics can be regenerated from raw logs without
-rerunning models.
+Three commitments support reproducibility: deterministic sampling under
+\texttt{seed=42}; explicit version pinning of model identifiers (full provider
+snapshot strings) in the run metadata; and persistence of the full trace bundle
+(rendered prompts, completions, parsed answers, diagnostics) so that the statistical
+pipelines of Section~\ref{sec:meth:stats} can be regenerated from raw logs without
+rerunning models. The prompt registry version hash is written to every run record,
+making prompt content auditable independently of the run logs.
