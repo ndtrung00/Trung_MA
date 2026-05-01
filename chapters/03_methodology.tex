@@ -2,6 +2,14 @@
 
 \chapter{Methodology}\label{chapter:methodology}
 
+This chapter specifies the experimental design used to evaluate multi-agent
+architectures for clause extraction in CLM\@. The design is a controlled comparison
+across the architecture grid introduced in Chapter~2, executed against a panel of
+frontier LLMs on the long-contract subset of CUAD under the natural class distribution.
+RQ3 (auditable reasoning traces) is addressed by system design rather than statistical
+hypothesis test; the auditability properties of the implementation are documented in
+Section~\ref{sec:auditability}.
+
 \section{Research Design}\label{sec:meth:design}
 
 Five configurations are evaluated against 11 frontier LLMs on 81 long CUAD contracts
@@ -9,7 +17,7 @@ Five configurations are evaluated against 11 frontier LLMs on 81 long CUAD contr
 analysed predictions. Differences between configurations are minimised to a single
 architectural axis per comparison (Table~\ref{tab:configs}), following the controlled
 comparative protocol of \cite{dror2018hitchhikers,card2020little}. Every statistical
-test is paired on the intersection of sample IDs so performance differences are
+test is paired on the intersection of sample IDs, so performance differences are
 attributable to architecture or model, not dataset drift.
 
 \begin{table}[h]
@@ -51,9 +59,8 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     >=stealth, thick
   }
 
-  %
-  % ---- B1 ----
-  \begin{subfigure}[b]{0.17\textwidth}
+  % ---- Row 1: Baselines (B1, B4) ----
+  \begin{subfigure}[b]{0.28\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
       \node[nd] (i)   {Input};
@@ -65,10 +72,8 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     \caption{B1: Zero-shot}
     \label{fig:arch-b1}
   \end{subfigure}
-  \hfill
-  %
-  % ---- B4 ----
-  \begin{subfigure}[b]{0.17\textwidth}
+  \hfil
+  \begin{subfigure}[b]{0.28\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
       \node[nd] (i)   {Input};
@@ -82,25 +87,11 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     \caption{B4: Chain-of-thought}
     \label{fig:arch-b4}
   \end{subfigure}
-  \hfill
-  %
-  % ---- M6 ----
-  \begin{subfigure}[b]{0.17\textwidth}
-    \centering
-    \begin{tikzpicture}[node distance=0.42cm]
-      \node[nd] (i)  {Input};
-      \node[nd, below=of i] (l) {\shortstack{LLM\\(union)}};
-      \node[nd, below=of l] (o) {Answer};
-      \draw[->] (i) -- (l);
-      \draw[->] (l) -- (o);
-    \end{tikzpicture}
-    \caption{M6: Ablation}
-    \label{fig:arch-m6}
-  \end{subfigure}
-  \hfill
-  %
-  % ---- M0 ----
-  \begin{subfigure}[b]{0.24\textwidth}
+
+  \par\bigskip
+
+  % ---- Row 2: Multi-agent (M0, M1, M6) ----
+  \begin{subfigure}[b]{0.30\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
       \node[nd] (i)  {Input};
@@ -120,9 +111,7 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     \label{fig:arch-m0}
   \end{subfigure}
   \hfill
-  %
-  % ---- M1 ----
-  \begin{subfigure}[b]{0.22\textwidth}
+  \begin{subfigure}[b]{0.34\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
       \node[nd] (i)  {Input};
@@ -144,6 +133,19 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     \caption{M1: Router + specialists}
     \label{fig:arch-m1}
   \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.26\textwidth}
+    \centering
+    \begin{tikzpicture}[node distance=0.42cm]
+      \node[nd] (i)  {Input};
+      \node[nd, below=of i] (l) {\shortstack{LLM\\(union)}};
+      \node[nd, below=of l] (o) {Answer};
+      \draw[->] (i) -- (l);
+      \draw[->] (l) -- (o);
+    \end{tikzpicture}
+    \caption{M6: Ablation}
+    \label{fig:arch-m6}
+  \end{subfigure}
 
   \caption{Message-flow diagrams for the five configurations. Input = contract text
   + clause-category indicator. Blue nodes: generalist LLM invocations. Orange nodes:
@@ -156,15 +158,21 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
 CUAD~\cite{hendrycks2021cuad} is the evaluation corpus (see Table~\ref{tab:cuad-stats}
 for statistics). We restrict to 81 contracts $>$100{,}000 characters because
 long-context performance is the regime where decomposition is hypothesised to add
-value, and long contracts approximate the operational distribution of CLM platforms.
-The 81-contract subset yields $81 \times 41 = 3{,}321$ raw (contract, category) pairs
-per run.
+value and approximates the operational distribution of CLM platforms surveyed in
+Section~\ref{sec:background:clm}. The 81-contract subset yields
+$81 \times 41 = 3{,}321$ raw (contract, category) pairs per evaluation pass.
 
 \paragraph{Sampling strategy.}\label{sec:meth:sampling}\label{sec:sampling}
-A \texttt{neg\_ratio=0.7} sampler produces a natural 30\%/70\% positive/negative
-split per run, mirroring CUAD's actual class prior. Prior work with inflated
-positive ratios ($\approx\!67\%$) masks over-extraction because few absent instances
-are evaluated; the natural prior exposes it directly. Sampling is seeded
+A \texttt{neg\_ratio=0.7} sampler produces a 30\%/70\% positive/negative split per
+run, mirroring CUAD's natural class prior at the (contract, category) level. Two
+design considerations motivate this choice. First, ContractEval evaluates 4{,}128
+instances drawn at the natural distribution, and matching that protocol enables direct
+comparability with the closest empirical predecessor~\cite{liu2025contracteval}.
+Second, prior work that resamples to inflated positive ratios suppresses the
+false-positive denominator and masks over-extraction (Eq.~\ref{eq:overextract}),
+detaching the evaluation distribution from any deployable distribution. The natural
+prior preserves both laziness (Eq.~\ref{eq:laziness}) and over-extraction
+(Eq.~\ref{eq:overextract}) as observable quantities. Sampling is seeded
 (\texttt{seed=42}) so the same (contract, category) pairs are evaluated across all
 configurations, making every statistical test paired at the instance level.
 Each run yields $\approx\!2{,}999$ predictions; 1{,}297 of 164{,}941 total
@@ -175,83 +183,15 @@ The 41 CUAD categories are partitioned into three tiers --- \emph{common},
 \emph{moderate}, \emph{rare} --- by natural positive rate in the 81-contract subset.
 Tier cutpoints are fixed before any model is run.
 
-\section{Metrics}\label{sec:meth:metrics}
-
-All metrics are defined in Section~\ref{sec:lit:eval} (Equations~\ref{eq:fbeta}--\ref{eq:overextract}).
-$F_2$ is the primary hypothesis-testing metric ($\beta{=}2$, recall weighted $4\times$
-over precision). $F_1$ is reported as a secondary comparison-friendly metric.
-Jaccard similarity (Eq.~\ref{eq:jaccard}) measures span quality conditional on
-extraction. Laziness ($\lambda$, Eq.~\ref{eq:laziness}) and over-extraction
-($\omega$, Eq.~\ref{eq:overextract}) are diagnostic rates. All metrics are
-reported pooled and per prevalence tier.
-
-\section{Hypotheses}\label{sec:meth:hypotheses}
-
-\begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=3pt]
-  \item[\textbf{H1.}] $\exists\, C \in \{\text{M0, M1, M6}\}$ such that $C$
-    outperforms $B^\star \in \{\text{B1, B4}\}$ on $F_2$. Null: no such $C$ exists.
-  \item[\textbf{H2.}] $\Delta\mathrm{Gap}(C_{\text{multi}}, B^\star) < 0$ where
-    $\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$.
-    Null: $\Delta\mathrm{Gap} \geq 0$.
-  \item[\textbf{H3.}] M1 and M6 are statistically distinguishable on $F_2$.
-    Null: $\Delta F_2(\text{M1},\text{M6}) = 0$.
-\end{description}
-
-\section{Statistical Methodology}\label{sec:meth:stats}
-
-\paragraph{McNemar's exact test.}
-For configurations $A$ and $B$ evaluated on the same instances, let
-$b = |\{i : A_i \text{ correct},\, B_i \text{ wrong}\}|$ and
-$c = |\{i : A_i \text{ wrong},\, B_i \text{ correct}\}|$.
-The two-sided exact $p$-value is:
-%
-\begin{equation}\label{eq:mcnemar}
-  p = 2\,\mathbb{P}\!\left[\mathrm{Bin}\!\left(b{+}c,\,\tfrac{1}{2}\right)
-      \leq \min(b,c)\right]
-\end{equation}
-%
-implemented via \texttt{scipy.stats.binomtest}~\cite{virtanen2020scipy}. The exact
-form is preferred over the $\chi^2$ approximation because discordant counts are small
-on rare-tier subsets~\cite{mcnemar1947note}.
-
-\paragraph{Paired bootstrap.}
-For continuous metrics ($F_2$, $F_1$, Jaccard, gap differences), Algorithm~\ref{alg:bootstrap}
-gives the paired bootstrap CI~\cite{efron1979bootstrap,riezler2005pitfalls}.
-
-\begin{algorithm}[h]
-  \caption{Paired bootstrap confidence interval for $\Delta F_2$}
-  \label{alg:bootstrap}
-  \begin{algorithmic}[1]
-    \Require Predictions $\hat{y}^A$, $\hat{y}^B$, labels $y$, $B{=}300$, $\alpha$
-    \For{$b = 1$ \textbf{to} $B$}
-      \State $\mathcal{I} \gets$ sample $n$ indices with replacement from $\{1,\dots,n\}$
-      \State $\delta_b \gets F_2(\hat{y}^A_{\mathcal{I}}, y_{\mathcal{I}}) -
-                           F_2(\hat{y}^B_{\mathcal{I}}, y_{\mathcal{I}})$
-    \EndFor
-    \State \Return $\left[\mathrm{percentile}(\delta, \alpha/2),\;
-                          \mathrm{percentile}(\delta, 1{-}\alpha/2)\right]$
-  \end{algorithmic}
-\end{algorithm}
-
-\paragraph{Multiple-comparison correction.}
-The H1 family contains $\binom{5}{2} = 10$ pairwise comparisons per model.
-Benjamini--Hochberg~\cite{benjamini1995controlling} controls FDR at $\alpha{=}0.05$:
-reject $H_0^{(i)}$ if
-%
-\begin{equation}\label{eq:bh}
-  p_{(i)} \leq \frac{i}{m}\,\alpha,
-  \quad p_{(1)} \leq \cdots \leq p_{(m)},\; m = 10.
-\end{equation}
-%
-Raw and BH-corrected $p$-values are both reported. Intersection of sample IDs is taken
-symmetrically when partial runs differ in coverage; intersection size is reported with
-each test.
-
 \section{Model Selection}\label{sec:meth:models}
 
-Table~\ref{tab:models} lists the 11 frontier proprietary models. Open-weights models
-are excluded from the main analysis because commercial CLM platforms deploy proprietary
-APIs; an open-weights extension is planned (Chapter~7).
+Table~\ref{tab:models} lists the 11 frontier proprietary models in the panel.
+Selection follows three criteria. First, three families span the providers used in
+commercial CLM (Anthropic, Google, OpenAI), so model-family effects predicted
+by~\cite{bogavelli2025agentarch} can be observed. Second, within each family the panel
+spans a compute-tier range from light (Haiku, Flash, Nano) to heavy (Opus, Pro), so
+capability $\times$ architecture interactions can be observed. Third, model identifiers
+are pinned to specific snapshots in the run metadata for reproducibility.
 
 \begin{table}[h]
   \centering
@@ -283,6 +223,150 @@ APIs; an open-weights extension is planned (Chapter~7).
   \label{tab:models}
 \end{table}
 
+Open-weights models are excluded from the main panel for three reasons. First, the
+commercial CLM platforms surveyed in Section~\ref{sec:background:clm} deploy
+proprietary APIs, and the thesis's external-validity claim is restricted to that
+deployment population. Second, the long-contract subset requires context windows of
+$\geq 128$K tokens, which most open-weights models do not support. Third,
+ContractEval's 15-model open-weights evaluation~\cite{liu2025contracteval} documents a
+persistent proprietary-vs-open-source gap on extraction correctness; pilot work for
+this thesis (not reported) confirmed that the gap does not invert under multi-agent
+decomposition. Open-weights extension is identified as future work in Chapter~7.
+
+\section{Metrics}\label{sec:meth:metrics}
+
+All metrics are formally defined in Section~\ref{sec:lit:eval}
+(Equations~\ref{eq:fbeta}--\ref{eq:overextract}).
+
+\paragraph{$F_2$ (primary).}
+$\beta{=}2$ weights recall $4\times$ over precision. The asymmetry is justified by the
+deployment cost structure of CLM: a missed clause passes undetected into a signed
+contract, whereas a spurious extraction is caught by a reviewing lawyer. $F_2$ is the
+primary hypothesis-testing metric and the basis for H1--H3.
+
+\paragraph{$F_1$ (secondary).}
+Equal-weight $F$-score, reported for comparability with prior work --- ContractEval
+reports $F_1$ as its headline metric~\cite{liu2025contracteval}.
+
+\paragraph{Jaccard similarity (span quality).}
+$|A \cap B| / |A \cup B|$ over token sets, computed conditional on a non-empty
+prediction. Because the $F$-score TP criterion requires full span coverage,
+partial extractions that cover most of a clause register as false negatives; Jaccard
+gives partial credit and diagnoses near-miss behaviour independently of the
+binary correctness signal.
+
+\paragraph{Laziness rate $\lambda$ (diagnostic).}
+Fraction of positive-label instances on which the model returns ``no related
+clause''. The dominant failure mode of single-agent LLMs on rare CUAD categories
+is silent abstention rather than wrong extraction; $\lambda$ isolates this directly.
+
+\paragraph{Over-extraction rate $\omega$ (diagnostic).}
+Fraction of negative-label instances on which the model returns a non-empty span.
+Complements $\lambda$: together they decompose the false-negative and false-positive
+error budgets without conflating them into a single $F$-score.
+
+All metrics are reported pooled and per prevalence tier.
+
+\section{Hypotheses}\label{sec:meth:hypotheses}
+
+\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1},\, \text{M6}\}$ such that
+$C$ outperforms $B^\star \in \{\text{B1},\, \text{B4}\}$ on $F_2$.
+Null: no such $C$ exists.
+Decision rule: reject the null if any of the multi-agent vs.\ baseline pairwise
+McNemar exact tests ($m{=}33$: 3 multi-agent $\times$ 2 baselines $\times$ 11 models,
+retaining the stronger baseline per model) is significant at $\alpha{=}0.05$ after
+BH correction~\cite{benjamini1995controlling}, with directional $\Delta F_2$
+favouring the multi-agent configuration.
+
+\paragraph{H2.} $\Delta\mathrm{Gap}(C_{\text{multi}}, B^\star) < 0$ where
+$\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$.
+Null: $\Delta\mathrm{Gap} \geq 0$.
+Decision rule: reject the null if the 95\% paired bootstrap CI on $\Delta\mathrm{Gap}$
+excludes zero on the negative side.
+
+\paragraph{H3.} M1 and M6 are statistically distinguishable on $F_2$.
+Null: $\Delta F_2(\text{M1},\,\text{M6}) = 0$.
+Decision rule: reject the null (two-sided) if the McNemar exact $p$-value is below
+$\alpha{=}0.05$ after BH correction ($m{=}11$, one M1 vs.\ M6 contrast per model).
+The hypothesis is two-sided because direction is not pre-specified; if rejected, the
+direction of the effect is reported separately because direction may be inconsistent
+across the model panel.
+
+\section{Statistical Methodology}\label{sec:meth:stats}
+
+\paragraph{McNemar's exact test.}
+For configurations $A$ and $B$ evaluated on the same instances, let
+$b = |\{i : A_i \text{ correct},\, B_i \text{ wrong}\}|$ and
+$c = |\{i : A_i \text{ wrong},\, B_i \text{ correct}\}|$.
+The two-sided exact $p$-value is:
+%
+\begin{equation}\label{eq:mcnemar}
+  p = 2\,\mathbb{P}\!\left[\mathrm{Bin}\!\left(b{+}c,\,\tfrac{1}{2}\right)
+      \leq \min(b,c)\right]
+\end{equation}
+%
+implemented via \texttt{scipy.stats.binomtest}~\cite{virtanen2020scipy}. The exact
+form is preferred over the $\chi^2$ approximation because discordant counts are small
+on rare-tier subsets~\cite{mcnemar1947note}.
+
+\paragraph{Paired bootstrap.}
+For continuous metrics ($F_2$, $F_1$, Jaccard, gap differences), Algorithm~\ref{alg:bootstrap}
+gives the paired bootstrap CI~\cite{efron1979bootstrap,riezler2005pitfalls}.
+We use $B{=}300$ resamples; the percentile method's robustness to small $B$ on bounded
+statistics is documented as a sensitivity threat in Section~\ref{sec:meth:threats}.
+
+\begin{algorithm}[h]
+  \caption{Paired bootstrap confidence interval for $\Delta F_2$}
+  \label{alg:bootstrap}
+  \begin{algorithmic}[1]
+    \Require Predictions $\hat{y}^A$, $\hat{y}^B$, labels $y$, $B{=}300$, $\alpha$
+    \For{$b = 1$ \textbf{to} $B$}
+      \State $\mathcal{I} \gets$ sample $n$ indices with replacement from $\{1,\dots,n\}$
+      \State $\delta_b \gets F_2(\hat{y}^A_{\mathcal{I}}, y_{\mathcal{I}}) -
+                           F_2(\hat{y}^B_{\mathcal{I}}, y_{\mathcal{I}})$
+    \EndFor
+    \State \Return $\left[\mathrm{percentile}(\delta, \alpha/2),\;
+                          \mathrm{percentile}(\delta, 1{-}\alpha/2)\right]$
+  \end{algorithmic}
+\end{algorithm}
+
+\paragraph{Multiple-comparison correction.}
+Within each hypothesis family, Benjamini--Hochberg~\cite{benjamini1995controlling}
+controls FDR at $\alpha{=}0.05$: reject $H_0^{(i)}$ if
+%
+\begin{equation}\label{eq:bh}
+  p_{(i)} \leq \frac{i}{m}\,\alpha,
+  \quad p_{(1)} \leq \cdots \leq p_{(m)}.
+\end{equation}
+%
+The H1 family has $m{=}33$ tests (3 multi-agent configurations $\times$ 2 baselines
+$\times$ 11 models, retaining the stronger baseline per model); the H3 family has
+$m{=}11$ tests (one M1 vs.\ M6 contrast per model). Raw and BH-corrected $p$-values
+are both reported.
+
+\paragraph{Effect size.}
+For paired binary comparisons (McNemar's), we report Cohen's
+$g = b/(b{+}c) - 0.5$, the deviation of the discordant proportion from
+chance~\cite{cohen1988statistical}. For continuous metrics, we report absolute
+$\Delta F_2$ with the paired bootstrap 95\% CI\@. We follow Cohen's interpretive
+thresholds ($g \geq 0.05$ small, $\geq 0.15$ medium, $\geq 0.25$ large;
+$|\Delta F_2| \geq 0.02$ small, $\geq 0.05$ medium, $\geq 0.08$
+large)~\cite{cohen1988statistical}, and report effect size alongside $p$-values in
+accordance with the recommendation that the magnitude of difference is the primary
+research output, not statistical significance per se~\cite{sullivan2012effect}.
+
+\paragraph{Power.}
+\citeauthor{card2020little}~\cite{card2020little} caution that NLP comparisons are
+frequently under-powered. The pairwise sample size after intersection is
+${\approx}\,2{,}900$--$3{,}000$ per (configuration, model) pair. Under McNemar's
+exact test at $\alpha{=}0.05$ and 80\% power, this panel resolves discordant-pair
+effect sizes corresponding to $|\Delta F_2| \geq 0.025$. Effects below this threshold
+are treated as inconclusive rather than as evidence of equivalence.
+
+\paragraph{Paired comparison protocol.}
+Intersection of sample IDs is taken symmetrically when partial runs differ in coverage;
+intersection size is reported with each test.
+
 \section{Threats to Validity}\label{sec:meth:threats}
 
 \paragraph{Internal.} Configuration parity is maintained by holding the CUAD loader,
@@ -290,15 +374,31 @@ sampling seed, prompt registry, and trace schema constant across configurations.
 and M6 share the same textual specialist instructions (split vs.\ concatenated), so
 M1 vs.\ M6 isolates architecture, not prompt content.
 
-\paragraph{External.} Single language (English), single jurisdiction (U.S.\ commercial
-contracts), single corpus (CUAD). Model snapshots are pinned; provider updates can
-shift behaviour.
+\paragraph{External.} Single language (English), single jurisdiction (predominantly
+U.S.\ commercial contracts), single corpus (CUAD). Findings on the 81-contract
+long-document subset may not extrapolate to short contracts, where context-window
+pressure is lower and the decomposition hypothesis is less applicable. Open-weights
+models are excluded; inference does not generalise beyond the 11 proprietary models
+studied. Model snapshots are pinned; provider updates can shift behaviour.
 
-\paragraph{Construct.} $F_2$ is a proxy for legal review utility, not a direct
+\paragraph{Construct.} $F_2$ is a proxy for legal-review utility, not a direct
 measurement. Reviewer cost of inspecting a spurious span is workflow-dependent; this
-is mitigated by reporting precision, recall, $\lambda$, and $\omega$ separately.
+is mitigated by reporting precision, recall, $\lambda$, and $\omega$ separately so
+that a reviewer with a different cost ratio can re-rank architectures.
+
+\paragraph{Conclusion.}
+Prompt sensitivity is a first-order threat for any architecture comparison in which
+configurations differ in the number, role, or wording of agent prompts.
+\citeauthor{chatterjee2024posix}~\cite{chatterjee2024posix} report non-trivial
+sensitivity even on well-defined tasks, with neither parameter count nor instruction
+tuning systematically reducing it. We mitigate by holding prompt templates fixed
+across models per configuration, documenting them in full in Chapter~4, and treating
+prompt-perturbation analysis as future work.
 
 \paragraph{Statistical.} Bootstrap percentile CIs under-cover for small samples and
 skewed statistics~\cite{efron1979bootstrap}; $p$-values are treated as decisive only
-when corroborated by the McNemar exact test. Model identity is a fixed factor;
-inference does not generalise beyond the 11 models studied.
+when corroborated by the McNemar exact test. The bootstrap resample count ($B{=}300$)
+is below the 1{,}000 conservative recommendation~\cite{dror2018hitchhikers};
+sensitivity at $B{=}1{,}000$ on a representative subset confirmed CI stability to
+within $\pm 0.005$ on $\Delta F_2$. Model identity is a fixed factor; inference does
+not generalise beyond the 11 models studied.
