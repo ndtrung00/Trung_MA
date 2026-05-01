@@ -2,22 +2,292 @@
 
 \chapter{Discussion}\label{chapter:discussion}
 
-\section{When Multi-Agent Helps: Evidence for Pipeline Decomposition}\label{sec:when-mas-helps-discussion}
-% Why M0 works — FP reduction, rare-tier narrowing, the information bottleneck
-% argument.
+This chapter interprets the empirical findings of
+Chapter~\ref{chapter:results} against the working hypotheses, situates them
+in the cross-domain literature on multi-agent effectiveness, and translates
+the results into deployment guidance.
+Section~\ref{sec:disc:headline} states the headline finding and the
+conditions under which it holds.
+Section~\ref{sec:disc:cascade} interprets the classification-gate cascade as
+a recall--precision exchange and explains why its direction is predictable
+from a single-agent calibration pass.
+Section~\ref{sec:disc:routing} addresses the routing-redundancy result and
+what it implies for the design of specialist architectures.
+Section~\ref{sec:disc:metric} returns to the methodological choice of
+$\beta{=}2$ and shows how it shapes the conclusion.
+Section~\ref{sec:disc:practitioner} contributes the practitioner perspective
+and the gaps between CUAD-class benchmarks and real CLM deployment.
+Section~\ref{sec:disc:threats} closes with threats to validity that bound
+generalisation of these findings.
 
-\section{When Multi-Agent Hurts: The LLM-Router Problem}\label{sec:when-mas-hurts}
-% 100\% routing accuracy as architectural critique, specialist aggressiveness,
-% implications for enterprise designs.
+\section{The Headline Finding and Its Conditions}\label{sec:disc:headline}
 
-\section{Architecture vs Prompts: The H3 Verdict}\label{sec:h3-verdict}
-% Honest interpretation regardless of direction.
+On the long-contract CUAD subset under the natural class prior, no
+multi-agent configuration improves on the strongest single-agent baseline by
+more than $0.011$ points of mean $F_2$ pooled across the eleven-model panel.
+Under the pre-registered decision rule of Section~\ref{sec:meth:hypotheses},
+H1 is supported in conditional form: at least one BH-significant directional
+improvement exists for individual (model, configuration) cells, but no
+configuration is uniformly superior and the pooled signal is dominated by
+the model-family interaction. H2 is rejected: both pipeline decomposition
+(M0) and specialist routing (M1) widen the rare--common $F_2$ gap relative
+to B1. H3 is supported per model --- M1 and M6 are statistically
+distinguishable on every model after BH correction --- but the direction is
+inconsistent across the panel and the pooled $F_2$ difference is zero to
+three decimals.
 
-\section{Practitioner Perspective: Gaps Between Benchmarks and Real-World CLM}\label{sec:practitioner-perspective}
-% Six gaps grounded in Arctis AI deployment experience.
+The single most informative pattern is the model-family interaction.
+The Anthropic family achieves its peak under chain-of-thought
+(B4, $\overline{F_2}{=}0.851$); the Google family under zero-shot
+(B1, $0.826$); the OpenAI family under classify-then-extract
+(M0, $0.783$). The capability-tier gradient in
+Table~\ref{tab:tier-gradient} is consistent with this: light- and mid-tier
+models gain marginally from M0's calibration, while heavy-tier models are
+better served by B1, with the $F_2$ capability gap between Heavy and Light
+tiers narrowing from $0.119$ under B1 to $0.094$ under M0. Decomposition
+acts partly as a capability equaliser, but at a cost
+(Section~\ref{sec:disc:cascade}) that is not recovered for heavy models that
+already absorb long-context load in a single call. Prior work has observed
+that a well-prompted single agent matches multi-agent decomposition under
+stronger base models \cite{gao2025single}; the present data reproduce this:
+the Anthropic Opus tier achieves its best $F_2$ under B4, not under any
+decomposed architecture.
 
-\section{Connecting to Prior Work}\label{sec:connecting-prior-work}
-% Supporting, extending, and refining the existing literature.
+The implication for the open empirical question of when multi-agent
+decomposition is justified is that, on this benchmark, the conditions are
+narrower than the literature on agentic legal AI implies. A practitioner
+asking whether decomposition helps a CUAD-class extraction task must answer
+two prior questions: which model family, and which capability tier. On the
+eleven models tested, only the OpenAI family receives a meaningful
+multi-agent benefit at the pooled level, and even that benefit is dominated
+in $F_2$/\$ by a B1 deployment on a cheaper Google Flash model.
 
-\section{Limitations}\label{sec:limitations}
-% Single-dataset, single-language, proprietary-only, no formal user study.
+\section{The Cascade as a Recall--Precision Exchange}\label{sec:disc:cascade}
+
+Section~\ref{sec:res:cascade} identifies the classification-gate cascade as
+the dominant failure mode of M0 on the Google family: $97.8$--$97.9\%$ of
+M0 false negatives on Gemini~2.5~Flash and Pro originate at the gate rather
+than at the extractor. The discussion here defends the framing of this as a
+recall--precision exchange rather than as pure regression.
+
+The classifier reduces over-extraction substantially: mean $\omega$ drops
+from $0.320$ under B1 to $0.130$ under M0, a $59\%$ reduction
+(Table~\ref{tab:omega}). Under $F_1$, which weights precision and recall
+equally, the gate's gain is sufficient to push M0 to the highest pooled
+score ($\overline{F_1}{=}0.798$ vs.\ B1's $0.737$). Under $F_2$, the gain
+is insufficient to compensate the recall loss. The cascade is thus not
+evidence that M0 is broken, but evidence that M0 makes a different
+operating-point trade. The practitioner question is which operating point
+matches the deployment cost structure.
+
+The cascade direction is predictable from a single-agent calibration pass.
+Models with high B1 over-extraction rates (Gemini~2.5~Pro
+$\omega_{\text{B1}}{=}0.456$; Gemini~2.5~Flash $0.392$) inherit a permissive
+prior on negative instances; the gate amplifies the cautious prior,
+suppressing recall. Models with low B1 over-extraction (GPT-4.1~Nano
+$\omega_{\text{B1}}{=}0.085$) gain from the gate because their single-agent
+extraction loses ground to laziness rather than to over-extraction. The
+practitioner heuristic is: run B1, inspect $\omega_{\text{B1}}$, and deploy
+M0 only if $\omega_{\text{B1}}$ is moderate-to-low; within the present panel,
+models with $\omega_{\text{B1}} \lesssim 0.20$ gain on $F_1$ under M0, those
+above that threshold do not.
+
+This result connects to the failure-mode taxonomy of \textcite{cemri2025why},
+who identify the inter-agent verification gap as a leading cause of
+multi-agent regression: the downstream extractor cannot override the upstream
+classifier's silent rejection. A reflective verifier agent --- absent in
+M0 --- would be the natural mitigation, and is identified as an untested
+architectural pattern in Section~\ref{sec:concl:outlook}.
+
+\section{Routing as a Deterministic Lookup}\label{sec:disc:routing}
+
+The M1 router agreed with a static category-to-specialist mapping on
+$99.91\%$ of requests across the panel (Section~\ref{sec:res:h3}).
+The natural reading is that routing in this design space reduces to a table
+lookup keyed on the category name, a negative finding for the LLM-router
+subspace illustrated by ChatLaw~v2~\cite{cui2024chatlaw} and
+L-MARS~\cite{wang2025lmars}. Two qualifications are worth stating.
+
+First, the result depends on three architectural commitments that do not hold
+in every multi-agent design: the specialist domains were disjoint and
+descriptively named; the categories carried indicators the router could read
+directly from the category label; and the partition was fixed before any
+model was run. In designs where domains overlap, where the category
+vocabulary is open-ended, or where the routing decision must integrate
+retrieved context, the router's work becomes non-trivial and routing accuracy
+falls below ceiling. The generalisable claim is therefore narrower: in a
+closed-vocabulary specialist-routing design, the router's contribution is
+replicable by a deterministic dictionary at zero LLM cost.
+
+Second, M1 and M6 differ statistically on every model despite identical
+routing. The difference is not in dispatch but in prompt format: M1 sees one
+focused specialist preamble per call, M6 sees the textual union of three.
+Consolidating the specialist content into a single prompt produces measurably
+better span coverage (Jaccard $+0.071$ pooled, Table~\ref{tab:h3}) without
+changing $F_2$. The mechanism is plausibly attentional: the union prompt
+presents all three category-cluster framings simultaneously and lets the
+model choose, rather than committing the dispatch decision before the
+contract is read.
+
+The combined implication for the design of legal-AI multi-agent systems is
+that the value of specialist decomposition lies in the prompt content, not
+in the dispatch architecture. A practitioner with a fixed specialist
+taxonomy is better served by a single agent receiving the union of
+specialist instructions than by a router-plus-specialists topology, and
+saves the $23\%$ orchestrator cost premium in the process.
+
+\section{The $\beta{=}2$ Choice and Operating-Point Sensitivity}\label{sec:disc:metric}
+
+The pooled architectural ranking depends on the chosen $\beta$. At
+$\beta{=}1$ the ranking is M0 $>$ M1 $>$ B1 $>$ M6 $>$ B4. At $\beta{=}2$
+the ranking is B1 $>$ B4 $>$ M0 $>$ M1 $\approx$ M6. The architectural
+conclusion of the thesis therefore depends, in part, on the $\beta$ choice.
+
+The commitment to $\beta{=}2$ is justified in
+Section~\ref{sec:meth:metrics} by the deployment cost structure of CLM
+review: a missed clause carries the legal cost of an undisclosed obligation,
+whereas a spurious extraction is corrected at the lower cost of attorney
+review time. The empirical question of where the cost ratio actually sits is
+deployment-dependent and falls outside the scope of this thesis. The
+sensitivity is mitigated by reporting $F_1$, recall, precision, $\omega$,
+and FN-rate alongside $F_2$, so a deployment with a different cost ratio can
+re-rank architectures from the same data. The practitioner recommendation is
+conditional on $\beta$: at $\beta{=}2$ deploy B1; at $\beta{=}1$ deploy M0;
+below $\beta{=}1$ (where false positives are costlier than false negatives,
+as in some compliance-screening workflows), M0's calibration advantage
+widens further.
+
+\section{Practitioner Perspective: Six Gaps Between CUAD and Production}\label{sec:disc:practitioner}
+
+The CUAD-based evaluation establishes what current architectures achieve
+under idealised conditions: clean born-digital text, a fixed forty-one-category
+taxonomy, expert-annotated ground truth, and a single contract per query.
+Production CLM deployments diverge on six axes on which the findings
+reported here should be qualified.
+
+\paragraph{1. Document quality is the first bottleneck.}
+CUAD contracts are EDGAR filings: clean, machine-readable, consistently
+formatted. Enterprise repositories contain scanned PDFs of variable OCR
+quality, handwritten margin annotations, partial digitisations of legacy
+contracts, and redacted sections. The performance ceiling for most enterprise
+deployments is set by document preprocessing, not by model selection. A
+model achieving high $F_2$ on CUAD text need not retain that performance on
+a poorly scanned contract with OCR artefacts. This shifts the
+practitioner-relevant axis of architectural design from which prompt
+structure handles the contract to which preprocessing pipeline is needed
+before any extraction architecture is invoked. The multi-agent design space
+examined in this thesis is downstream of that question.
+
+\paragraph{2. The task is multi-contract, not single-contract.}
+CUAD evaluates a one-to-one mapping: one contract, one category. The
+practitioner workflow is retrieve-then-extract: a question (``which supplier
+contracts expose us to uncapped liability?'') is first resolved against a
+repository of hundreds or thousands of contracts, then the relevant subset
+is extracted from. This pipeline introduces challenges --- cross-contract
+consistency, deduplication, result aggregation --- that no current public
+benchmark addresses, and it shifts the architecture's value proposition from
+extraction accuracy to retrieval-extraction integration. The M0
+classify-then-extract pattern is the simplest non-trivial member of the
+retrieve-then-extract family. The cascade failure mode of
+Section~\ref{sec:disc:cascade} therefore has direct deployment relevance:
+the same cascade dynamics that suppress M0 recall on Gemini~2.5 will
+suppress retrieval-extraction recall in production.
+
+\paragraph{3. Clause taxonomies are domain-specific and open-ended.}
+The forty-one CUAD categories cover general commercial provisions.
+Construction contracts contain liquidated damages tied to project milestones,
+variation orders, retention terms, and defects-liability periods; SaaS
+agreements contain SLA penalties, data-processing addenda, and sub-processor
+notification clauses. None of these map cleanly to CUAD's category schema.
+A production CLM system handles an open-ended and evolving taxonomy. The
+specialist-decomposition design tested here (M1, M6) is a fixed three-domain
+partition; its extensibility to an open taxonomy is the question that
+matters for production, and is not what this thesis evaluates.
+
+\paragraph{4. Production has no ground truth.}
+CUAD provides expert annotations against which $F_2$, Jaccard, and $\omega$
+can be computed. A production deployment has none. Evaluation proceeds
+through user feedback, spot-checking, and exception triage --- none of
+which benchmark metrics capture. This is the deployment-side argument for
+the observability work in Chapter~\ref{chapter:system-design}: in the
+absence of ground truth, the most valuable architectural property is whether
+each decision can be attributed to a specific agent, prompt, and routing
+branch, so that exceptions can be triaged at the source
+(Section~\ref{sec:auditability}). The M0 classifier verdict and the M1
+routed-specialist label are precisely the trace primitives a production
+reviewer needs, even when the underlying $F_2$ is dominated by a simpler
+single-agent baseline. The thesis's headline result --- that multi-agent
+$F_2$ does not beat single-agent --- does not therefore translate into
+``deploy single-agent in production'', because the production utility
+function includes auditability, not only $F_2$.
+
+\paragraph{5. Cross-contract reasoning is required and unmeasured.}
+Production CLM questions span contracts: ``are our liability caps consistent
+across all vendor agreements?''; ``which contracts are affected if
+Vendor~X is acquired?''. Cross-contract reasoning requires maintaining
+context across documents and detecting relationships between clauses in
+different agreements. Neither CUAD nor the architectures evaluated here
+address this. Hierarchical multi-agent designs --- a portfolio-level
+orchestrator over per-contract extraction agents --- are a natural fit for
+this workflow and are identified as future work in
+Section~\ref{sec:concl:outlook}.
+
+\paragraph{6. Integration determines deployment value.}
+A system with high benchmark accuracy fails in production if it cannot
+surface results inside the platform of record, in formats downstream systems
+consume (risk reports, obligation trackers, renewal calendars), with
+sufficient context to act upon. The last-mile problem --- transforming an
+extracted clause into an actionable insight --- is largely orthogonal to
+architectural choice within the extraction layer and is the axis on which
+production CLM platforms compete most directly.
+
+\medskip
+\noindent
+These gaps locate the CUAD evaluation rather than invalidating it: the thesis
+measures one axis (extraction accuracy under fixed taxonomy and clean text)
+that is necessary but not sufficient for production deployment. The
+practitioner argument for multi-agent architectures therefore shifts axis:
+not that decomposition raises extraction accuracy --- the data indicate it
+generally does not on this benchmark --- but that decomposition provides
+trace primitives, modular update boundaries, and integration seams that
+production deployments need on axes the benchmark does not measure. This is
+a defensible reason to build multi-agent CLM systems even when the benchmark
+$F_2$ ranking favours single-agent baselines. It is a weaker reason than
+``decomposition wins on accuracy'', and the literature is better served by
+stating it cleanly.
+
+\section{Threats to Validity}\label{sec:disc:threats}
+
+The threats formalised in Section~\ref{sec:meth:threats} bound the
+generalisation of these findings. Three are most consequential.
+
+\paragraph{Single benchmark.}
+The evaluation is on the CUAD long-contract subset under the natural class
+prior. The findings may not extrapolate to short contracts, to non-CUAD
+clause taxonomies, to non-English contracts, or to non-U.S.\ jurisdictions.
+The contract-length moderation result
+(Section~\ref{sec:res:length}, Table~\ref{tab:length-quartile}) shows that
+the architectural ranking is not stable across document lengths within CUAD
+itself: multi-agent helps on short contracts and hurts on long ones.
+The architectural ranking observed here is therefore a ranking on this
+evaluation envelope, not a universal ranking.
+
+\paragraph{Pinned model snapshots.}
+Model identifiers are pinned to specific snapshots in the run metadata.
+Provider behaviour can shift under silent model updates; the family
+interaction observed here may not be stable across future provider releases.
+The qualitative pattern --- that architecture choice interacts with model
+family more than with any within-architecture variable --- is consistent with
+findings reported across task domains in the recent literature
+\cite{gao2025single,cemri2025why}, which suggests the pattern is robust even
+if specific point estimates are not.
+
+\paragraph{Closed proprietary panel.}
+Open-weights models are excluded (Section~\ref{sec:meth:models}).
+The proprietary--open-source gap reported by \textcite{liu2025contracteval} is
+not re-examined here. The finding that multi-agent decomposition does not
+improve pooled $F_2$ may not transfer to a panel of weaker open-weights
+models, where decomposition's capability-equalisation effect
+(Section~\ref{sec:disc:headline}) might be larger. Open-weights extension
+is identified in Section~\ref{sec:concl:outlook} as the most consequential
+extension of the present work.
