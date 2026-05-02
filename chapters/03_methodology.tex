@@ -20,6 +20,9 @@ attributable to architecture or model, not dataset drift.
 \begin{table}[h]
   \centering
   \small
+  \caption{Five evaluated configurations. M0 vs.\ B1 isolates the classification gate;
+  M1 vs.\ M6 isolates routing and decomposition; B4 vs.\ B1 isolates chain-of-thought.}
+  \label{tab:configs}
   \begin{tabular}{lllll}
     \toprule
     \textbf{ID} & \textbf{Name} & \textbf{Stages} & \textbf{Routing} &
@@ -32,9 +35,6 @@ attributable to architecture or model, not dataset drift.
     M6 & Consolidated specialist (ablation) & 1 & None          & Union of M1 prompts \\
     \bottomrule
   \end{tabular}
-  \caption{Five evaluated configurations. M0 vs.\ B1 isolates the classification gate;
-  M1 vs.\ M6 isolates routing and decomposition; B4 vs.\ B1 isolates chain-of-thought.}
-  \label{tab:configs}
 \end{table}
 
 Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration.
@@ -193,6 +193,9 @@ are pinned to specific snapshots in the run metadata for reproducibility.
 \begin{table}[h]
   \centering
   \small
+  \caption{Eleven frontier proprietary models evaluated. Three families; compute-tier
+  range covers light-to-heavy within each family.}
+  \label{tab:models}
   \begin{tabular}{lll}
     \toprule
     \textbf{Family} & \textbf{Model} & \textbf{Tier} \\
@@ -215,9 +218,6 @@ are pinned to specific snapshots in the run metadata for reproducibility.
       & GPT-4.1 Nano          & Light \\
     \bottomrule
   \end{tabular}
-  \caption{Eleven frontier proprietary models evaluated. Three families; compute-tier
-  range covers light-to-heavy within each family.}
-  \label{tab:models}
 \end{table}
 
 Open-weights models are excluded from the main panel for three reasons. First, the

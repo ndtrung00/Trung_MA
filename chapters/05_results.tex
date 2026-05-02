@@ -27,6 +27,10 @@ sampler reproduced CUAD's class prior.
   \centering
   \setlength{\tabcolsep}{4pt}
   \small
+  \caption{Coverage: analysed predictions per (model, configuration) cell after
+  dropping malformed records. ${}^*$Partial run due to upstream sampling interruption;
+  paired tests use the sample-ID intersection.}
+  \label{tab:coverage}
   \begin{tabular}{lrrrrrr}
     \toprule
     \textbf{Model} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} &
@@ -48,10 +52,6 @@ sampler reproduced CUAD's class prior.
     \textbf{163{,}644} \\
     \bottomrule
   \end{tabular}
-  \caption{Coverage: analysed predictions per (model, configuration) cell after
-  dropping malformed records. ${}^*$Partial run due to upstream sampling interruption;
-  paired tests use the sample-ID intersection.}
-  \label{tab:coverage}
 \end{table}
 
 \section{H1 --- Multi-Agent vs.\ Single-Agent Baselines}\label{sec:res:h1}
@@ -64,6 +64,12 @@ eleven models, and per provider family.
   \centering
   \setlength{\tabcolsep}{4pt}
   \small
+  \caption{Headline metrics by family and configuration, mean across constituent
+  models. $\omega$ is the over-extraction rate (FP\,/\,negatives).
+  Bold: best-in-column per family.
+  The $F_2$ and $F_1$ rankings diverge: pooled $F_2$ favours B1 (0.801) by
+  0.011 points, but pooled $F_1$ favours M0 (0.798) by 0.061 points.}
+  \label{tab:h1-headline}
   \begin{tabular}{llccccc}
     \toprule
     \textbf{Family} & \textbf{Cfg} & $\overline{F_2}$ & $\overline{F_1}$ &
@@ -98,12 +104,6 @@ eleven models, and per provider family.
       & M6 & 0.790 & 0.724 & 0.844 & 0.642 & 0.339 \\
     \bottomrule
   \end{tabular}
-  \caption{Headline metrics by family and configuration, mean across constituent
-  models. $\omega$ is the over-extraction rate (FP\,/\,negatives).
-  Bold: best-in-column per family.
-  The $F_2$ and $F_1$ rankings diverge: pooled $F_2$ favours B1 (0.801) by
-  0.011 points, but pooled $F_1$ favours M0 (0.798) by 0.061 points.}
-  \label{tab:h1-headline}
 \end{table}
 
 The pooled means tell two stories. On $F_2$, B1 is nominally best at $0.801$
@@ -123,6 +123,10 @@ light models while B1 leads on heavy models, qualifying contribution~C2.
   \centering
   \setlength{\tabcolsep}{4.5pt}
   \small
+  \caption{$F_2$ by model and configuration. Bold: best per row.
+  The family interaction is pronounced: the Anthropic family peaks under B4,
+  the Google family under B1, and the OpenAI family under M0.}
+  \label{tab:h1-f2}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Model} & $F_2$(B1) & $F_2$(B4) & $F_2$(M0) & $F_2$(M1) & $F_2$(M6) \\
@@ -142,24 +146,11 @@ light models while B1 leads on heavy models, qualifying contribution~C2.
     \textbf{Mean}      & \textbf{0.801} & 0.796 & 0.794 & 0.790 & 0.790 \\
     \bottomrule
   \end{tabular}
-  \caption{$F_2$ by model and configuration. Bold: best per row.
-  The family interaction is pronounced: the Anthropic family peaks under B4,
-  the Google family under B1, and the OpenAI family under M0.}
-  \label{tab:h1-f2}
 \end{table}
 
 \begin{table}[h]
   \centering
   \small
-  \begin{tabular}{lccccc}
-    \toprule
-    \textbf{Tier} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} & \textbf{M6} \\
-    \midrule
-    Light (5 models)  & 0.745 & 0.740 & \textbf{0.751} & 0.743 & 0.728 \\
-    Mid (3 models)    & 0.831 & \textbf{0.834} & 0.814 & 0.831 & 0.831 \\
-    Heavy (3 models)  & \textbf{0.864} & 0.853 & 0.845 & 0.825 & 0.851 \\
-    \bottomrule
-  \end{tabular}
   \caption{Mean $F_2$ by model compute tier $\times$ configuration. Light:
   Claude~Haiku~4.5, Gemini~2.5~Flash, Gemini~3~Flash, GPT-4.1~Mini,
   GPT-4.1~Nano. Mid: Claude~Sonnet~4, Claude~Sonnet~4.6, Gemini~2.5~Pro.
@@ -169,6 +160,15 @@ light models while B1 leads on heavy models, qualifying contribution~C2.
   under B1 and $0.094$ under M0 --- multi-agent decomposition narrows the
   capability gap by $21\%$.}
   \label{tab:tier-gradient}
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Tier} & \textbf{B1} & \textbf{B4} & \textbf{M0} & \textbf{M1} & \textbf{M6} \\
+    \midrule
+    Light (5 models)  & 0.745 & 0.740 & \textbf{0.751} & 0.743 & 0.728 \\
+    Mid (3 models)    & 0.831 & \textbf{0.834} & 0.814 & 0.831 & 0.831 \\
+    Heavy (3 models)  & \textbf{0.864} & 0.853 & 0.845 & 0.825 & 0.851 \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 Table~\ref{tab:h1-stats} reports the H1 paired tests. Each row is one
@@ -184,6 +184,12 @@ $\Delta F_2$) and have been replaced with [TBD] pending recomputation.
   \centering
   \setlength{\tabcolsep}{3pt}
   \small
+  \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B1})$
+  on the sample-ID intersection, paired-bootstrap 95\% CIs (to be regenerated
+  from JSONL), BH-corrected significance ($\alpha{=}0.05$, $m{=}33$).
+  \checkmark: BH-reject $H_0$. $\Delta F_2$ values read from
+  Table~\ref{tab:h1-f2}.}
+  \label{tab:h1-stats}
   \begin{tabular}{lcccccc}
     \toprule
     & \multicolumn{3}{c}{\textbf{M0 vs.\ B1}}
@@ -205,12 +211,6 @@ $\Delta F_2$) and have been replaced with [TBD] pending recomputation.
     GPT-4.1 Nano       & $+0.171$ & [TBD] & \checkmark & $+0.059$ & [TBD] & \checkmark \\
     \bottomrule
   \end{tabular}
-  \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B1})$
-  on the sample-ID intersection, paired-bootstrap 95\% CIs (to be regenerated
-  from JSONL), BH-corrected significance ($\alpha{=}0.05$, $m{=}33$).
-  \checkmark: BH-reject $H_0$. $\Delta F_2$ values read from
-  Table~\ref{tab:h1-f2}.}
-  \label{tab:h1-stats}
 \end{table}
 
 \paragraph{H1 verdict.}
@@ -239,6 +239,13 @@ together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$
   \centering
   \setlength{\tabcolsep}{3pt}
   \footnotesize
+  \caption{Per-tier $F_2$ on common categories ($F_2^c$) and rare--common gap
+  $g = F_2^c - F_2^r$ for all five configurations. Lower $g$ is better.
+  M0's mean gap (0.284) exceeds B1's (0.276) due to gate-induced rare-tier
+  collapse on Gemini\,2.5\,Flash/Pro. M1's mean gap (0.342) is worst, driven by
+  GPT-family specialist failure on rare categories. Only B4 and M6 reduce the
+  gap relative to B1 (means 0.240 and 0.226).}
+  \label{tab:h2-tier}
   \begin{tabular}{lcccccccccc}
     \toprule
     & \multicolumn{2}{c}{\textbf{B1}}
@@ -266,13 +273,6 @@ together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$
     \textbf{Mean}      & .929 & .276 & .912 & .240 & .878 & .284 & .940 & .342 & .919 & .226 \\
     \bottomrule
   \end{tabular}
-  \caption{Per-tier $F_2$ on common categories ($F_2^c$) and rare--common gap
-  $g = F_2^c - F_2^r$ for all five configurations. Lower $g$ is better.
-  M0's mean gap (0.284) exceeds B1's (0.276) due to gate-induced rare-tier
-  collapse on Gemini\,2.5\,Flash/Pro. M1's mean gap (0.342) is worst, driven by
-  GPT-family specialist failure on rare categories. Only B4 and M6 reduce the
-  gap relative to B1 (means 0.240 and 0.226).}
-  \label{tab:h2-tier}
 \end{table}
 
 \paragraph{H2 verdict.}
@@ -296,6 +296,14 @@ already extract well, not the ones they fail on.
 \begin{table}[h]
   \centering
   \small
+  \caption{Mean $F_2$ by CUAD prevalence tier and configuration, pooled across
+  all eleven models. ContractEval~F1 thresholds define tier boundaries
+  (common: $>0.7$; moderate: $0.3$--$0.7$; rare: $<0.3$). The best
+  configuration per tier differs: M1 wins common, M0 wins moderate, B1 wins
+  rare. Multi-agent decomposition helps on categories where the base model is
+  already strong; H2 is rejected because it predicts the opposite direction for
+  rare categories.}
+  \label{tab:tier-winners}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Prevalence tier} & \textbf{B1} & \textbf{B4} & \textbf{M0} &
@@ -306,14 +314,6 @@ already extract well, not the ones they fail on.
     Rare ($<0.3$, 21 cats)       & \textbf{0.653} & 0.649 & 0.613 & 0.593 & 0.621 \\
     \bottomrule
   \end{tabular}
-  \caption{Mean $F_2$ by CUAD prevalence tier and configuration, pooled across
-  all eleven models. ContractEval~F1 thresholds define tier boundaries
-  (common: $>0.7$; moderate: $0.3$--$0.7$; rare: $<0.3$). The best
-  configuration per tier differs: M1 wins common, M0 wins moderate, B1 wins
-  rare. Multi-agent decomposition helps on categories where the base model is
-  already strong; H2 is rejected because it predicts the opposite direction for
-  rare categories.}
-  \label{tab:tier-winners}
 \end{table}
 
 \section{H3 --- Architecture vs.\ Prompt Content (M1 vs.\ M6)}\label{sec:res:h3}
@@ -335,6 +335,12 @@ Jaccard span overlap.
   \centering
   \setlength{\tabcolsep}{4pt}
   \small
+  \caption{H3 contrasts. M1 and M6 are tied on pooled $F_2$
+  ($\overline{\Delta F_2} = -0.0002$, 5 M1 wins vs.\ 6 M6 wins).
+  On span quality (Jaccard), M6 dominates on 10 of 11 models with a mean
+  advantage of $+0.071$. The single M1 exception is Gemini\,3\,Flash, where
+  M6 collapses (Section~\ref{sec:res:cascade}).}
+  \label{tab:h3}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Model}
@@ -356,12 +362,6 @@ Jaccard span overlap.
     \textbf{Mean}      & 0.790 & 0.790 & $-0.000$ & 0.376 & \textbf{0.447} \\
     \bottomrule
   \end{tabular}
-  \caption{H3 contrasts. M1 and M6 are tied on pooled $F_2$
-  ($\overline{\Delta F_2} = -0.0002$, 5 M1 wins vs.\ 6 M6 wins).
-  On span quality (Jaccard), M6 dominates on 10 of 11 models with a mean
-  advantage of $+0.071$. The single M1 exception is Gemini\,3\,Flash, where
-  M6 collapses (Section~\ref{sec:res:cascade}).}
-  \label{tab:h3}
 \end{table}
 
 Despite identical routing, M1 and M6 are statistically distinguishable on $F_2$
@@ -400,6 +400,13 @@ extraction failure.
 \begin{table}[h]
   \centering
   \small
+  \caption{M0 classification-gate rejection cascade. FN-rate $= \mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$.
+  Gate-FN: false negatives where the classifier emitted
+  \texttt{predicted\_no\_clause}. Gate\,\% = Gate-FN\,/\,M0\,FN.
+  On average $82.7\%$ of M0's false negatives originate at the gate;
+  Gemini\,2.5\,Flash and Pro lose ${\geq}97.8\%$ of their recall to upstream
+  rejection.}
+  \label{tab:cascade}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Model}
@@ -421,13 +428,6 @@ extraction failure.
     \textbf{Mean}      & 14.7\% & 20.7\% & 256 & 218 & 82.7\% \\
     \bottomrule
   \end{tabular}
-  \caption{M0 classification-gate rejection cascade. FN-rate $= \mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$.
-  Gate-FN: false negatives where the classifier emitted
-  \texttt{predicted\_no\_clause}. Gate\,\% = Gate-FN\,/\,M0\,FN.
-  On average $82.7\%$ of M0's false negatives originate at the gate;
-  Gemini\,2.5\,Flash and Pro lose ${\geq}97.8\%$ of their recall to upstream
-  rejection.}
-  \label{tab:cascade}
 \end{table}
 
 The cascade is the dominant cause of M0's $F_2$ regression on the Google
@@ -453,6 +453,12 @@ a question revisited in Chapter~\ref{chapter:discussion}.
 \begin{table}[h]
   \centering
   \small
+  \caption{Over-extraction rate $\omega$ (Eq.~\ref{eq:overextract}): fraction of
+  negative-label instances on which the model emits a non-empty span. Bold:
+  best per row. The classification gate cuts $\omega$ by more than half on
+  average; the Gemini family gains the most precision at the recall cost
+  documented in Table~\ref{tab:cascade}.}
+  \label{tab:omega}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Model} & $\omega$(B1) & $\omega$(B4) & $\omega$(M0) & $\omega$(M1) & $\omega$(M6) \\
@@ -472,12 +478,6 @@ a question revisited in Chapter~\ref{chapter:discussion}.
     \textbf{Mean}      & .320 & .385 & \textbf{.130} & .179 & .339 \\
     \bottomrule
   \end{tabular}
-  \caption{Over-extraction rate $\omega$ (Eq.~\ref{eq:overextract}): fraction of
-  negative-label instances on which the model emits a non-empty span. Bold:
-  best per row. The classification gate cuts $\omega$ by more than half on
-  average; the Gemini family gains the most precision at the recall cost
-  documented in Table~\ref{tab:cascade}.}
-  \label{tab:omega}
 \end{table}
 
 \paragraph{Cascade predictability.}
@@ -499,6 +499,10 @@ B1.
   \centering
   \setlength{\tabcolsep}{4pt}
   \small
+  \caption{Provider cost per run (${\approx}2{,}999$ samples) and per-model
+  mean ratio relative to B1. M0's $1.67\times$ premium reflects the additional
+  classifier call; M1's $1.23\times$ reflects the orchestrator hop.}
+  \label{tab:cost}
   \begin{tabular}{lrrrrr}
     \toprule
     \textbf{Model} & B1 (\$) & B4 (\$) & M0 (\$) & M1 (\$) & M6 (\$) \\
@@ -519,10 +523,6 @@ B1.
                           $1.23\times$ & $1.27\times$ \\
     \bottomrule
   \end{tabular}
-  \caption{Provider cost per run (${\approx}2{,}999$ samples) and per-model
-  mean ratio relative to B1. M0's $1.67\times$ premium reflects the additional
-  classifier call; M1's $1.23\times$ reflects the orchestrator hop.}
-  \label{tab:cost}
 \end{table}
 
 Figure~\ref{fig:pareto} plots all 55 cells in the $(F_2, \text{cost})$ plane.
@@ -600,6 +600,14 @@ $F_2$ within each quartile.
 \begin{table}[h]
   \centering
   \small
+  \caption{Mean $F_2$ by contract-length quartile (102 contracts, ${\approx}26$
+  per quartile), pooled across all eleven models. Quartile boundaries:
+  14{,}384\,/\,25{,}922\,/\,62{,}272 characters. Multi-agent configurations
+  (M0, M1) outperform B1 on short contracts (Q1--Q2) by $+1.7$ to $+3.7$
+  percentage points and underperform on long contracts (Q3--Q4) by $-0.5$ to
+  $-4.1$ percentage points. The pattern is opposite to the context-window
+  motivation.}
+  \label{tab:length-quartile}
   \begin{tabular}{lcccccc}
     \toprule
     \textbf{Quartile} & \textbf{Range (chars)} & \textbf{B1} & \textbf{B4} &
@@ -611,14 +619,6 @@ $F_2$ within each quartile.
     Q4 (longest)  & ${>}62{,}272$  & \textbf{0.849} & 0.819 & 0.817 & 0.808 & B1 \\
     \bottomrule
   \end{tabular}
-  \caption{Mean $F_2$ by contract-length quartile (102 contracts, ${\approx}26$
-  per quartile), pooled across all eleven models. Quartile boundaries:
-  14{,}384\,/\,25{,}922\,/\,62{,}272 characters. Multi-agent configurations
-  (M0, M1) outperform B1 on short contracts (Q1--Q2) by $+1.7$ to $+3.7$
-  percentage points and underperform on long contracts (Q3--Q4) by $-0.5$ to
-  $-4.1$ percentage points. The pattern is opposite to the context-window
-  motivation.}
-  \label{tab:length-quartile}
 \end{table}
 
 Table~\ref{tab:length-quartile} shows the opposite of the predicted pattern.

@@ -33,13 +33,13 @@ the NLP-heavy stages are highlighted.
     \draw[->] (exec) -- (mon);
     \draw[->] (mon)  -- (ren);
     \draw[->, dashed]
-      (ren.south) .. controls (10.5,-0.85) and (2.1,-0.85) ..
+      (ren.south) .. controls (10.5,-1.15) and (2.1,-1.15) ..
       node[below, font=\scriptsize] {amend / renew}
       (auth.south);
     % Highlight NLP-heavy stages
     \draw[TUMAccentOrange, thick, rounded corners=3pt]
-      (5.5,-0.45) rectangle (9.2, 0.45);
-    \node[font=\scriptsize, TUMAccentOrange] at (7.35,-0.7) {NLP sub-tasks};
+      (5.25,-0.50) rectangle (9.45, 0.50);
+    \node[font=\scriptsize, TUMAccentOrange] at (7.35,-0.68) {NLP sub-tasks};
   \end{tikzpicture}
   \caption{CLM lifecycle. Clause extraction, risk identification, and obligation
   tracking (highlighted) occur primarily in the Execute and Monitor stages.}
@@ -93,6 +93,10 @@ experimental envelope of this thesis.
 \begin{table}[h]
   \centering
   \small
+  \caption{Frontier LLM releases referenced in this thesis. Context-window figures
+  denote the standard production context; beta long-context modes noted parenthetically.
+  Capabilities summarised from official announcements.}
+  \label{tab:models}
   \begin{tabular}{p{3.2cm}p{1.7cm}p{2.0cm}p{1.6cm}p{4.2cm}}
     \toprule
     \textbf{Model} & \textbf{Provider} & \textbf{Release} &
@@ -114,10 +118,6 @@ experimental envelope of this thesis.
     Gemini 3 Pro    & Google    & Nov 2025 & 1M        & Agentic/tool-use frontier \\
     \bottomrule
   \end{tabular}
-  \caption{Frontier LLM releases referenced in this thesis. Context-window figures
-  denote the standard production context; beta long-context modes noted parenthetically.
-  Capabilities summarised from official announcements.}
-  \label{tab:models}
 \end{table}
 
 A parallel layer of legal-domain products consumes these frontier models. Harvey
@@ -241,6 +241,8 @@ dataset statistics.
 \begin{table}[h]
   \centering
   \small
+  \caption{CUAD dataset statistics~\cite{hendrycks2021cuad}.}
+  \label{tab:cuad-stats}
   \begin{tabular}{ll}
     \toprule
     \textbf{Property} & \textbf{Value} \\
@@ -255,8 +257,6 @@ dataset statistics.
     Long contracts ($>$100k chars) & 81 (used in this thesis) \\
     \bottomrule
   \end{tabular}
-  \caption{CUAD dataset statistics~\cite{hendrycks2021cuad}.}
-  \label{tab:cuad-stats}
 \end{table}
 
 The instance count is highly imbalanced: at the (contract, category) level, the
@@ -362,6 +362,8 @@ Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
 \begin{table}[h]
   \centering
   \small
+  \caption{Main contract-analysis benchmarks.}
+  \label{tab:datasets}
   \begin{tabular}{lllll}
     \toprule
     \textbf{Dataset} & \textbf{Task} & \textbf{Size} & \textbf{Categories} &
@@ -373,8 +375,6 @@ Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
     LEDGAR~\cite{tuggener2020ledgar}        & Multi-label cls.& 60k contracts  & 100+& --- \\
     \bottomrule
   \end{tabular}
-  \caption{Main contract-analysis benchmarks.}
-  \label{tab:datasets}
 \end{table}
 
 \paragraph{Why multi-agent for contract analysis.}
@@ -403,6 +403,10 @@ Section~\ref{sec:lit:mas-background}.
   \centering
   \small
   \setlength{\tabcolsep}{3pt}
+  \caption{Multi-agent legal AI systems coded against the five design-space axes of
+  Section~\ref{sec:lit:mas-background}. All prior systems evaluate a single architecture
+  without ablation.}
+  \label{tab:mas}\label{tab:mas-survey}
   \resizebox{\linewidth}{!}{%
   \begin{tabular}{p{2.3cm}p{2.2cm}p{2.1cm}p{2.1cm}p{3.2cm}p{2.6cm}}
     \toprule
@@ -425,10 +429,6 @@ Section~\ref{sec:lit:mas-background}.
     \bottomrule
   \end{tabular}%
   }
-  \caption{Multi-agent legal AI systems coded against the five design-space axes of
-  Section~\ref{sec:lit:mas-background}. All prior systems evaluate a single architecture
-  without ablation.}
-  \label{tab:mas}\label{tab:mas-survey}
 \end{table}
 
 ChatLaw v2~\cite{cui2024chatlaw} couples a Mixture-of-Experts router with
