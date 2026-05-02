@@ -402,33 +402,33 @@ Section~\ref{sec:lit:mas-background}.
 \begin{table}[h]
   \centering
   \small
-  \setlength{\tabcolsep}{3pt}
+  \setlength{\tabcolsep}{5pt}
+  \renewcommand{\arraystretch}{1.45}
   \caption{Multi-agent legal AI systems coded against the five design-space axes of
   Section~\ref{sec:lit:mas-background}. All prior systems evaluate a single architecture
   without ablation.}
-  \label{tab:mas}\label{tab:mas-survey}
-  \resizebox{\linewidth}{!}{%
-  \begin{tabular}{p{2.3cm}p{2.2cm}p{2.1cm}p{2.1cm}p{3.2cm}p{2.6cm}}
+  \label{tab:mas}
+  \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+  \begin{tabular}{L{2.6cm}L{2.4cm}L{2.1cm}L{2.1cm}L{2.9cm}L{2.4cm}}
     \toprule
     \textbf{System} & \textbf{Task} & \textbf{Topology} & \textbf{Routing} &
     \textbf{Specialisation} & \textbf{Verification} \\
     \midrule
-    ChatLaw v2~\cite{cui2024chatlaw}
-      & Chinese legal QA & Hierarchical & LLM-mediated & Per-domain & Self-check \\
-    PAKTON~\cite{raptopoulos2025pakton}
-      & Contract review  & Hierarchical & Static & Per-step (3) & None \\
-    L-MARS~\cite{wang2025lmars}
+    ChatLaw v2 \cite{cui2024chatlaw}
+      & Legal QA (CN) & Hierarchical & LLM-mediated & Per-domain & Self-check \\
+    PAKTON \cite{raptopoulos2025pakton}
+      & Contract review & Hierarchical & Static & Per-step (3) & None \\
+    L-MARS \cite{wang2025lmars}
       & Statutory research & Hierarchical & LLM-mediated & Per-step + retrieval & Judge agent \\
-    Lawma~\cite{dominguezolmedo2024lawma}
+    Lawma \cite{dominguezolmedo2024lawma}
       & Legal annotation & Single-agent & N/A & Per-task (fine-tune) & None \\
-    Layered CoT~\cite{sanwal2025layered}
+    Layered CoT \cite{sanwal2025layered}
       & Statutory reasoning & Single-agent & Static & Per-step CoT layers & Self-consistency \\
     \midrule
     \textbf{This thesis}
       & CUAD long-contract & Both & All three & All three & Reflexion + judge \\
     \bottomrule
-  \end{tabular}%
-  }
+  \end{tabular}
 \end{table}
 
 ChatLaw v2~\cite{cui2024chatlaw} couples a Mixture-of-Experts router with

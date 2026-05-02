@@ -30,48 +30,73 @@ statistical pipeline and the inspection dashboard.
   \centering
   \begin{tikzpicture}[
     comp/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!20,
-                 rounded corners=2pt, minimum width=2.3cm, minimum height=0.6cm,
+                 rounded corners=2pt, minimum width=2.5cm, minimum height=0.65cm,
                  align=center, font=\scriptsize},
-    store/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!8,
-                  dashed, minimum width=2.0cm, minimum height=0.6cm,
+    store/.style={rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!5,
+                  dashed, minimum width=2.2cm, minimum height=0.65cm,
                   align=center, font=\scriptsize},
     ext/.style={rectangle, draw=TUMAccentOrange, fill=TUMAccentOrange!10,
-                rounded corners=2pt, minimum width=1.8cm, minimum height=0.5cm,
+                rounded corners=2pt, minimum width=2.0cm, minimum height=0.55cm,
                 align=center, font=\scriptsize},
-    >=stealth, thick, node distance=0.55cm
+    >=stealth, thick
   ]
-    \node[comp]  (driver) at (0.0,  4.0) {Experiment\\Driver};
-    \node[store] (cuad)   at (-4.5, 2.4) {CUAD\\test.json};
-    \node[comp]  (loader) at (-2.3, 2.4) {Loader \&\\Sampler};
-    \node[store] (reg)    at (0.0,  2.4) {Prompt\\Registry};
-    \node[comp]  (graph)  at (2.5,  2.4) {LangGraph\\StateGraph};
-    \node[comp]  (client) at (5.2,  2.4) {Model Client\\(multi-provider)};
-    \node[ext]   (anth)   at (3.7,  0.9) {Anthropic};
-    \node[ext]   (oai)    at (5.4,  0.9) {OpenAI};
-    \node[ext]   (goog)   at (7.0,  0.9) {Google};
-    \node[store] (lf)     at (1.0,  0.9) {Langfuse\\traces};
-    \node[store] (jsonl)  at (-1.4, 0.9) {Predictions\\(JSONL)};
-    \node[comp]  (stats)  at (-3.7, 0.9) {Statistical\\Pipeline};
-    \node[comp]  (dash)   at (-3.7,-0.4) {Dashboard\\(Next.js)};
-    \draw[->] (driver) -- (loader);
-    \draw[->] (driver) -- (reg);
-    \draw[->] (driver) -- (graph);
+    %% Row 1: Experiment Driver (top, centred above Loader and Registry)
+    \node[comp]  (driver) at (-1.2, 4.2) {Experiment\\Driver};
+
+    %% Row 2: Inputs
+    \node[store] (cuad)   at (-5.5, 2.6) {CUAD\\test.json};
+    \node[comp]  (loader) at (-2.5, 2.6) {Loader \&\\Sampler};
+    \node[store] (reg)    at ( 0.0, 2.6) {Prompt\\Registry};
+
+    %% Row 3: Execution
+    \node[comp]  (graph)  at (-1.2, 1.0) {LangGraph\\StateGraph};
+    \node[comp]  (client) at ( 3.0, 1.0) {Model Client\\(multi-provider)};
+
+    %% Right column: Provider APIs (moved right for clear gap from client)
+    \node[ext]   (anth)   at (6.0,  1.6) {Anthropic};
+    \node[ext]   (oai)    at (6.0,  1.0) {OpenAI};
+    \node[ext]   (goog)   at (6.0,  0.4) {Google};
+
+    %% Row 4: Outputs
+    \node[store] (jsonl)  at (-3.5, -0.5) {Predictions\\(JSONL)};
+    \node[store] (lf)     at ( 3.0, -0.5) {Langfuse\\traces};
+
+    %% Row 5: Analysis
+    \node[comp]  (stats)  at (-3.5, -2.0) {Statistical\\Pipeline};
+    \node[comp]  (dash)   at ( 0.0, -2.0) {Dashboard\\(Next.js)};
+
+    %% --- Control flow: Driver initialises Loader and Registry (dashed) ---
+    \draw[->, dashed, gray!60] (driver) -- (loader.north);
+    \draw[->, dashed, gray!60] (driver) -- (reg.north);
+
+    %% --- Data flow (solid arrows) ---
+    % Input path
     \draw[->] (cuad)   -- (loader);
     \draw[->] (loader) -- (graph);
     \draw[->] (reg)    -- (graph);
+    % Execution path
     \draw[->] (graph)  -- (client);
-    \draw[->] (client) -- (anth);
-    \draw[->] (client) -- (oai);
-    \draw[->] (client) -- (goog);
+    \draw[->] (client) -- (anth.west);
+    \draw[->] (client) -- (oai.west);
+    \draw[->] (client) -- (goog.west);
+    % Observability
     \draw[->] (client) -- (lf);
+    % Predictions
     \draw[->] (graph)  -- (jsonl);
+    % Analysis
     \draw[->] (jsonl)  -- (stats);
     \draw[->] (jsonl)  -- (dash);
-    \draw[->] (lf.west) to[out=180,in=0] (dash.east);
+    \draw[->] (lf)     -- (dash);
   \end{tikzpicture}
-  \caption{System components. Solid-border boxes: thesis code; dashed-border boxes:
-  data stores; orange boxes: external provider APIs. The loader, registry, and client
-  are configuration-agnostic; only the StateGraph topology varies across B1--M6.}
+  \caption{System component diagram.
+  \emph{Solid-border boxes}: code components (Loader, StateGraph, ModelClient,
+  Statistical Pipeline, Dashboard).
+  \emph{Dashed boxes}: data stores.
+  \emph{Orange boxes}: external provider APIs.
+  \emph{Dashed arrows}: control flow (Driver initialises inputs before each run).
+  \emph{Solid arrows}: data flow.
+  Only the StateGraph topology varies across B1--M6; all other components are
+  configuration-agnostic.}
   \label{fig:sys-components}
 \end{figure}
 
