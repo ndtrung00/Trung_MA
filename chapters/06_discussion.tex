@@ -2,23 +2,10 @@
 
 \chapter{Discussion}\label{chapter:discussion}
 
-This chapter interprets the empirical findings of
-Chapter~\ref{chapter:results} against the working hypotheses, situates them
-in the cross-domain literature on multi-agent effectiveness, and translates
-the results into deployment guidance.
-Section~\ref{sec:disc:headline} states the headline finding and the
-conditions under which it holds.
-Section~\ref{sec:disc:cascade} interprets the classification-gate cascade as
-a recall--precision exchange and explains why its direction is predictable
-from a single-agent calibration pass.
-Section~\ref{sec:disc:routing} addresses the routing-redundancy result and
-what it implies for the design of specialist architectures.
-Section~\ref{sec:disc:metric} returns to the methodological choice of
-$\beta{=}2$ and shows how it shapes the conclusion.
-Section~\ref{sec:disc:practitioner} contributes the practitioner perspective
-and the gaps between CUAD-class benchmarks and real CLM deployment.
-Section~\ref{sec:disc:threats} closes with threats to validity that bound
-generalisation of these findings.
+No multi-agent configuration improves on the strongest single-agent baseline by more
+than $0.011$ pooled $F_2$ points across eleven models.
+The sections below interpret that result, identify its conditions, and translate
+it into deployment guidance.
 
 \section{The Headline Finding and Its Conditions}\label{sec:disc:headline}
 
@@ -157,7 +144,7 @@ below $\beta{=}1$ (where false positives are costlier than false negatives,
 as in some compliance-screening workflows), M0's calibration advantage
 widens further.
 
-\section{Practitioner Perspective: Six Gaps Between CUAD and Production}\label{sec:disc:practitioner}
+\section{Benchmark-to-Production Gaps}\label{sec:disc:practitioner}
 
 The CUAD-based evaluation establishes what current architectures achieve
 under idealised conditions: clean born-digital text, a fixed forty-one-category

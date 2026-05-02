@@ -1,15 +1,15 @@
 \chapter{\abstractname}
 
 Contract Lifecycle Management platforms increasingly rely on large language models to
-automate clause extraction from commercial contracts, and both research and vendor
-communities have advocated multi-agent architectures as a superior alternative to
-single-prompt deployments. The empirical case for this advocacy is, however, thin:
-existing legal multi-agent systems each evaluate a single architecture on a single
-benchmark, no published work has compared multi-agent patterns to single-agent baselines
-across multiple frontier-model families, and recent cross-domain work suggests that
-multi-agent gains diminish as base-model capability rises.
+automate clause extraction from commercial contracts.
+Both research and vendor communities have advocated multi-agent architectures as a
+superior alternative to single-prompt deployments. The empirical case is thin: every existing legal multi-agent system evaluates a single
+architecture on a single benchmark, and no published work ablates multi-agent patterns
+against single-agent baselines across frontier-model families.
+Recent cross-domain evidence further suggests that gains diminish as base-model
+capability rises.
 
-This thesis presents the first controlled cross-architecture cross-model comparison of
+This thesis presents a controlled cross-architecture cross-model comparison of
 multi-agent designs for clause extraction on the CUAD benchmark. Five configurations
 spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed specialists,
 and a consolidated single-agent ablation are evaluated across eleven frontier models from

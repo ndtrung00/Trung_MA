@@ -2,13 +2,10 @@
 
 \chapter{Methodology}\label{chapter:methodology}
 
-This chapter specifies the experimental design used to evaluate multi-agent
-architectures for clause extraction in CLM\@. The design is a controlled comparison
-across the architecture grid introduced in Chapter~2, executed against a panel of
-frontier LLMs on the long-contract subset of CUAD under the natural class distribution.
-RQ3 (auditable reasoning traces) is addressed by system design rather than statistical
-hypothesis test; the auditability properties of the implementation are documented in
-Section~\ref{sec:auditability}.
+Five configurations are evaluated against 11 frontier LLMs on 81 long-contract CUAD
+documents, varying one architectural axis per comparison under the natural class
+distribution. RQ3 (auditable reasoning traces) is addressed by system design;
+auditability properties are documented in Section~\ref{sec:auditability}.
 
 \section{Research Design}\label{sec:meth:design}
 
@@ -159,7 +156,7 @@ CUAD~\cite{hendrycks2021cuad} is the evaluation corpus (see Table~\ref{tab:cuad-
 for statistics). We restrict to 81 contracts $>$100{,}000 characters because
 long-context performance is the regime where decomposition is hypothesised to add
 value and approximates the operational distribution of CLM platforms surveyed in
-Section~\ref{sec:background:clm}. The 81-contract subset yields
+Section~\ref{sec:lit:clm}. The 81-contract subset yields
 $81 \times 41 = 3{,}321$ raw (contract, category) pairs per evaluation pass.
 
 \paragraph{Sampling strategy.}\label{sec:meth:sampling}\label{sec:sampling}
@@ -224,7 +221,7 @@ are pinned to specific snapshots in the run metadata for reproducibility.
 \end{table}
 
 Open-weights models are excluded from the main panel for three reasons. First, the
-commercial CLM platforms surveyed in Section~\ref{sec:background:clm} deploy
+commercial CLM platforms surveyed in Section~\ref{sec:lit:clm} deploy
 proprietary APIs, and the thesis's external-validity claim is restricted to that
 deployment population. Second, the long-contract subset requires context windows of
 $\geq 128$K tokens, which most open-weights models do not support. Third,

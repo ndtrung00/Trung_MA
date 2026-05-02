@@ -2,9 +2,7 @@
 
 \chapter{Background and Related Work}\label{chapter:literature-review}
 
-\section{Background}\label{sec:lit:background}
-
-\subsection{Contract Lifecycle Management}\label{sec:lit:clm}
+\section{Contract Lifecycle Management}\label{sec:lit:clm}
 
 Contract Lifecycle Management (CLM) denotes the systematic management of a
 contractual agreement across six canonical stages: request, author, negotiate,
@@ -71,7 +69,7 @@ documentation describes single-prompt LLM calls, retrieval-augmented prompts, or
 task-specific fine-tunes; no Leader has publicly disclosed a deployed multi-agent
 architecture for clause-level analysis.
 
-\subsection{Large Language Models}\label{sec:lit:llm-background}
+\section{Large Language Models}\label{sec:lit:llm-background}
 
 An LLM is a neural language model parameterised by $\theta$ that factorises a token
 sequence $\mathbf{x} = (x_1,\dots,x_n)$ autoregressively:
@@ -132,7 +130,7 @@ of clause-level extraction on public benchmarks. ContractEval~\cite{liu2025contr
 is, to our knowledge, the only large-scale academic evaluation of LLMs on contract
 clause extraction conducted on a public benchmark with reproducible methodology.
 
-\subsection{Agentic AI and Multi-Agent Systems}\label{sec:lit:mas-background}
+\section{Agentic AI and Multi-Agent Systems}\label{sec:lit:mas-background}
 
 An LLM-based agent is a system in which one or more LLM calls are wrapped in a
 control loop that observes state, plans, invokes tools, and updates
@@ -229,7 +227,7 @@ OpenAI's Agents SDK. The five axes — topology, routing, specialisation granula
 verification structure, and communication protocol — define the design space whose
 CLM-relevant slice this thesis ablates in Chapter~3.
 
-\subsection{The CUAD Benchmark}\label{sec:lit:cuad}\label{sec:cuad}
+\section{The CUAD Benchmark}\label{sec:lit:cuad}\label{sec:cuad}
 
 The Contract Understanding Atticus Dataset (CUAD) is the canonical public benchmark
 for clause-level contract review~\cite{hendrycks2021cuad}. It consists of 510

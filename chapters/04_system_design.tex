@@ -333,9 +333,8 @@ call structure reproduced in the Langfuse trace.
 \end{figure}
 
 \paragraph{M6 --- Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
-M6 is the architectural ablation control. Its prompt is the textual union of the three
-M1 specialist prompts, concatenated into a single agent with no router, no
-orchestrator, and no per-category branching:
+Its prompt is the textual union of the three M1 specialist prompts, concatenated
+into a single agent with no router, no orchestrator, and no per-category branching:
 %
 \begin{equation*}
   \texttt{prompt}_{\text{M6}} = \mathrm{join}\!\left(
