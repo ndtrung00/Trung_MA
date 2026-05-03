@@ -235,10 +235,16 @@ all four Google models. Pooled $F_2$ is within a $0.011$-point band; the
 model-family interaction is the dominant signal. On $F_1$, M0 leads all
 configurations pooled ($0.798$ vs.\ $0.737$ for B0), reversing the $F_2$
 ranking and reframing the architectural choice as a metric-dependent decision
-(Section~\ref{sec:res:rq-summary}). Cohen's~$g$ is not reported separately
-because the $b{+}c$ discordant-pair counts required for
-$g = b/(b{+}c) - 0.5$ are not recoverable at the summary level; effect size
-is captured by $\Delta F_2$ and its paired-bootstrap 95\% CI.
+(Section~\ref{sec:res:rq-summary}). Cohen's~$g = c/(b{+}c) - 0.5$ on the
+McNemar discordant pairs is reported for completeness in the released
+artefacts: across the 22 H1 contrasts $g$ ranges from $+0.005$ to $+0.363$
+(median $\approx{}0.20$, ``medium'' by Cohen's thresholds). All values are
+positive --- discordant pairs favour the multi-agent configuration on raw
+binary correctness (TP\,+\,TN) --- but $F_2$'s recall-weighted denominator
+flips the ranking on most cells because the precision gains accrue
+disproportionately to the negative-instance count. The discordant-pair
+direction and $F_2$ direction therefore disagree by construction; both are
+faithful summaries of different cost structures.
 
 \section{H2 --- Rare-Category Gap}\label{sec:res:h2}
 
@@ -286,9 +292,14 @@ together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$
 \end{table}
 
 \paragraph{H2 verdict.}
-H2 is rejected for the multi-agent configurations M0 and M1: both widen the
-rare--common gap relative to B0. The widening is driven by two distinct
-mechanisms. Under M0, the classification gate (Section~\ref{sec:res:cascade})
+H2 is rejected. Under the pre-registered decision rule (\S\ref{sec:meth:hypotheses};
+upper bound of the 95\% paired-bootstrap CI on $\Delta\mathrm{Gap}$ strictly
+$<0$), only 1 of the 22 multi-agent vs.\ B0 contrasts satisfies the rule
+(Claude\,Haiku\,4.5 under M0, $\Delta\mathrm{Gap}{=}-0.256$, CI $[-0.308,\,-0.211]$);
+6 contrasts have CIs strictly above zero --- M0 and M1 \emph{widen} the gap
+significantly on the Gemini and GPT-family models. Per-model bootstrap CIs
+are released in the experiment artefacts. Two mechanisms drive the
+widening. Under M0, the classification gate (Section~\ref{sec:res:cascade})
 collapses rare-tier $F_2$ on the Gemini family (Gemini\,2.5\,Flash: $F_2^r$
 drops from $0.719$ under B0 to $0.381$ under M0). Under M1, GPT-family
 specialists fail catastrophically on rare categories (GPT-4.1: $F_2^r$ drops
@@ -301,27 +312,36 @@ Table~\ref{tab:tier-winners} disaggregates by prevalence tier to expose which
 configuration wins at each tier rather than on a gap-adjusted average. The
 pattern reverses across tiers: M1 leads on common categories, M0 on moderate,
 and B0 on rare. Multi-agent specialisation therefore benefits the clauses models
-already extract well, not the ones they fail on.
+already extract well, not the ones they fail on.\footnote{The
+rare-tier mean masks per-category heterogeneity. M0 leads decisively on
+specific rare categories where the gate's precision gain compensates the
+recall cost: \textit{Source Code Escrow} ($F_2{=}1.000$ vs.\ B0~$0.943$),
+\textit{Joint IP Ownership} ($+0.142$ over B0), \textit{No-Solicit of
+Customers} ($+0.233$). The tier-mean ranking is dominated by Gemini-family
+cascade collapse on a subset of rare categories
+(\S\ref{sec:res:cascade}), not by uniform M0 weakness across the rare tier.}
 
 \begin{table}[h]
   \centering
   \small
   \caption{Mean $F_2$ by CUAD prevalence tier and configuration, pooled across
-  all eleven models. ContractEval~F1 thresholds define tier boundaries
-  (common: $>0.7$; moderate: $0.3$--$0.7$; rare: $<0.3$). The best
-  configuration per tier differs: M1 wins common, M0 wins moderate, B0 wins
-  rare. Multi-agent decomposition helps on categories where the base model is
-  already strong; H2 is rejected because it predicts the opposite direction for
-  rare categories.}
+  all eleven models. Tier partition derived from positive-instance prevalence
+  in the 102-contract test split: 6 common ($>30\%$ positive), 18 moderate
+  ($10$--$30\%$), 17 rare ($<10\%$). The cut-points differ marginally from the
+  ContractEval~F1-based partition (6/14/21) used in some prior reporting; the
+  qualitative ranking is unchanged. The best configuration per tier differs:
+  M1 wins common, M0 wins moderate, B0 (tied with B1) wins rare. Multi-agent
+  decomposition helps on categories where the base model is already strong;
+  H2 is rejected because it predicts the opposite direction for rare categories.}
   \label{tab:tier-winners}
   \begin{tabular}{lccccc}
     \toprule
     \textbf{Prevalence tier} & \textbf{B0} & \textbf{B1} & \textbf{M0} &
     \textbf{M1} & \textbf{M2} \\
     \midrule
-    Common (F1$_{CE} > 0.7$, 6 cats)   & 0.911 & 0.930 & 0.878 & \textbf{0.935} & 0.928 \\
-    Moderate (0.3--0.7, 14 cats) & 0.754 & 0.734 & \textbf{0.778} & 0.718 & 0.727 \\
-    Rare ($<0.3$, 21 cats)       & \textbf{0.653} & 0.649 & 0.613 & 0.593 & 0.621 \\
+    Common (6 cats)   & 0.913 & 0.931 & 0.880 & \textbf{0.935} & 0.929 \\
+    Moderate (18 cats) & 0.755 & 0.739 & \textbf{0.780} & 0.722 & 0.731 \\
+    Rare (17 cats)     & \textbf{0.658} & \textbf{0.658} & 0.618 & 0.602 & 0.628 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -331,7 +351,11 @@ already extract well, not the ones they fail on.
 The \cfgMA\ (M1) router agreed with the deterministic category-to-specialist mapping on
 $100.00\%$ of requests for ten of eleven models, and on $99.03\%$ for
 GPT-4.1\,Nano (29 mis-routes out of 2{,}999), yielding $99.91\%$ routing
-accuracy across the panel. Routing is empirically a deterministic lookup: the
+accuracy across the panel. The routed-call distribution across specialists is
+uneven --- \texttt{ip\_commercial} 11{,}802 calls, \texttt{temporal\_renewal}
+11{,}364, \texttt{risk\_liability} 9{,}068 --- reflecting the per-specialist
+category populations (17, 11, 13) and CUAD's prevalence-weighted sampling rather
+than a routing defect. Routing is empirically a deterministic lookup: the
 router's decisions can be replicated by a static dictionary mapping category
 names to specialist labels at zero LLM cost. We therefore present no figure for
 routing accuracy and treat M1 vs.\ M2 as a test of whether dispatch architecture
@@ -501,6 +525,52 @@ $0.171$ $F_2$ points, because the gate corrects its B0 laziness ($55.5\%$
 FN-rate). A practitioner can predict whether M0 will help or hurt a given
 model by running a cheap B0 calibration pass and inspecting $\omega_{\text{B0}}$
 against the FN-rate profile.
+
+\section{Span Grounding Rate}\label{sec:res:grounding}
+
+The grounding rate measures the fraction of an extraction's character span
+that is reproducible verbatim from the source contract; an ungrounded span is
+either paraphrased or hallucinated. Two views are reported in
+Table~\ref{tab:grounding}: pooled across all sampled instances (denominator
+includes the $\approx\!58\%$ negative-label cases where the model returns ``no
+related clause'' and grounding is undefined, conventionally scored~$0$), and
+restricted to instances on which the model emitted at least one span.
+
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \caption{Mean grounding rate by configuration. \emph{All}: pooled over all
+  $\approx\!2{,}999$ samples per cell, including ``no related clause'' returns
+  scored $0$. \emph{Predicted-clause only}: conditioned on a non-empty
+  prediction. \cfgMA\ (M1) achieves $1.000$ pooled across every model in the
+  predicted-clause column: the structured specialist output enforces
+  contract-text citation. \cfgCX\ (M0) reaches $0.893$. \cfgZS\ (B0) and
+  \cfgCP\ (M2), which return free-text extractions, leave $44$--$58\%$ of
+  predicted spans ungrounded.}
+  \label{tab:grounding}
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Config} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
+    \midrule
+    All samples            & 0.299 & 0.373 & 0.375 & \textbf{0.456} & 0.248 \\
+    Predicted-clause only  & 0.543 & 0.594 & 0.893 & \textbf{1.000} & 0.415 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The predicted-clause column is the audit-relevant denominator: a missed clause
+has no span to ground, but every emitted span is auditable in principle. Under
+that view, \cfgMA's structured-output schema (Listing~\ref{lst:trace})
+guarantees verbatim citation by construction, and \cfgCX's extractor inherits
+the same scaffold from the M1 specialist prompts. The two single-call
+generative configurations \cfgZS\ and \cfgCP\ leave roughly half of their
+extractions paraphrased or hallucinated --- the dominant failure mode is
+extraction of \emph{plausible} legal text that cannot be located verbatim
+in the source contract. This finding qualifies contribution~C4: the
+auditability advantage of multi-agent topologies is not solely the trace
+structure (Section~\ref{sec:auditability}) but also the schema-enforced
+grounding that the topology makes operationally feasible.
 
 \section{Cost-Efficiency Frontier}\label{sec:res:cost}
 

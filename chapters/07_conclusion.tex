@@ -42,14 +42,18 @@ gain $F_1$ from it. Section~\ref{sec:disc:cascade} formalises the heuristic
 and connects it to the inter-agent verification gap taxonomy of
 \textcite{cemri2025why}.
 
-\paragraph{C4 --- Routing redundancy with span-quality degradation.}
+\paragraph{C4 --- Routing redundancy with span-quality and grounding tradeoffs.}
 The LLM router agreed with a deterministic category-to-specialist dictionary
 on $99.91\%$ of requests across the panel and on $100\%$ for ten of eleven
-models. \cfgCP\ (M2) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals, while
-producing measurably cleaner spans (Jaccard $+0.071$ on ten of eleven models;
-Table~\ref{tab:h3}). In closed-vocabulary specialist-routing designs, the
-LLM-mediated routing call adds orchestrator cost without architectural
-benefit.
+models. \cfgCP\ (M2) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals
+and produces tighter spans (Jaccard $+0.071$ on ten of eleven models;
+Table~\ref{tab:h3}). The architectural advantage that does survive ablation
+is grounding: \cfgMA's schema-enforced specialist output achieves
+$100\%$ verbatim citation of contract text on every predicted clause, against
+$54\%$ for \cfgZS\ and $42\%$ for \cfgCP\ (Table~\ref{tab:grounding}). The
+LLM-mediated routing call adds orchestrator cost without measurable $F_2$
+benefit, but the specialist scaffold to which the router dispatches carries
+the auditability surplus.
 
 \section{Answers to the Research Questions}\label{sec:concl:rqs}
 
@@ -94,12 +98,16 @@ precision-critical deployments.
 \paragraph{RQ3 --- Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
 decision attribution --- routing decision, specialist extraction, validation
-outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}).
-The practitioner-relevant tradeoffs are storage cost (approximately $4\times$
-the token volume of a B0 call per M1 run), attribution faithfulness (the trace is faithful to the call graph
-but does not certify the model's internal computation), and routing
-redundancy (the $99.91\%$ deterministic routing result means the orchestrator
-layer adds latency without contributing decision diversity).
+outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). The
+trace structure is paired with schema-enforced grounding: \cfgMA\ reaches
+$100\%$ verbatim contract-text citation on every predicted clause and
+\cfgCX\ reaches $89.3\%$, against $54.3\%$ for \cfgZS\ and $41.5\%$ for
+\cfgCP\ (Table~\ref{tab:grounding}). The practitioner-relevant tradeoffs are
+storage cost (approximately $4\times$ the token volume of a B0 call per M1
+run), attribution faithfulness (the trace is faithful to the call graph but
+does not certify the model's internal computation), and routing redundancy
+(the $99.91\%$ deterministic routing result means the orchestrator layer adds
+latency without contributing decision diversity).
 
 \section{Outlook}\label{sec:concl:outlook}
 
