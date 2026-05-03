@@ -285,8 +285,10 @@ test split preserves the long-contract tail, where context-window pressure is
 highest, while keeping the short-contract regime in scope so the
 contract-length moderation analysis (\S\ref{sec:res:length}) can identify the
 length range over which architectural decomposition is favourable.
-Figure~\ref{fig:cuad-tiers} illustrates the F$_1$ gradient across tiers that
-motivates the domain-specialisation hypothesis (H2).
+Figure~\ref{fig:cuad-tiers} shows pooled per-category $F_1$ for 13
+representative categories under the zero-shot baseline (B0) across the
+11-model panel of this thesis (\S\ref{sec:meth:models}); error bars span
+$\pm 1$ standard deviation across models.
 
 \begin{figure}[h]
   \centering
@@ -295,59 +297,80 @@ motivates the domain-specialisation hypothesis (H2).
       xbar,
       width=0.84\textwidth,
       height=8.0cm,
-      xmin=0, xmax=1.0,
-      xlabel={Approximate $F_1$ (GPT-4.1, ContractEval~\cite{liu2025contracteval})},
+      xmin=0, xmax=1.05,
+      xlabel={Per-category $F_1$ (B0, mean $\pm 1\sigma$ across 11 models)},
       xlabel style={font=\small},
       xtick={0, 0.25, 0.5, 0.75, 1.0},
       xticklabels={0, .25, .50, .75, 1.0},
       xticklabel style={font=\scriptsize},
       ytick={0,1,...,12},
       yticklabels={
-        Vol.\ Restriction,      % 0  rare
-        Joint IP Ownership,     % 1  rare
-        Notice Period,          % 2  rare
-        Uncapped Liability,     % 3  rare
-        Renewal Term,           % 4  moderate
-        Change of Control,      % 5  moderate
-        License Grant,          % 6  moderate
-        Anti-Assignment,        % 7  moderate
-        Termination Conv.,      % 8  moderate
-        Expiration Date,        % 9  common
-        Effective Date,         % 10 common
-        Parties,                % 11 common
-        Governing Law           % 12 common
+        Vol.\ Restriction,
+        Joint IP Ownership,
+        Notice Period,
+        Uncapped Liability,
+        Renewal Term,
+        Change of Control,
+        License Grant,
+        Anti-Assignment,
+        Termination Conv.,
+        Expiration Date,
+        Effective Date,
+        Parties,
+        Governing Law
       },
       yticklabel style={font=\scriptsize, text width=3.0cm, align=right},
       bar width=0.32cm,
       enlarge y limits=0.05,
       xmajorgrids, grid style={dotted, draw=TUMGray!40},
       axis line style={TUMGray!60}, tick style={TUMGray!60},
-      legend style={
+      /pgfplots/legend style={
         at={(0.5,-0.16)}, anchor=north,
         font=\scriptsize, draw=TUMGray!30, fill=white,
         legend columns=3, column sep=0.5cm
       },
     ]
-      % Common tier (TUMBlue — high F1, positive outcome)
-      \addplot[fill=TUMBlue, draw=TUMBlue, bar shift=0pt] coordinates {
-        (0.85, 12) (0.82, 11) (0.76, 10) (0.72, 9)
-      };
-      % Moderate tier (TUMAccentGray — neutral)
-      \addplot[fill=TUMAccentGray, draw=TUMDarkGray!50, bar shift=0pt] coordinates {
-        (0.58, 8) (0.52, 7) (0.47, 6) (0.41, 5) (0.38, 4)
-      };
-      % Rare tier (TUMAccentOrange — near-zero, attention)
-      \addplot[fill=TUMAccentOrange, draw=TUMAccentOrange, bar shift=0pt] coordinates {
-        (0.04, 3) (0.05, 2) (0.03, 1) (0.01, 0)
-      };
-      \legend{Common ($F_1 > 0.70$), Moderate ($0.30$--$0.70$), Rare ($< 0.15$)}
+      % Common tier (TUMBlue) — Governing Law, Parties, Effective, Expiration
+      \addplot+[fill=TUMBlue, draw=TUMBlue, bar shift=0pt, mark=none,
+                error bars/.cd, x dir=both, x explicit,
+                error bar style={line width=0.5pt, draw=TUMDarkGray}]
+        coordinates {
+          (0.966, 12) +- (0.018, 0.018)
+          (0.983, 11) +- (0.051, 0.051)
+          (0.792, 10) +- (0.023, 0.023)
+          (0.847,  9) +- (0.163, 0.163)
+        };
+      % Moderate tier (TUMAccentGray) — Renewal, ChangeCtrl, License, AntiAssign, Term Conv.
+      \addplot+[fill=TUMAccentGray, draw=TUMDarkGray!50, bar shift=0pt, mark=none,
+                error bars/.cd, x dir=both, x explicit,
+                error bar style={line width=0.5pt, draw=TUMDarkGray}]
+        coordinates {
+          (0.624,  8) +- (0.114, 0.114)
+          (0.924,  7) +- (0.079, 0.079)
+          (0.818,  6) +- (0.070, 0.070)
+          (0.531,  5) +- (0.106, 0.106)
+          (0.674,  4) +- (0.071, 0.071)
+        };
+      % Rare tier (TUMAccentOrange) — Uncapped, Notice Period, Joint IP, Vol. Restriction
+      \addplot+[fill=TUMAccentOrange, draw=TUMAccentOrange, bar shift=0pt, mark=none,
+                error bars/.cd, x dir=both, x explicit,
+                error bar style={line width=0.5pt, draw=TUMDarkGray}]
+        coordinates {
+          (0.495,  3) +- (0.139, 0.139)
+          (0.660,  2) +- (0.172, 0.172)
+          (0.635,  1) +- (0.166, 0.166)
+          (0.350,  0) +- (0.176, 0.176)
+        };
+      \legend{Common ($>$30\% positive), Moderate ($10$--$30\%$), Rare ($<$10\%)}
     \end{axis}
   \end{tikzpicture}
-  \caption{Approximate $F_1$ scores for 13 representative CUAD categories under
-  GPT-4.1 (ContractEval~\cite{liu2025contracteval}). Values are indicative; exact
-  scores vary by model. Rare-tier categories achieve near-zero $F_1$ under the
-  strongest single-agent baseline, directly motivating the per-domain specialist
-  design evaluated in Chapter~3.}
+  \caption{Per-category $F_1$ for 13 representative CUAD categories under the
+  zero-shot baseline (B0), pooled across the 11-model panel
+  (\S\ref{sec:meth:models}); error bars span $\pm 1\sigma$ across models.
+  The rare-tier categories combine \emph{lower mean $F_1$} with
+  \emph{wider variance across models} ($\sigma$ up to $0.17$), the empirical
+  pattern that motivates the per-domain specialist design evaluated in
+  Chapter~\ref{chapter:methodology}.}
   \label{fig:cuad-tiers}
 \end{figure}
 

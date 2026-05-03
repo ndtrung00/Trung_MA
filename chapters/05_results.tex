@@ -113,6 +113,57 @@ over-extraction rate ($0.320$), while M0 has the highest precision ($0.813$) and
 the lowest over-extraction rate ($0.130$). The $\beta{=}2$ weighting of $F_2$
 rewards \cfgZS's recall; $F_1$'s equal weighting rewards \cfgCX's calibration.
 
+Figure~\ref{fig:family-config} visualises the model-family interaction: each
+family peaks under a different configuration.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar=2pt,
+      width=0.92\linewidth, height=6.0cm,
+      bar width=10pt,
+      ymin=0.65, ymax=0.92,
+      ylabel={Mean $F_2$},
+      ylabel style={font=\small},
+      ytick={0.7,0.75,0.8,0.85,0.9},
+      yticklabel style={font=\scriptsize},
+      symbolic x coords={B0,B1,M0,M1,M2},
+      xtick=data,
+      xticklabel style={font=\small},
+      enlarge x limits=0.13,
+      ymajorgrids, grid style={dotted, draw=TUMGray!40},
+      axis line style={TUMGray!60}, tick style={TUMGray!60},
+      legend style={
+        at={(0.5,-0.18)}, anchor=north,
+        font=\scriptsize, draw=TUMGray!30, fill=white,
+        legend columns=3, column sep=0.5cm,
+      },
+      nodes near coords,
+      nodes near coords style={font=\tiny, color=TUMDarkGray, rotate=90, anchor=west},
+      every node near coord/.append style={
+        /pgf/number format/fixed,
+        /pgf/number format/precision=3,
+      },
+    ]
+      \addplot[fill=TUMBlue!50, draw=TUMBlue]
+        coordinates {(B0,0.828) (B1,0.851) (M0,0.848) (M1,0.839) (M2,0.836)};
+      \addplot[fill=TUMAccentOrange!70, draw=TUMAccentOrange]
+        coordinates {(B0,0.826) (B1,0.763) (M0,0.748) (M1,0.808) (M2,0.777)};
+      \addplot[fill=TUMAccentGreen!70, draw=TUMAccentGreen]
+        coordinates {(B0,0.731) (B1,0.768) (M0,0.783) (M1,0.700) (M2,0.744)};
+      \legend{Anthropic (4 models), Google (4), OpenAI (3)}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Mean $F_2$ by provider family $\times$ configuration. Each family
+  peaks under a different configuration --- Anthropic under \cfgCoT\ (B1,
+  $0.851$), Google under \cfgZS\ (B0, $0.826$), OpenAI under \cfgCX\ (M0,
+  $0.783$) --- so no single architecture is universally optimal. The
+  family-by-configuration interaction is the dominant signal in the H1
+  results.}
+  \label{fig:family-config}
+\end{figure}
+
 Table~\ref{tab:h1-f2} reports per-model $F_2$. No configuration is uniformly
 best: B0 wins on 4 models, M0 on 4, B1 on 2, and M1 on 1. The ranking also
 varies with model compute tier (Table~\ref{tab:tier-gradient}): \cfgCX\ leads
@@ -374,7 +425,7 @@ baseline and M2 consolidated specialist do reduce the gap (means 0.240 and
 0.226), but neither is a multi-agent architecture in the sense of
 Chapter~\ref{chapter:methodology}.
 
-Table~\ref{tab:tier-winners} disaggregates by prevalence tier to expose which
+Figure~\ref{fig:tier-winners} disaggregates by prevalence tier to expose which
 configuration wins at each tier rather than on a gap-adjusted average. The
 pattern reverses across tiers: M1 leads on common categories, M0 on moderate,
 and B0 on rare. Multi-agent specialisation therefore benefits the clauses models
@@ -387,30 +438,62 @@ Customers} ($+0.233$). The tier-mean ranking is dominated by Gemini-family
 cascade collapse on a subset of rare categories
 (\S\ref{sec:res:cascade}), not by uniform M0 weakness across the rare tier.}
 
-\begin{table}[h]
+\begin{figure}[h]
   \centering
-  \small
-  \caption{Mean $F_2$ by CUAD prevalence tier and configuration, pooled across
-  all eleven models. Tier partition derived from positive-instance prevalence
-  in the 102-contract test split: 6 common ($>30\%$ positive), 18 moderate
-  ($10$--$30\%$), 17 rare ($<10\%$). The cut-points differ marginally from the
-  ContractEval~F1-based partition (6/14/21) used in some prior reporting; the
-  qualitative ranking is unchanged. The best configuration per tier differs:
-  M1 wins common, M0 wins moderate, B0 (tied with B1) wins rare. Multi-agent
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar=1.5pt,
+      width=0.92\linewidth, height=6.0cm,
+      bar width=8pt,
+      ymin=0.55, ymax=1.0,
+      ylabel={Mean $F_2$},
+      ylabel style={font=\small},
+      ytick={0.6,0.7,0.8,0.9,1.0},
+      yticklabel style={font=\scriptsize},
+      symbolic x coords={Common (6),Moderate (18),Rare (17)},
+      xtick=data,
+      xticklabel style={font=\small},
+      enlarge x limits=0.20,
+      ymajorgrids, grid style={dotted, draw=TUMGray!40},
+      axis line style={TUMGray!60}, tick style={TUMGray!60},
+      legend style={
+        at={(0.5,-0.18)}, anchor=north,
+        font=\scriptsize, draw=TUMGray!30, fill=white,
+        legend columns=5, column sep=0.4cm,
+      },
+      nodes near coords,
+      nodes near coords style={font=\tiny, color=TUMDarkGray, rotate=90, anchor=west},
+      every node near coord/.append style={
+        /pgf/number format/fixed,
+        /pgf/number format/precision=3,
+      },
+    ]
+      \addplot[fill=TUMBlue!50, draw=TUMBlue]
+        coordinates {(Common (6),0.913) (Moderate (18),0.755) (Rare (17),0.658)};
+      \addplot[fill=TUMAccentGreen!60, draw=TUMAccentGreen]
+        coordinates {(Common (6),0.931) (Moderate (18),0.739) (Rare (17),0.658)};
+      \addplot[fill=TUMAccentOrange!70, draw=TUMAccentOrange]
+        coordinates {(Common (6),0.880) (Moderate (18),0.780) (Rare (17),0.618)};
+      \addplot[fill=TUMAccentBlue!60, draw=TUMAccentBlue]
+        coordinates {(Common (6),0.935) (Moderate (18),0.722) (Rare (17),0.602)};
+      \addplot[fill=TUMGray!50, draw=TUMDarkGray]
+        coordinates {(Common (6),0.929) (Moderate (18),0.731) (Rare (17),0.628)};
+      \legend{B0, B1, M0, M1, M2}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Mean $F_2$ by CUAD prevalence tier $\times$ configuration, pooled
+  across the eleven-model panel. Tier partition derived from positive-instance
+  prevalence in the 102-contract test split (common $>30\%$ positive,
+  moderate $10$--$30\%$, rare $<10\%$); marginally different from the
+  ContractEval~F1-based partition (6/14/21) without changing the qualitative
+  ranking. The best configuration per tier differs: M1 wins common (0.935),
+  M0 wins moderate (0.780), B0 and B1 tie on rare (0.658). Multi-agent
   decomposition helps on categories where the base model is already strong;
-  H2 is rejected because it predicts the opposite direction for rare categories.}
-  \label{tab:tier-winners}
-  \begin{tabular}{lccccc}
-    \toprule
-    \textbf{Prevalence tier} & \textbf{B0} & \textbf{B1} & \textbf{M0} &
-    \textbf{M1} & \textbf{M2} \\
-    \midrule
-    Common (6 cats)   & 0.913 & 0.931 & 0.880 & \textbf{0.935} & 0.929 \\
-    Moderate (18 cats) & 0.755 & 0.739 & \textbf{0.780} & 0.722 & 0.731 \\
-    Rare (17 cats)     & \textbf{0.658} & \textbf{0.658} & 0.618 & 0.602 & 0.628 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+  H2 is rejected because it predicts the opposite direction for rare
+  categories.}
+  \label{fig:tier-winners}
+\end{figure}
+
 
 \section{H3 --- Architecture vs.\ Prompt Content (\cfgMA\ vs.\ \cfgCP)}\label{sec:res:h3}
 
@@ -590,7 +673,73 @@ points to M0; GPT-4.1\,Nano ($\omega_{\text{B0}} = 0.085$) \emph{gains}
 $0.171$ $F_2$ points, because the gate corrects its B0 laziness ($55.5\%$
 FN-rate). A practitioner can predict whether M0 will help or hurt a given
 model by running a cheap B0 calibration pass and inspecting $\omega_{\text{B0}}$
-against the FN-rate profile.
+against the FN-rate profile. Figure~\ref{fig:omega-lambda} visualises the
+cascade as a movement in the $(\omega, \lambda)$ plane: arrows connect each
+model's B0 cell to its M0 cell, and the up-and-leftward shift on Gemini
+Flash/Pro is the cascade.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.92\linewidth, height=8.5cm,
+      xlabel={Over-extraction rate $\omega$ (FP / negatives)},
+      ylabel={Laziness rate $\lambda$ (FN / positives)},
+      xlabel style={font=\small}, ylabel style={font=\small},
+      xmin=0.0, xmax=0.65, ymin=0.0, ymax=0.60,
+      xtick={0,0.1,0.2,0.3,0.4,0.5,0.6},
+      ytick={0,0.1,0.2,0.3,0.4,0.5,0.6},
+      xticklabel style={font=\scriptsize},
+      yticklabel style={font=\scriptsize},
+      xmajorgrids, ymajorgrids, grid style={dotted, draw=TUMGray!40},
+      axis line style={TUMGray!60}, tick style={TUMGray!60},
+      legend style={
+        at={(1.02,1.0)}, anchor=north west,
+        font=\scriptsize, draw=TUMGray!30, fill=white,
+      },
+    ]
+      % B0 points (filled circles)
+      \addplot[only marks, mark=*, mark size=2.2pt, TUMBlue]
+        coordinates {(0.477,0.133) (0.330,0.068) (0.335,0.079) (0.423,0.108) (0.392,0.095)
+                     (0.456,0.079) (0.321,0.170) (0.236,0.098) (0.221,0.090) (0.223,0.133) (0.085,0.555)};
+      \addlegendentry{B0 (zero-shot)}
+      % M0 points (filled triangles)
+      \addplot[only marks, mark=triangle*, mark size=2.8pt, TUMAccentOrange]
+        coordinates {(0.158,0.205) (0.169,0.114) (0.169,0.099) (0.150,0.125) (0.082,0.418)
+                     (0.076,0.324) (0.120,0.179) (0.116,0.156) (0.102,0.178) (0.174,0.118) (0.137,0.363)};
+      \addlegendentry{M0 (classify-extract)}
+      % Cascade arrows: B0 -> M0 per model
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.477,0.133) -- (axis cs:0.158,0.205);  % Haiku
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.330,0.068) -- (axis cs:0.169,0.114);  % Opus
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.335,0.079) -- (axis cs:0.169,0.099);  % Sonnet 4
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.423,0.108) -- (axis cs:0.150,0.125);  % Sonnet 4.6
+      \draw[->, TUMAccentOrange, thick] (axis cs:0.392,0.095) -- (axis cs:0.082,0.418);  % Gemini Flash CASCADE
+      \draw[->, TUMAccentOrange, thick] (axis cs:0.456,0.079) -- (axis cs:0.076,0.324);  % Gemini Pro CASCADE
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.321,0.170) -- (axis cs:0.120,0.179);  % Gemini 3 Flash
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.236,0.098) -- (axis cs:0.116,0.156);  % Gemini 3.1 Pro
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.221,0.090) -- (axis cs:0.102,0.178);  % GPT-4.1
+      \draw[->, TUMDarkGray!60, thin]   (axis cs:0.223,0.133) -- (axis cs:0.174,0.118);  % GPT-4.1 Mini
+      \draw[->, TUMAccentGreen, thick]  (axis cs:0.085,0.555) -- (axis cs:0.137,0.363);  % Nano (REVERSE)
+      % Annotations on the salient cases
+      \node[font=\scriptsize, anchor=west, text=TUMAccentOrange] at (axis cs:0.10,0.430) {Gemini~2.5~Flash cascade};
+      \node[font=\scriptsize, anchor=west, text=TUMAccentOrange] at (axis cs:0.10,0.310) {Gemini~2.5~Pro cascade};
+      \node[font=\scriptsize, anchor=west, text=TUMAccentGreen] at (axis cs:0.16,0.555) {GPT-4.1 Nano: gate corrects laziness};
+      % equal-error reference line
+      \draw[densely dotted, TUMGray!50] (axis cs:0,0) -- (axis cs:0.6,0.6);
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Recall--precision exchange under \cfgCX. Each B0 model
+  ($\bullet$) maps to its M0 counterpart ($\blacktriangle$); arrows show the
+  per-model trajectory in the $(\omega, \lambda)$ plane. Most models move
+  \emph{left and slightly up} --- a moderate precision gain (lower $\omega$)
+  paid with a small recall loss (higher $\lambda$). On Gemini~2.5~Flash and
+  Pro (orange arrows) the recall loss is severe: $\lambda$ jumps to $>0.32$,
+  the cascade documented in Table~\ref{tab:cascade}. On GPT-4.1~Nano (green
+  arrow) the trajectory reverses: the gate corrects the model's high B0
+  laziness ($\lambda{=}0.555$ B0 $\to 0.363$ M0). The dotted diagonal marks
+  $\omega = \lambda$ as an orientation reference.}
+  \label{fig:omega-lambda}
+\end{figure}
 
 \section{Span Grounding Rate}\label{sec:res:grounding}
 
@@ -787,7 +936,7 @@ may be acceptable; Chapter~\ref{chapter:discussion} elaborates these conditions.
 \section{Contract-Length Moderation}\label{sec:res:length}
 
 The cascade analysis (Section~\ref{sec:res:cascade}) and tier analysis
-(Table~\ref{tab:tier-winners}) treat all contracts uniformly. Contract length
+(Figure~\ref{fig:tier-winners}) treat all contracts uniformly. Contract length
 provides an orthogonal moderating variable: the context-window motivation for
 multi-agent decomposition predicts that routing clauses to specialists should
 help on \emph{longer} contracts, where a monolithic prompt must attend over
