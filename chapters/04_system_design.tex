@@ -104,8 +104,8 @@ non-CUAD test configurations not evaluated in this study.
 
 \paragraph{Inference parameters.}
 All official model calls used \texttt{temperature=0} and \texttt{max\_tokens=4096}.
-Official runs were executed between \textbf{[TODO: insert start date]} and
-\textbf{[TODO: insert end date]}. Table~\ref{tab:snapshots} lists the full provider
+Official runs were executed between \textbf{14 April 2026} and
+\textbf{17 April 2026}. Table~\ref{tab:snapshots} lists the full provider
 snapshot identifier for each of the 11 models.
 
 \begin{table}[h]
@@ -118,21 +118,21 @@ snapshot identifier for each of the 11 models.
     \textbf{Family} & \textbf{Model} & \textbf{Tier} & \textbf{Snapshot ID} \\
     \midrule
     \multirow{4}{*}{Anthropic}
-      & Claude Haiku 4.5  & Light & \texttt{[TODO]} \\
-      & Claude Sonnet 4   & Mid   & \texttt{[TODO]} \\
+      & Claude Haiku 4.5  & Light & \texttt{claude-haiku-4-5-20251001}  \\
+      & Claude Sonnet 4   & Mid   & \texttt{claude-sonnet-4-20250514}   \\
       & Claude Sonnet 4.6 & Mid   & \texttt{claude-sonnet-4-6-20251001} \\
-      & Claude Opus 4.6   & Heavy & \texttt{[TODO]} \\
+      & Claude Opus 4.6   & Heavy & \texttt{claude-opus-4-6}            \\
     \midrule
     \multirow{4}{*}{Google}
-      & Gemini 2.5 Flash  & Light & \texttt{[TODO]} \\
-      & Gemini 2.5 Pro    & Heavy & \texttt{[TODO]} \\
-      & Gemini 3 Flash    & Light & \texttt{[TODO]} \\
-      & Gemini 3.1 Pro    & Heavy & \texttt{[TODO]} \\
+      & Gemini 2.5 Flash  & Light & \texttt{gemini-2.5-flash}           \\
+      & Gemini 2.5 Pro    & Heavy & \texttt{gemini-2.5-pro}             \\
+      & Gemini 3 Flash    & Light & \texttt{gemini-3-flash-preview}     \\
+      & Gemini 3.1 Pro    & Heavy & \texttt{gemini-3.1-pro-preview}     \\
     \midrule
     \multirow{3}{*}{OpenAI}
-      & GPT-4.1           & Mid   & \texttt{[TODO]} \\
-      & GPT-4.1 Mini      & Light & \texttt{[TODO]} \\
-      & GPT-4.1 Nano      & Light & \texttt{[TODO]} \\
+      & GPT-4.1           & Mid   & \texttt{gpt-4.1}                    \\
+      & GPT-4.1 Mini      & Light & \texttt{gpt-4.1-mini}               \\
+      & GPT-4.1 Nano      & Light & \texttt{gpt-4.1-nano}               \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -219,7 +219,7 @@ final \texttt{<answer>...</answer>} block. A parsing bug in pilot work caused
 contract passages quoted inside the chain-of-thought to be harvested as answers,
 inflating $\omega$ (Eq.~\ref{eq:overextract}); the fix enforces the answer tag via
 the common parser of Section~\ref{sec:sys:shared}. The fix was deployed in commit
-\texttt{[TODO: insert commit hash]} on \textbf{[TODO: insert date]}; only post-fix
+\texttt{1cf08536} on \textbf{14 April 2026}; only post-fix
 runs enter official statistics.
 
 \section{Multi-Agent Architectures}\label{sec:sys:multiagent}
