@@ -2,10 +2,11 @@
 
 \chapter{Methodology}\label{chapter:methodology}
 
-Five configurations are evaluated against 11 frontier LLMs on 81 long-contract CUAD
-documents, varying one architectural axis per comparison under the natural class
-distribution. RQ3 (auditable reasoning traces) is addressed by system design;
-auditability properties are documented in Section~\ref{sec:auditability}.
+Each architectural comparison holds one axis constant while varying one: B1 vs.\ B0
+isolates chain-of-thought reasoning, M0 vs.\ B0 isolates the classification gate,
+and M1 vs.\ M2 isolates routing from prompt content. This controlled design allows
+performance differences to be attributed to architecture rather than model or data
+variation across $5 \times 11 = 55$ runs on 81 long CUAD contracts.
 
 \section{Research Design}\label{sec:meth:design}
 

@@ -2,14 +2,19 @@
 
 \chapter{Background and Related Work}\label{chapter:literature-review}
 
-Sections~\ref{sec:lit:clm}--\ref{sec:lit:cuad} define the four foundational
-concepts: contract lifecycle management, large language models, agentic
-multi-agent systems, and the CUAD benchmark.
-Sections~\ref{sec:lit:methods}--\ref{sec:lit:eval} survey prior work on
-contract analysis, multi-agent legal AI, conditions for multi-agent
-effectiveness, and evaluation methodology.
-Section~\ref{sec:lit:synthesis} identifies the research gap this thesis
-addresses.
+Evaluating whether multi-agent architectures improve contract clause extraction
+requires grounding in four technical areas: what CLM systems do and where
+extraction fits within them (\S\ref{sec:lit:clm}), how LLMs generate text and
+why long-context tasks are structurally different (\S\ref{sec:lit:llms}), what
+agentic decomposition adds and at what cost (\S\ref{sec:lit:mas-background}),
+and what CUAD measures and why its class distribution matters
+(\S\ref{sec:lit:cuad}). Sections~\ref{sec:lit:methods}--\ref{sec:lit:eval}
+then place the five configurations studied here against prior single-agent and
+multi-agent contract systems, survey evidence on when decomposition helps and
+when it does not, and establish the evaluation conventions inherited from
+ContractEval~\cite{liu2025contracteval}.
+Section~\ref{sec:lit:synthesis} consolidates the open empirical question this
+thesis addresses.
 
 \section{Contract Lifecycle Management}\label{sec:lit:clm}
 

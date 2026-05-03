@@ -2,8 +2,10 @@
 
 \chapter{System Design and Implementation}\label{chapter:system-design}
 
-Chapter~4 operationalises the five configurations at a level of detail sufficient for
-independent re-implementation from the released artefact.
+All five configurations share a common parser, sampler, and metrics layer; only the
+LangGraph topology and prompt registry entries differ. This design isolates
+architectural variation and enables the controlled comparisons of
+Chapter~\ref{chapter:methodology}.
 
 \section{System Components and Data Flow}\label{sec:sys:components}
 
@@ -145,6 +147,7 @@ Every configuration is a LangGraph \texttt{StateGraph} over a shared
 configuration parity: no configuration has access to fields another lacks, and the
 JSONL persistence format is identical across all five configurations.
 
+\noindent\begin{minipage}{\linewidth}
 \begin{lstlisting}[language=Python, caption={GraphState schema (abridged from
   \texttt{src/agents/state.py}).}, label={lst:state},
   basicstyle=\footnotesize\ttfamily, frame=single]
@@ -172,6 +175,7 @@ class GraphState(TypedDict, total=False):
 
     error: str | None
 \end{lstlisting}
+\end{minipage}
 
 \paragraph{Prompt registry.}
 Prompts are stored as YAML and loaded once per run; the schema version hash is
