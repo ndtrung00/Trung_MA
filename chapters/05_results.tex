@@ -2,7 +2,7 @@
 
 \chapter{Results}\label{chapter:results}
 
-Across 55 (model, configuration) cells and 163{,}644 paired predictions, no multi-agent configuration improves pooled $F_2$ over the strongest single-agent baseline by more than $0.011$ points; the dominant predictor of performance is model capability tier, not architecture.
+Across 55 (model, configuration) cells and 163{,}644 paired predictions, no multi-agent configuration improves pooled $F_2$ over the strongest single-agent baseline by more than $0.011$ points; the dominant signal is the model-family $\times$ configuration interaction (Anthropic peaks under \cfgCoT, Google under \cfgZS, OpenAI under \cfgCX), with capability tier as a secondary moderator.
 
 \section{Run Coverage and Sample Accounting}\label{sec:res:overview}
 
@@ -331,45 +331,40 @@ gains accrue to the negative-instance count.
 
 \section{H2 --- Rare-Category Gap}\label{sec:res:h2}
 
-Table~\ref{tab:h2-tier} reports per-tier $F_2$ for all five configurations,
-together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$.
+Table~\ref{tab:h2-tier} reports the rare--common gap
+$g = F_2^{\text{common}} - F_2^{\text{rare}}$ for each (model, configuration)
+cell. Mean common-tier $F_2$ stays in a narrow band across configurations
+(\cfgZS\ $0.929$, \cfgCoT\ $0.912$, \cfgCX\ $0.878$, \cfgMA\ $0.940$, \cfgCP\
+$0.919$); the gap movement is driven almost entirely by rare-tier shifts.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{3pt}
-  \footnotesize
-  \caption{Per-tier $F_2$ on common categories ($F_2^c$) and rare--common gap
-  $g = F_2^c - F_2^r$ for all five configurations. Lower $g$ is better.
-  M0's mean gap (0.284) exceeds B0's (0.276) due to gate-induced rare-tier
-  collapse on Gemini\,2.5\,Flash/Pro. M1's mean gap (0.342) is worst, driven by
-  GPT-family specialist failure on rare categories. Only B1 and M2 reduce the
-  gap relative to B0 (means 0.240 and 0.226).}
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \caption{Rare--common gap $g = F_2^c - F_2^r$ per (model, configuration).
+  Lower is better. \cfgCX's mean gap (0.284) exceeds \cfgZS's (0.276) due to
+  gate-induced rare-tier collapse on Gemini\,2.5\,Flash/Pro. \cfgMA's mean
+  gap (0.342) is worst, driven by GPT-family specialist failure on rare
+  categories. Only \cfgCoT\ and \cfgCP\ reduce the gap relative to \cfgZS\
+  (means 0.240 and 0.226).}
   \label{tab:h2-tier}
-  \begin{tabular}{lcccccccccc}
+  \begin{tabular}{lccccc}
     \toprule
-    & \multicolumn{2}{c}{\textbf{B0}}
-    & \multicolumn{2}{c}{\textbf{B1}}
-    & \multicolumn{2}{c}{\textbf{M0}}
-    & \multicolumn{2}{c}{\textbf{M1}}
-    & \multicolumn{2}{c}{\textbf{M2}} \\
-    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
-    \textbf{Model}
-    & $F_2^c$ & $g$ & $F_2^c$ & $g$ & $F_2^c$ & $g$
-    & $F_2^c$ & $g$ & $F_2^c$ & $g$ \\
+    \textbf{Model} & $g$(B0) & $g$(B1) & $g$(M0) & $g$(M1) & $g$(M2) \\
     \midrule
-    Claude Haiku 4.5   & 0.926 & 0.329 & 0.917 & 0.263 & 0.770 & 0.074 & 0.950 & 0.296 & 0.938 & 0.306 \\
-    Claude Opus 4.6    & 0.965 & 0.219 & 0.950 & 0.169 & 0.937 & 0.202 & 0.966 & 0.260 & 0.953 & 0.256 \\
-    Claude Sonnet 4    & 0.958 & 0.245 & 0.955 & 0.241 & 0.940 & 0.211 & 0.948 & 0.257 & 0.937 & 0.195 \\
-    Claude Sonnet 4.6  & 0.947 & 0.269 & 0.929 & 0.149 & 0.941 & 0.220 & 0.928 & 0.245 & 0.929 & 0.175 \\
-    Gemini 2.5 Flash   & 0.935 & 0.216 & 0.929 & 0.227 & 0.725 & 0.344 & 0.946 & 0.277 & 0.934 & 0.153 \\
-    Gemini 2.5 Pro     & 0.958 & 0.268 & 0.960 & 0.272 & 0.919 & 0.515 & 0.969 & 0.258 & 0.954 & 0.323 \\
-    Gemini 3 Flash     & 0.950 & 0.324 & 0.798 & 0.337 & 0.944 & 0.355 & 0.923 & 0.346 & 0.751 & 0.144 \\
-    Gemini 3.1 Pro     & 0.966 & 0.225 & 0.955 & 0.236 & 0.962 & 0.289 & 0.963 & 0.262 & 0.965 & 0.189 \\
-    GPT-4.1            & 0.950 & 0.246 & 0.947 & 0.220 & 0.856 & 0.179 & 0.964 & 0.533 & 0.956 & 0.219 \\
-    GPT-4.1 Mini       & 0.913 & 0.196 & 0.947 & 0.254 & 0.955 & 0.233 & 0.950 & 0.421 & 0.936 & 0.293 \\
-    GPT-4.1 Nano       & 0.549 & 0.296 & 0.741 & 0.280 & 0.708 & 0.296 & 0.775 & 0.608 & 0.658 & 0.234 \\
+    Claude Haiku 4.5   & 0.329 & 0.263 & \textbf{0.074} & 0.296 & 0.306 \\
+    Claude Opus 4.6    & 0.219 & \textbf{0.169} & 0.202 & 0.260 & 0.256 \\
+    Claude Sonnet 4    & 0.245 & 0.241 & 0.211 & 0.257 & \textbf{0.195} \\
+    Claude Sonnet 4.6  & 0.269 & \textbf{0.149} & 0.220 & 0.245 & 0.175 \\
+    Gemini 2.5 Flash   & 0.216 & 0.227 & 0.344 & 0.277 & \textbf{0.153} \\
+    Gemini 2.5 Pro     & \textbf{0.268} & 0.272 & 0.515 & 0.258 & 0.323 \\
+    Gemini 3 Flash     & 0.324 & 0.337 & 0.355 & 0.346 & \textbf{0.144} \\
+    Gemini 3.1 Pro     & 0.225 & 0.236 & 0.289 & 0.262 & \textbf{0.189} \\
+    GPT-4.1            & 0.246 & 0.220 & \textbf{0.179} & 0.533 & 0.219 \\
+    GPT-4.1 Mini       & \textbf{0.196} & 0.254 & 0.233 & 0.421 & 0.293 \\
+    GPT-4.1 Nano       & 0.296 & 0.280 & 0.296 & 0.608 & \textbf{0.234} \\
     \midrule
-    \textbf{Mean}      & 0.929 & 0.276 & 0.912 & 0.240 & 0.878 & 0.284 & 0.940 & 0.342 & 0.919 & 0.226 \\
+    \textbf{Mean}      & 0.276 & 0.240 & 0.284 & 0.342 & \textbf{0.226} \\
     \bottomrule
   \end{tabular}
 \end{table}

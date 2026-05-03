@@ -613,10 +613,11 @@ model-dependent and category-dependent failure mode. Three properties of the
 ContractEval design define the gaps the present thesis closes: the architectural axis
 is held fixed at single-prompt single-model; model-family interactions are not
 analysed; and over-extraction (Eq.~\eqref{eq:overextract}) is not tracked as a
-first-class metric. The present thesis retains ContractEval's evaluation protocol —
-natural class distribution, instance-level scoring, laziness reporting,
-$\tau{=}0.5$ Jaccard threshold — and extends it along the architectural axis and the
-dual failure-mode axis.
+first-class metric. The present thesis retains ContractEval's instance-level
+scoring, laziness reporting, and $\tau{=}0.5$ Jaccard threshold; departs on
+class distribution (upsampled to $41.5\%$ positive, \S\ref{sec:meth:sampling});
+and adds over-extraction (Eq.~\eqref{eq:overextract}) and a model-family
+interaction term as first-class evaluation axes.
 
 \paragraph{Prompt sensitivity as a validity threat.}
 The prompt-sensitivity index of \citeauthor{chatterjee2024posix}~\cite{chatterjee2024posix}
@@ -638,9 +639,9 @@ closest predecessor~\cite{liu2025contracteval} varies model identity only.
 (ii) No published study reports a model-family $\times$ architecture interaction
 analysis on this task, despite the prediction in~\cite{bogavelli2025agentarch} that
 such interactions dominate single-axis effects. (iii) No published study tracks both
-Eq.~\eqref{eq:laziness} and Eq.~\eqref{eq:overextract} under the natural class
-distribution, leaving the recall--precision asymmetry intrinsic to legal review
-unobserved. (iv) Production CLM platforms — Sirion, Icertis, Ironclad, DocuSign —
+Eq.~\eqref{eq:laziness} and Eq.~\eqref{eq:overextract} under any deployable
+class distribution that preserves over-extraction as observable, leaving the
+recall--precision asymmetry intrinsic to legal review unobserved. (iv) Production CLM platforms — Sirion, Icertis, Ironclad, DocuSign —
 disclose single-prompt or retrieval-augmented LLM deployments with no public
 multi-agent ablation, leaving the architectural design space untested in the regime
 where the question is commercially decisive.

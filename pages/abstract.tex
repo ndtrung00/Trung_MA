@@ -6,8 +6,8 @@ Both research and vendor communities have advocated multi-agent architectures as
 superior alternative to single-prompt deployments. The empirical case is thin: every existing legal multi-agent system evaluates a single
 architecture on a single benchmark, and no published work ablates multi-agent patterns
 against single-agent baselines across frontier-model families.
-Recent cross-domain evidence further suggests that gains diminish as base-model
-capability rises.
+Recent cross-domain evidence (Gao et al.\ 2025; Bogavelli et al.\ 2025)
+reports diminishing multi-agent gains as base-model capability rises.
 
 This thesis presents a controlled cross-architecture cross-model comparison of
 multi-agent designs for clause extraction on the CUAD benchmark. Five configurations
@@ -18,11 +18,11 @@ split, analysed with McNemar exact tests, paired bootstrap confidence intervals,
 Benjamini--Hochberg correction.
 
 No multi-agent configuration consistently outperforms the strongest single-agent
-baseline. Pooled accuracy across the eleven models falls within a one-point band;
-architectural ranking varies jointly with model family and capability tier, with the
-family interaction dominant: each provider family peaks under a different
-configuration, and lighter models gain from structured decomposition where heavier
-ones do not. Two mechanisms explain the null result. The pipeline architecture
+baseline. Pooled accuracy falls within a $0.011$-point band. Each provider
+family peaks under a different configuration --- Anthropic under
+chain-of-thought, Google under zero-shot, OpenAI under classify-then-extract
+--- and lighter models gain from decomposition where heavier ones do not.
+Two mechanisms explain the null result. The pipeline architecture
 exhibits a \emph{classification-gate rejection cascade} --- its upstream classifier
 silently overrejects on some models --- and the LLM router in the specialist
 architecture is empirically redundant: it converges to a deterministic category
@@ -31,5 +31,5 @@ Multi-agent configurations carry a $23\%$--$67\%$ cost premium without aggregate
 accuracy benefit.
 
 The results identify which model--architecture combinations gain, lose, or are
-unchanged on $F_2$, and identify the auditability surplus that survives the headline
-null result.
+unchanged on $F_2$, and quantify the auditability surplus
+(M1: $1.000$ verbatim grounding) that survives the null result.

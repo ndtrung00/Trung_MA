@@ -2,7 +2,7 @@
 
 \chapter{Conclusion and Outlook}\label{chapter:conclusion}
 
-Model capability tier dominates architectural choice: at this task, investing in a stronger model yields larger $F_2$ gains than switching from a single-agent to a multi-agent pipeline.
+Model identity dominates architectural choice: switching configurations moves pooled $F_2$ by at most $0.011$ points, while moving across the model panel moves it by ${\approx}0.4$; the family $\times$ configuration interaction explains the residual.
 
 \section{Summary of Contributions}\label{sec:concl:contributions}
 
@@ -98,19 +98,22 @@ precision-critical deployments.
 \paragraph{RQ3 --- Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
 decision attribution --- routing decision, specialist extraction, validation
-outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}); trace
+outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). Trace
 completeness is $100\%$ on B0/B1/M2/M0 and $95.2\%$ on M1, with the residual
 $4.8\%$ attributable to provider-side truncation on long contracts
 (\S\ref{sec:sys:trace-properties}). The trace structure is paired with
 schema-enforced grounding: \cfgMA\ reaches $100\%$ verbatim contract-text
 citation on every predicted clause and \cfgCX\ reaches $89\%$, against
-$54\%$ for \cfgZS\ and $42\%$ for \cfgCP\ (Table~\ref{tab:grounding}). The
-practitioner-relevant tradeoffs are storage cost (approximately $4\times$
-the token volume of a B0 call per M1 run), attribution faithfulness (the
-trace is faithful to the call graph but does not certify the model's
-internal computation), and routing redundancy (the $99.91\%$ deterministic
-routing result means the orchestrator layer adds latency without
-contributing decision diversity).
+$54\%$ for \cfgZS\ and $42\%$ for \cfgCP\ (Table~\ref{tab:grounding}).
+
+Three practitioner-relevant tradeoffs attend this auditability surplus.
+\emph{Storage cost} scales approximately $4\times$ per M1 call (orchestrator
+hop plus three specialist sub-prompts logged at inference time).
+\emph{Attribution faithfulness} is bounded by the trace format: the record
+is faithful to the call graph but does not certify the model's internal
+computation. \emph{Routing redundancy} adds latency without decision
+diversity --- the $99.91\%$ deterministic routing result means the
+orchestrator layer can be replaced by a static dictionary at zero LLM cost.
 
 \section{Outlook}\label{sec:concl:outlook}
 

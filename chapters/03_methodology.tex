@@ -285,13 +285,13 @@ All metrics are reported pooled and per prevalence tier.
 
 \paragraph{H1.} For every $C \in \{\text{M0},\, \text{M1}\}$, $C$ outperforms
 $B^\star = \text{B0}$ on $F_2$ across the eleven-model panel.
-Null: $C$ does not outperform B0 on the panel.
-Decision rule: reject the null \emph{in favour of H1} only if
-\emph{a majority} of the multi-agent vs.\ B0 pairwise McNemar exact tests
-($m{=}22$: 2 multi-agent configurations $\times$ 11 models) is significant at
-$\alpha{=}0.05$ after BH correction~\cite{benjamini1995controlling} with
-directional $\Delta F_2$ favouring the multi-agent configuration; otherwise H1
-is rejected. Per-model significant positive contrasts are reported as
+Null: at least one $C$ does not outperform B0 on the panel.
+Decision rule: reject the null \emph{in favour of H1} only if, \emph{for both}
+$C \in \{\text{M0},\,\text{M1}\}$, a majority of the 11 per-model
+$C$-vs-B0 McNemar exact contrasts is BH-significant in
+favour~\cite{benjamini1995controlling} at $\alpha{=}0.05$ within the combined
+$m{=}22$-test family. Per-model BH-significant positive contrasts that do
+not satisfy the per-config majority condition are reported as
 \emph{conditional} improvements rather than as evidence for H1 itself.
 \cfgCP\ (M2) is excluded from the H1 family because it is the architecture-control
 ablation for H3 (\S\ref{sec:meth:hypotheses}), not a candidate alternative
