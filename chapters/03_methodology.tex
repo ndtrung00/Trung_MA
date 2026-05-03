@@ -235,7 +235,14 @@ entries use unversioned aliases that resolve to the provider's current release a
 call time.\footnote{Strict reproducibility requires pinned dated snapshots.
 OpenAI publishes dated aliases (e.g.\ \texttt{gpt-4.1-2025-04-14}); Anthropic
 publishes \texttt{claude-opus-4-6-<date>}. Pinned variants were not available for
-all models at the time experiments were run.}
+all models at the time experiments were run. As a consequence, a silent provider-side
+release of any aliased model between 14 and 17 April 2026 would have shifted that
+model's behaviour mid-experiment in a way the run logs cannot detect; no post-hoc
+API-fingerprint check (e.g.\ deterministic-prompt response stability) was
+performed, and the family-by-configuration interaction observed in
+Chapter~\ref{chapter:results} for the affected models (Gemini~2.5/3/3.1 and
+GPT-4.1/Mini/Nano) cannot be ruled out as a snapshot-drift artefact rather
+than a stable model property.}
 
 Open-weights models are excluded from the main panel on two structural grounds: the
 commercial CLM platforms surveyed in Section~\ref{sec:lit:clm} deploy proprietary APIs,
@@ -338,8 +345,14 @@ on rare-tier subsets~\cite{mcnemar1947note}.
 \paragraph{Paired bootstrap.}
 For continuous metrics ($F_2$, $F_1$, Jaccard, gap differences), Algorithm~\ref{alg:bootstrap}
 gives the paired bootstrap CI~\cite{efron1979bootstrap,riezler2005pitfalls}.
-We use $B{=}300$ resamples; the percentile method's robustness to small $B$ on bounded
-statistics is documented as a sensitivity threat in Section~\ref{sec:meth:threats}.
+We use $B{=}300$ resamples and seed the bootstrap RNG independently of the
+sampler with \texttt{numpy.random.default\_rng(42)} so the data partition seed
+and the bootstrap resample seed are both pinned to the same numerical value
+but instantiated as separate generator objects (the bootstrap percentile CIs
+in Table~\ref{tab:h1-stats} are bit-reproducible from the artefact bundle
+under this convention). The percentile method's robustness to small $B$ on
+bounded statistics is documented as a sensitivity threat in
+Section~\ref{sec:meth:threats}.
 
 \begin{algorithm}[h]
   \caption{Paired bootstrap confidence interval for $\Delta F_2$}
@@ -382,12 +395,21 @@ accordance with the recommendation that the magnitude of difference is the prima
 research output, not statistical significance per se~\cite{sullivan2012effect}.
 
 \paragraph{Power.}
-\textcite{card2020little} caution that NLP comparisons are
-frequently under-powered. The pairwise sample size after intersection is
-${\approx}\,2{,}900$--$3{,}000$ per (configuration, model) pair. Under McNemar's
-exact test at $\alpha{=}0.05$ and 80\% power, this panel resolves discordant-pair
-effect sizes corresponding to $|\Delta F_2| \geq 0.025$. Effects below this threshold
-are treated as inconclusive rather than as evidence of equivalence.
+\textcite{card2020little} caution that NLP comparisons are frequently
+under-powered. The pairwise sample size after intersection is
+${\approx}\,2{,}900$--$3{,}000$ per (configuration, model) pair, of which
+the discordant-pair count $b{+}c$ on M0-vs-B0 contrasts ranges from $236$
+(\textit{Claude Opus~4.6}) to $1{,}030$ (\textit{Gemini~2.5~Flash}) across
+the 11 models, with median $b{+}c \approx 551$. Under McNemar's exact two-sided
+test at $\alpha{=}0.05$ and target power $0.80$, the median discordant-pair
+count corresponds to a minimum detectable proportion of
+$p_A = b/(b{+}c) \geq 0.56$ (equivalently $(b{-}c)/(b{+}c) \geq 0.12$, computed
+via the binomial-distribution power formula~\cite{connor1987sample}). Mapping
+discordant proportion to $F_2$ on the dominant pooled-precision regime of the
+panel yields a minimum detectable $|\Delta F_2|$ of approximately $0.025$.
+Effects below this threshold are treated as inconclusive rather than as
+evidence of equivalence; the headline pooled spread of $0.011$ on $F_2$
+across the five configurations sits within the inconclusive band by design.
 
 \paragraph{Paired comparison protocol.}
 Intersection of sample IDs is taken symmetrically when partial runs differ in coverage;
@@ -397,9 +419,15 @@ intersection size is reported with each test.
 
 \paragraph{Internal.} Configuration parity is maintained by holding the CUAD loader,
 sampling seed, prompt registry, and trace schema constant across configurations.
-\cfgMA\ (M1) and \cfgCP\ (M2) share the same textual specialist instructions
-(split vs.\ concatenated), so the M1 vs.\ M2 contrast isolates architecture,
-not prompt content.
+The M1 vs.\ M2 contrast is the most architecturally informative but not a
+clean single-axis ablation: M1 differs from M2 on three jointly-varied
+components --- prompt-format split (one focused specialist preamble vs.\
+the textual union of three), dispatch overhead (router LLM call plus
+orchestrator hop), and per-call latency. Effects observed on the M1 vs.\ M2
+contrast are therefore attributable to the joint architectural delta, not
+to any one component in isolation; a within-M1 ablation that disables
+the router decision while retaining the topology is left to future work
+(\S\ref{sec:concl:outlook}).
 
 \paragraph{External.} Single language (English), single jurisdiction (predominantly
 U.S.\ commercial contracts), single corpus (CUAD). Findings on the 102-contract
@@ -427,6 +455,14 @@ prompt-perturbation analysis as future work.
 skewed statistics~\cite{efron1979bootstrap}; $p$-values are treated as decisive only
 when corroborated by the McNemar exact test. The bootstrap resample count ($B{=}300$)
 is below the 1{,}000 conservative recommendation~\cite{dror2018hitchhikers};
-sensitivity at $B{=}1{,}000$ on a representative subset confirmed CI stability to
-within $\pm 0.005$ on $\Delta F_2$. Model identity is a fixed factor; inference does
+a sensitivity check on the M0-vs-B0 contrasts for the four-model Anthropic family
+(\textit{Claude Haiku 4.5}, \textit{Sonnet~4}, \textit{Sonnet~4.6}, \textit{Opus~4.6};
+chosen because all four runs are complete and the contrast spans the panel's
+capability range from light to heavy) compared the percentile CI on
+$\Delta F_2$ at $B{=}300$ versus $B{=}1{,}000$ under the same bootstrap seed
+(\texttt{seed=42}, \texttt{numpy.random.default\_rng}). The maximum endpoint
+shift was $0.0026$ on the lower bound and $0.0013$ on the upper bound, well
+within the $\pm 0.005$ tolerance the headline reporting precision requires.
+The replication script is released alongside the experiment artefacts
+(\S\ref{sec:sys:opensource}). Model identity is a fixed factor; inference does
 not generalise beyond the 11 models studied.

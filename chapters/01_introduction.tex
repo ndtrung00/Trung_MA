@@ -71,8 +71,8 @@ systems, and which architectural patterns are most effective?
     prompting --- achieve the highest $F_2$?
   \item[\textbf{RQ2.}] How do multi-agent configurations compare to single-agent baselines
     in $F_2$ and provider cost across clause categories and contract lengths?
-  \item[\textbf{RQ3.}] Which architectural decisions produce auditable reasoning traces,
-    and what tradeoffs do they introduce?
+  \item[\textbf{RQ3.}] Which auditability properties (trace completeness, decision
+    attribution, span grounding) does each architectural configuration enable?
 \end{description}
 
 \section{Hypotheses}\label{sec:hypotheses}
@@ -89,8 +89,11 @@ systems, and which architectural patterns are most effective?
     from \cfgCP\ (M2) on $F_2$ (two-sided McNemar exact).
 \end{description}
 
-RQ3 is addressed by system design rather than statistical hypothesis test; the auditability
-properties of the implementation are documented in \S\ref{sec:auditability}.
+RQ3 is descriptive --- it asks which auditability properties each configuration
+enables --- and is therefore addressed by system-design documentation rather
+than statistical hypothesis test; the per-configuration trace primitives are
+catalogued in \S\ref{sec:auditability} and the schema-enforced grounding rates
+are reported in Table~\ref{tab:grounding}.
 
 \section{Contributions}\label{sec:contributions}
 

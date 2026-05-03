@@ -28,7 +28,8 @@ across the five configurations spans a $0.011$-point band and per-model
 winners are split four ways (Table~\ref{tab:h1-f2}). The capability-tier
 breakdown (Figure~\ref{fig:tier-heatmap}) reveals the gradient: light- and
 mid-tier models gain from \cfgCX's (M0) calibration; heavy-tier models are
-dominated by \cfgZS\ (B0). No architecture is universally optimal; the choice is conditional on
+dominated by \cfgZS\ (B0). No architecture is universally optimal across the eleven-model
+frontier-proprietary panel evaluated here; the choice is conditional on
 model family, capability tier, and the chosen $\beta$ of the $F_\beta$
 metric.
 
@@ -95,6 +96,12 @@ cost premium that pays back in $F_2$ terms is M0 on the OpenAI family, and
 even that is dominated in $F_2$/\$ by a B0 deployment on Gemini~2.5~Flash.
 On $F_1$, \cfgCX\ leads pooled and the premium is partially justified for
 precision-critical deployments.
+This Pareto-dominance result is conditional on per-call provider billing
+without prompt caching. Caching, supported by every provider in the panel,
+would shrink the M0/M1 premium toward the orchestrator-hop overhead alone
+and may invert the frontier on long-contract repeated-category workloads
+where the system prompt and contract text are amortised across many
+extraction calls (\S\ref{sec:concl:outlook}); under that cost model, RQ2 is open.
 
 \paragraph{RQ3 --- Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
@@ -132,6 +139,25 @@ the architectural ranking is not stable across document lengths within CUAD
 itself: multi-agent helps on short contracts and hurts on long ones.
 The architectural ranking observed here is therefore a ranking on this
 evaluation envelope, not a universal ranking.
+
+\paragraph{Test-set contamination.}
+CUAD~\cite{hendrycks2021cuad} has been publicly hosted on HuggingFace since
+2021 and is plausibly present in the pre-training data of every model in the
+panel; benchmark contamination is a documented threat to the construct
+validity of LLM evaluations~\cite{sainz2023nlp,magar2022data}. The present
+evaluation does not separate extraction skill from memorisation, and the
+$F_2$ point estimates may overstate true extraction competence. Two
+observations partially constrain the threat. First, the architectural
+ranking varies systematically across model families with different
+documented training cut-offs (Anthropic peaks under \cfgCoT, Google under
+\cfgZS, OpenAI under \cfgCX; \S\ref{sec:disc:headline}), which uniform
+memorisation would not predict. Second, the M0 classification-gate cascade
+(\S\ref{sec:disc:cascade}) is a recall-loss mechanism --- silent upstream
+rejection on positive instances --- that contamination cannot generate;
+memorised content would, if anything, raise recall rather than collapse it.
+A held-out non-CUAD evaluation (e.g.\ a clause subset from
+LegalBench or ContractNLI~\cite{koreeda2021contractnli}) is identified in
+Section~\ref{sec:concl:outlook} as the highest-priority extension.
 
 \paragraph{Pinned model snapshots.}
 Model identifiers are pinned to specific snapshots in the run metadata.

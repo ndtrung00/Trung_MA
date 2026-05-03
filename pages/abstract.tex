@@ -21,14 +21,16 @@ No multi-agent configuration consistently outperforms the strongest single-agent
 baseline. Pooled accuracy falls within a $0.011$-point band. Each provider
 family peaks under a different configuration --- Anthropic under
 chain-of-thought, Google under zero-shot, OpenAI under classify-then-extract
---- and lighter models gain from decomposition where heavier ones do not.
+--- and lighter models gain from decomposition where heavier ones do not,
+across the eleven-model frontier-proprietary panel evaluated here.
 Two mechanisms explain the null result. The pipeline architecture
 exhibits a \emph{classification-gate rejection cascade} --- its upstream classifier
 silently overrejects on some models --- and the LLM router in the specialist
 architecture is empirically redundant: it converges to a deterministic category
 lookup and produces lower-quality span outputs than the consolidated ablation.
-Multi-agent configurations carry a $23\%$--$67\%$ cost premium without aggregate
-accuracy benefit.
+Multi-agent configurations carry a $23\%$--$67\%$ cost premium under per-call
+provider billing without prompt caching, and this premium is not offset by
+aggregate accuracy gains.
 
 The results identify which model--architecture combinations gain, lose, or are
 unchanged on $F_2$, and quantify the auditability surplus

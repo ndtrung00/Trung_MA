@@ -103,20 +103,30 @@ directly from the category label; and the partition was fixed before any
 model was run. In designs where domains overlap, where the category
 vocabulary is open-ended, or where the routing decision must integrate
 retrieved context, the router's work becomes non-trivial and routing accuracy
-falls below ceiling. The generalisable claim is therefore narrower: in a
-closed-vocabulary specialist-routing design, the router's contribution is
-replicable by a deterministic dictionary at zero LLM cost.
+falls below ceiling. A second-order caveat is that the LLM router's prompt
+and the deterministic dictionary it is benchmarked against were authored by
+the same operator from a single conceptual map of the 41-category schema;
+the $99.91\%$ agreement therefore measures internal consistency between two
+artefacts of one design intent, not LLM routing competence on an externally
+specified taxonomy. The generalisable claim is therefore narrower: in a
+closed-vocabulary specialist-routing design with an operator-curated category
+schema, the router's contribution is replicable by a deterministic
+dictionary at zero LLM cost.
 
 Second, \cfgMA\ (M1) and \cfgCP\ (M2) differ statistically on every model
-despite identical routing. The difference is not in dispatch but in prompt
-format: M1 sees one focused specialist preamble per call, M2 sees the textual
-union of three.
-Consolidating the specialist content into a single prompt produces measurably
-better span coverage (Jaccard $+0.071$ pooled, Table~\ref{tab:h3}) without
-changing $F_2$. The mechanism is plausibly attentional: the union prompt
+despite the routing decision being a near-deterministic dictionary lookup
+in both cases. Three components vary jointly between the two configurations:
+the prompt format (M1 receives one focused specialist preamble per call;
+M2 receives the textual union of three), the dispatch overhead (M1 incurs
+an orchestrator hop and a router LLM call that M2 does not), and the
+per-call latency. The Jaccard $+0.071$ pooled advantage for M2
+(Table~\ref{tab:h3}) is therefore not cleanly attributable to consolidation
+alone; the most parsimonious reading is attentional --- the union prompt
 presents all three category-cluster framings simultaneously and lets the
 model choose, rather than committing the dispatch decision before the
-contract is read.
+contract is read --- but a router-disabled M1 ablation would be required to
+isolate the prompt-format component from the dispatch-overhead component
+(\S\ref{sec:concl:outlook}).
 
 The combined implication for the design of legal-AI multi-agent systems is
 that the value of specialist decomposition lies in the prompt content, not
@@ -132,6 +142,24 @@ $\beta{=}1$ the ranking is \cfgCX\ $>$ \cfgMA\ $>$ \cfgZS\ $>$ \cfgCP\ $>$ \cfgC
 At $\beta{=}2$ the ranking is \cfgZS\ $>$ \cfgCoT\ $>$ \cfgCX\ $>$ \cfgMA\ $\approx$ \cfgCP. The architectural
 conclusion of the thesis therefore depends, in part, on the $\beta$ choice.
 
+Setting $F_\beta(\text{M0}) = F_\beta(\text{B0})$ on the pooled precision and
+recall in Table~\ref{tab:h1-headline} (B0: $P{=}0.666$, $R{=}0.854$; M0:
+$P{=}0.813$, $R{=}0.793$) and solving for $\beta$ yields a flip-point of
+$\beta^\star \approx 1.74$ ($\beta^{\star 2} \approx 3.01$). Because $\beta^2$
+encodes the deployment cost ratio of a missed clause to a false extraction,
+the empirical interpretation is: B0 dominates M0 on $F_\beta$ when missing a
+clause is at least $\approx\!3.0\times$ as costly as flagging a spurious one;
+M0 dominates below that ratio. The thesis's commitment to $\beta{=}2$ (cost
+ratio $4{:}1$) sits above the flip-point, which is why the H1 verdict reads
+as a B0 win; an examiner who prefers $\beta \in [1.0,\,1.7]$ (cost ratio
+between $1{:}1$ and $\approx\!3{:}1$) would read the same data as an M0 win
+of $0.013$ to $0.055$ points. Three CLM workflows that plausibly sit in this
+range are: post-signature obligation tracking (false-positive review cheap
+relative to a missed renewal-notice deadline), red-line drafting support
+(reviewer must read every flagged candidate anyway), and compliance
+screening (false positives feed an existing triage queue). The architectural
+verdict is therefore conditional on the $\beta$ choice rather than absolute.
+
 The commitment to $\beta{=}2$ is justified in
 Section~\ref{sec:meth:metrics} by the deployment cost structure of CLM
 review: a missed clause carries the legal cost of an undisclosed obligation,
@@ -141,10 +169,10 @@ deployment-dependent and falls outside the scope of this thesis. The
 sensitivity is mitigated by reporting $F_1$, recall, precision, $\omega$,
 and FN-rate alongside $F_2$, so a deployment with a different cost ratio can
 re-rank architectures from the same data. The practitioner recommendation is
-conditional on $\beta$: at $\beta{=}2$ deploy B0; at $\beta{=}1$ deploy M0;
-below $\beta{=}1$ (where false positives are costlier than false negatives,
-as in some compliance-screening workflows), M0's calibration advantage
-widens further.
+conditional on $\beta$: at $\beta{=}2$ deploy B0; between $\beta{=}1.0$ and
+$\beta^\star{\approx}1.74$ deploy M0; below $\beta{=}1$ (where false
+positives are costlier than false negatives, as in some compliance-screening
+workflows), M0's calibration advantage widens further.
 
 \section{Benchmark-to-Production Gaps}\label{sec:disc:practitioner}
 
@@ -181,17 +209,20 @@ future work (\S\ref{sec:concl:outlook}).
 \paragraph{Production has no ground truth, so trace primitives carry the value.}
 A production deployment cannot compute $F_2$, Jaccard, or $\omega$;
 evaluation proceeds through user feedback, spot-checking, and exception
-triage. The most valuable architectural property in that regime is whether
-each decision is attributable to a specific agent, prompt, and routing
-branch (\S\ref{sec:auditability}). The M0 classifier verdict and the M1
-routed-specialist label are exactly the trace primitives a reviewer needs,
-together with the schema-enforced $1.000$ grounding rate of M1
-(Table~\ref{tab:grounding}). The benchmark $F_2$ ranking therefore does not
-translate into ``deploy single-agent in production'': the production utility
-function includes auditability, modular update boundaries, and integration
-seams that the benchmark does not measure. This is a defensible reason to
-build multi-agent CLM systems --- weaker than ``decomposition wins on
-accuracy'', but cleanly stated.
+triage. The single architectural property the benchmark does measure that
+production review cannot reproduce from a single-agent system is
+schema-enforced grounding: \cfgMA's $1.000$ verbatim-citation rate on every
+predicted clause (Table~\ref{tab:grounding}, predicted-clause column) versus
+$0.543$ for \cfgZS\ and $0.415$ for \cfgCP\ means that under M1, every emitted
+span is locatable in the source contract by exact string match, and under
+B0/M2 roughly half are paraphrased or hallucinated. This is the one
+auditability finding the benchmark supports without auxiliary measurement,
+and is the measured basis for preferring a multi-agent topology in deployments
+where extraction provenance is a regulatory or contractual requirement
+(EU AI Act Art.~13~\cite{euaiact2024}, GDPR Art.~22~\cite{gdpr2016}).
+The benchmark $F_2$ ranking therefore does not translate directly into
+``deploy single-agent in production'': on the one production-relevant axis the
+benchmark does measure, multi-agent dominates.
 
 % Limitations and threats to validity are consolidated alongside the future-work
 % directions in Chapter~\ref{chapter:conclusion}, Section~\ref{sec:concl:limitations}.

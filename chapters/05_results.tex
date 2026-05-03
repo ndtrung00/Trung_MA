@@ -7,11 +7,21 @@ Across 55 (model, configuration) cells and 163{,}644 paired predictions, no mult
 \section{Run Coverage and Sample Accounting}\label{sec:res:overview}
 
 The 55-cell grid yielded 164{,}941 raw JSONL records. After dropping 1{,}297
-records ($0.79\%$) with malformed classification tokens --- concentrated in
+records ($0.79\%$) with no usable classification token --- concentrated in
 \cfgZS\ (B0, $n{=}838$) and \cfgCX\ (M0, $n{=}362$) --- 163{,}644 paired
-sample-level predictions remain. The B0 concentration reflects \cfgZS's stricter
-span acceptance criterion: the majority of B0 rejections are empty-string completions
-rather than structurally malformed JSON. Table~\ref{tab:coverage} reports the analysed count per cell. All
+sample-level predictions remain. The exclusion criterion is encoded in
+\texttt{src/evaluation/metrics.py}: a record is excluded if and only if its
+\texttt{evaluation.classification} field is not one of \{\texttt{TP},
+\texttt{FP}, \texttt{FN}, \texttt{TN}\} after parsing.\footnote{Inspection of
+the dropped records shows the failure mode is empty model completions
+(\texttt{raw\_response} = \texttt{""}) rather than structurally malformed
+JSON; the parser reaches no classification token because the model returned
+no token at all. The B0 concentration reflects \cfgZS's stricter span
+acceptance criterion: B0 lacks the structured-output schema enforcement that
+M0/M1 specialist prompts provide, so an empty completion is unrecoverable
+for B0 but retried by the M0/M1 extractor downstream of the gate. The
+criterion is parser-version-stable because the four-value classification
+vocabulary is fixed in code, not configurable.} Table~\ref{tab:coverage} reports the analysed count per cell. All
 statistical tests use the paired intersection of sample IDs for the
 configurations being compared; intersection sizes are reported with each test.
 The positive rate across the retained set is $41.5\%$: the sampler retains
@@ -26,7 +36,18 @@ to preserve statistical power on rare-tier categories
   \caption{Coverage: analysed predictions per (model, configuration) cell after
   dropping malformed records. ${}^*$Partial run due to upstream sampling interruption;
   paired tests use the sample-ID intersection. Configuration names defined in
-  Table~\ref{tab:configs}.}
+  Table~\ref{tab:configs}. The two B0 partial cells are not missing-completely-at-random:
+  GPT-4.1's 471 dropped records concentrate on five long contracts (backfilled
+  median length ${\approx}122{,}000$ characters vs.\ ${\approx}24{,}000$ for retained
+  records), consistent with provider-side API time-outs on the long-context tail;
+  Sonnet 4's 359 dropped records spread across 98 of 102 contracts with a milder
+  length skew (median ${\approx}31{,}000$ vs.\ ${\approx}26{,}000$). The
+  contract-length moderation analysis (Section~\ref{sec:res:length}) shows
+  multi-agent configurations underperform B0 on long contracts; for GPT-4.1
+  the missing-data direction therefore biases the Tab~\ref{tab:h1-stats}
+  $\Delta F_2$ \emph{toward} the multi-agent configurations and the per-model
+  H1 verdict for GPT-4.1 understates rather than overstates the multi-agent
+  disadvantage on the full evaluation envelope.}
   \label{tab:coverage}
   \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr@{}}
     \toprule
@@ -102,6 +123,22 @@ eleven models, and per provider family.
     \bottomrule
   \end{tabular*}
 \end{table}
+
+The point estimates above are computed under the upsampled-positive class
+distribution (positive rate $41.5\%$, \S\ref{sec:meth:sampling}). Reweighting
+each negative-label sample by $w_{\text{neg}} = 0.7/0.585 \approx 1.196$
+(equivalently, undoing the sampler's $\approx 60\%$ negative-retention rate)
+recovers CUAD's natural ${\approx}30\%$ positive prevalence and yields, on
+the panel-pooled mean, $\overline{F_2}(\text{B0}) = 0.787$ and
+$\overline{F_2}(\text{M0}) = 0.788$ (delta $+0.001$ in M0's favour, vs.\
+$-0.007$ under upsampling); $\overline{F_1}(\text{M0})$ widens its lead from
+$+0.061$ to $+0.073$. Both reweighted deltas remain inside the
+$|\Delta F_2| \geq 0.025$ inconclusive band of \S\ref{sec:meth:stats}, and
+the qualitative H1 verdict is therefore preserved across the two
+distributions; what shifts is the direction of the small pooled $F_2$
+gap.\footnote{Per-model reweighted point estimates are released alongside
+the experiment artefacts (\S\ref{sec:sys:opensource}); the reweighting is
+applied at the metric level and does not require re-running model inference.}
 
 The pooled means tell two stories. On $F_2$, \cfgZS\ (B0) is nominally best
 at $0.801$ with all five configurations within a $0.011$-point band. On $F_1$,
@@ -312,18 +349,25 @@ full-run values in Table~\ref{tab:h1-f2}.
 \end{table}
 
 \paragraph{H1 verdict.}
-H1 is rejected: 11 of 22 per-model contrasts are positive, 11 negative or
-zero, so no multi-agent configuration consistently outperforms B0 across the
-panel. Conditional improvements survive --- the OpenAI family benefits from
-M0 (GPT-4.1\,Nano $+0.171$; pooled $+0.052$), lighter Anthropic models benefit
-from M0/B1 (Sonnet\,4.6 M0 $+0.047$) --- but the model-family interaction is
-the dominant signal, with pooled $F_2$ within a $0.011$-point band. On $F_1$,
-M0 leads pooled ($0.798$ vs.\ $0.737$), reversing the $F_2$ ranking and
-making the architectural choice metric-dependent (\S\ref{sec:res:rq-summary}).
-Cohen's $g$ on the 22 H1 contrasts ranges $+0.005$ to $+0.363$ (median
-$\approx 0.20$); all values are positive on raw binary correctness, but
-$F_2$'s recall-weighted denominator flips the ranking because precision
-gains accrue to the negative-instance count.
+Under the pre-registered decision rule (\S\ref{sec:meth:hypotheses}),
+\cfgCX\ (M0) satisfies the per-config BH-significant-positive majority
+condition (6 of 11 contrasts: Haiku, Opus, Sonnet~4, Sonnet~4.6,
+Gemini~3~Flash, GPT-4.1~Nano) but \cfgMA\ (M1) does not (4 of 11: Haiku,
+Sonnet~4.6, Gemini~2.5~Pro, GPT-4.1~Nano); H1 is rejected because the rule
+requires both configurations to clear the majority threshold. Across all 22
+contrasts, Cohen's $g$ is uniformly positive (range $+0.005$ to $+0.363$,
+median $\approx 0.20$): multi-agent configurations win on raw paired-binary
+correctness on every single contrast, and the H1 rejection is driven by
+$F_2$'s recall-weighted denominator inverting precision gains because
+correctly identifying a true negative does not enter the $F_2$ numerator.
+Conditional improvements survive --- the OpenAI family benefits from M0
+(GPT-4.1\,Nano $+0.171$; pooled $+0.052$), lighter Anthropic models benefit
+from M0/B1 (Sonnet\,4.6 M0 $+0.047$) --- but the model-family interaction
+is the dominant signal, with pooled $F_2$ within a $0.011$-point band. On
+$F_1$, M0 leads pooled ($0.798$ vs.\ $0.737$), reversing the $F_2$ ranking
+and making the architectural choice metric-dependent (the empirical $\beta$
+flip-point is examined in \S\ref{sec:disc:metric}; \S\ref{sec:res:rq-summary}
+gives the one-line RQ answer).
 
 \section{H2 --- Rare-Category Gap}\label{sec:res:h2}
 
@@ -370,7 +414,13 @@ upper bound of the 95\% paired-bootstrap CI on $\Delta\mathrm{Gap}$ strictly
 $<0$), only 1 of the 22 multi-agent vs.\ B0 contrasts satisfies the rule
 (Claude\,Haiku\,4.5 under M0, $\Delta\mathrm{Gap}{=}-0.256$, CI $[-0.308,\,-0.211]$);
 6 contrasts have CIs strictly above zero --- M0 and M1 \emph{widen} the gap
-significantly on the Gemini and GPT-family models. Per-model bootstrap CIs
+significantly on the Gemini and GPT-family models. Because the decision
+rule is a one-sided CI inclusion criterion rather than a $p$-value, the
+Benjamini--Hochberg procedure (Eq.~\ref{eq:bh}) does not apply mechanically
+across the 22 contrasts; the family-wise Type-I rate is therefore not formally
+controlled, and the 1-of-22 single-rule satisfaction would survive any
+reasonable family-wise correction at $\alpha{=}0.05$ (the verdict cannot
+become more permissive under correction). Per-model bootstrap CIs
 are released in the experiment artefacts. Two mechanisms drive the
 widening. Under M0, the classification gate (Section~\ref{sec:res:cascade})
 collapses rare-tier $F_2$ on the Gemini family (Gemini\,2.5\,Flash: $F_2^r$
@@ -835,10 +885,14 @@ higher cost than B0 Gemini alternatives.
   \label{fig:pareto}
 \end{figure}
 
-The $23$--$67\%$ mean cost premium attached to multi-agent configurations is not
+The $23$--$67\%$ mean cost premium attached to multi-agent configurations
+(measured under per-call provider billing without prompt caching) is not
 compensated by aggregate $F_2$ gains. In workflows where per-agent traces add
 operational value (obligation tracking, audit-trail generation), this premium
 may be acceptable; Chapter~\ref{chapter:discussion} elaborates these conditions.
+The premium estimate is sensitive to the cost model: prompt caching, which every
+provider in the panel supports, would shrink it toward the orchestrator-hop
+overhead alone (\S\ref{sec:concl:outlook}).
 
 \section{Contract-Length Moderation}\label{sec:res:length}
 
@@ -903,9 +957,12 @@ $0.011$); the model-family interaction is dominant (Anthropic peaks at B1,
 Google at B0, OpenAI at M0), and the metric choice flips the ranking
 ($F_1$: M0 leads pooled; $F_2$: B0 leads pooled).
 
-\paragraph{RQ2.} B0 occupies the Pareto frontier at every cost level
-(Figure~\ref{fig:pareto}); multi-agent cost premiums of $1.23$--$1.67\times$
-do not pay back in pooled $F_2$.
+\paragraph{RQ2.} Under per-call provider billing without prompt caching, B0
+occupies the Pareto frontier at every cost level (Figure~\ref{fig:pareto});
+multi-agent cost premiums of $1.23$--$1.67\times$ do not pay back in pooled
+$F_2$. Under prompt-caching cost models, the premium shrinks toward the
+orchestrator-hop overhead and the frontier may invert
+(\S\ref{sec:concl:outlook}).
 
 \paragraph{RQ3.} M0 and M1 produce the trace primitives B0 cannot
 (\S\ref{sec:auditability}, Table~\ref{tab:grounding}); the $4\times$ token
