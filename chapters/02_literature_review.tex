@@ -271,7 +271,7 @@ dataset statistics.
     Train / test split   & 399 / 102 \\
     Task formulation     & Span extraction + binary presence \\
     License              & CC BY 4.0 \\
-    Long contracts ($>$100k chars) & 81 (used in this thesis) \\
+    Long contracts ($>$100k chars) & 14 (in test split) \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -279,12 +279,12 @@ dataset statistics.
 The instance count is highly imbalanced: at the (contract, category) level, the
 natural prevalence of positive instances is $\approx\!30\%$, a structural property
 of contract review rather than a sampling artefact. This thesis evaluates on the
-long-contract subset comprising 81 contracts whose raw character length exceeds
-100{,}000 characters. Two considerations motivate this choice: first, the long-contract
-regime is where context-window pressure on a single LLM call is highest, so any
-putative benefit of architectural decomposition should be most visible; second,
-concentrating on long contracts produces an architecturally more demanding evaluation
-envelope than the full CUAD distribution.
+full 102-contract CUAD test split (character lengths 645\,--\,300{,}768; median
+25{,}657), of which 14 contracts exceed 100{,}000 characters. Retaining the full
+test split preserves the long-contract tail, where context-window pressure is
+highest, while keeping the short-contract regime in scope so the
+contract-length moderation analysis (\S\ref{sec:res:length}) can identify the
+length range over which architectural decomposition is favourable.
 Figure~\ref{fig:cuad-tiers} illustrates the F$_1$ gradient across tiers that
 motivates the domain-specialisation hypothesis (H2).
 
@@ -397,9 +397,9 @@ Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
 \end{table}
 
 \paragraph{Why multi-agent for contract analysis.}
-Contracts in the long-context subset routinely exceed 100{,}000 characters; explicit
-decomposition makes per-call context tractable where single-prompt formulations must
-truncate or chunk silently. The 41 CUAD categories partition into risk-oriented,
+The long-contract tail of the CUAD test split exceeds 100{,}000 characters; explicit
+decomposition makes per-call context tractable where single-prompt formulations
+must truncate or chunk silently. The 41 CUAD categories partition into risk-oriented,
 IP/commercial, temporal, and consideration-oriented clusters, providing a natural basis
 for domain specialisation. Legal review is recall-asymmetric: a missed clause exposes
 the client to undisclosed obligations whereas a spurious extraction is corrected during
@@ -443,7 +443,7 @@ Section~\ref{sec:lit:mas-background}.
       & Statutory reasoning & Single-agent & Static & Per-step CoT layers & Self-consistency \\
     \midrule
     \textbf{This thesis}
-      & CUAD long-contract & Both & All three & All three & Reflexion + judge \\
+      & CUAD test split (102) & Both & All three & All three & Reflexion + judge \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -487,7 +487,7 @@ can recover much of the benefit attributed to multi-agent decomposition without 
 the coordination cost.
 
 These findings bear directly on the three working hypotheses. (H1) A generic claim of
-multi-agent superiority on CUAD long-contract extraction is unlikely to survive a
+multi-agent superiority on CUAD clause extraction is unlikely to survive a
 properly normalised single-agent baseline~\cite{gao2025single}, so the hypothesis is
 stated and evaluated as conditional. (H2) The relative ordering of architectures will
 depend on the underlying model family~\cite{bogavelli2025agentarch}, encoded as an
@@ -562,8 +562,9 @@ metrics~\cite{efron1979bootstrap,riezler2005pitfalls}. Multiple-comparison contr
 across the architecture grid uses Benjamini--Hochberg false-discovery-rate correction
 at $q{=}0.05$~\cite{benjamini1995controlling}. Sample-size and power considerations
 follow Dror et al.~\cite{dror2018hitchhikers} and Card et al.~\cite{card2020little};
-the 81-contract subset gives $\geq 0.8$ power to detect absolute $F_2$ differences of
-$\approx\!2.5$ percentage points at the instance level under the bootstrap.
+the 102-contract test split gives $\geq 0.8$ power to detect absolute $F_2$
+differences of $\approx\!2.5$ percentage points at the instance level under the
+bootstrap.
 % Implementation libraries documented in Chapter~3.
 
 \paragraph{Sampling design.}
@@ -616,8 +617,9 @@ multi-agent ablation, leaving the architectural design space untested in the reg
 where the question is commercially decisive.
 
 This thesis designs and evaluates a slice of the multi-agent design space (topology
-$\times$ routing $\times$ specialisation $\times$ verification) on the long-contract
-CUAD subset under the ContractEval protocol extended with Eq.~\eqref{eq:overextract}
+$\times$ routing $\times$ specialisation $\times$ verification) on the 102-contract
+CUAD test split under the ContractEval protocol extended with
+Eq.~\eqref{eq:overextract}
 and a model-family interaction term, in order to determine — with statistical control
 across the architecture grid~\cite{benjamini1995controlling,dror2018hitchhikers} —
 under which conditions multi-agent decomposition is justified for CLM deployment and

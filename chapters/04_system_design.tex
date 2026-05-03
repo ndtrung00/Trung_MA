@@ -481,8 +481,9 @@ attributable to M1's multi-call routing overhead, not to infrastructure failures
 
 \paragraph{Loader and sampler.}
 The CUAD loader is the single source of truth for which contracts and categories
-enter a run. It applies the 100{,}000-character filter, the \texttt{neg\_ratio=0.7}
-natural-prior sampler of Section~\ref{sec:meth:sampling}, and the prevalence-tier
+enter a run. It loads the 102-contract CUAD test split, applies the
+\texttt{neg\_ratio=0.7} sampler of Section~\ref{sec:meth:sampling} (retains all
+positives, $\approx\!60\%$ of negatives), and assigns the prevalence-tier
 partition. It is deterministic under \texttt{seed=42} and produces the identical
 $\approx\!2{,}999$-sample envelope across all five configurations, making paired
 tests in Chapter~\ref{chapter:results} well-defined at the (contract, category)

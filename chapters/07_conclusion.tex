@@ -7,7 +7,7 @@ Model capability tier dominates architectural choice: at this task, investing in
 \section{Summary of Contributions}\label{sec:concl:contributions}
 
 This thesis evaluated five architectural configurations against eleven
-frontier proprietary LLMs on the long-contract subset of CUAD, producing
+frontier proprietary LLMs on the 102-contract CUAD test split, producing
 163{,}644 paired sample-level predictions analysed under a controlled
 statistical pipeline. The four contributions stated in
 Chapter~\ref{chapter:introduction} are restated here with pointers to the
@@ -155,12 +155,6 @@ classifier-call latency to the point where the cascade exchange is
 acceptable on more models. The Pareto analysis as given is therefore a
 snapshot under uniform per-call billing; the deployment-relevant cost
 ranking under caching and structured-output decoding is open.
-
-\paragraph{Architecture improvements observed in deployment.}
-% Trung: add 2--3 sentences here describing architectural patterns your team
-% discovered at Arctis that generalised (or did not) beyond the CUAD
-% evaluation. Keep it qualitative; the goal is to point a future investigator
-% at the specific sub-problem your experience identified.
 
 \medskip
 \noindent

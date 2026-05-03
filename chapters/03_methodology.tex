@@ -6,12 +6,13 @@ Each architectural comparison holds one axis constant while varying one: B1 vs.\
 isolates chain-of-thought reasoning, M0 vs.\ B0 isolates the classification gate,
 and M1 vs.\ M2 isolates routing from prompt content. This controlled design allows
 performance differences to be attributed to architecture rather than model or data
-variation across $5 \times 11 = 55$ runs on 81 long CUAD contracts.
+variation across $5 \times 11 = 55$ runs on the 102-contract CUAD test split.
 
 \section{Research Design}\label{sec:meth:design}
 
-Five configurations are evaluated against 11 frontier LLMs on 81 long CUAD contracts
-($>$100{,}000 chars), yielding $5 \times 11 = 55$ official runs and 163{,}644
+Five configurations are evaluated against 11 frontier LLMs on the 102 contracts of
+the CUAD test split (character lengths 645\,--\,300{,}768; median 25{,}657),
+yielding $5 \times 11 = 55$ official runs and 163{,}644
 analysed predictions. Differences between configurations are minimised to a single
 architectural axis per comparison (Table~\ref{tab:configs}), following the controlled
 comparative protocol of \cite{dror2018hitchhikers,card2020little}. Every statistical
@@ -157,15 +158,19 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
 \section{Dataset and Sampling}\label{sec:meth:data}
 
 CUAD~\cite{hendrycks2021cuad} is the evaluation corpus (see Table~\ref{tab:cuad-stats}
-for statistics). We restrict to 81 contracts $>$100{,}000 characters because
-long-context performance is the regime where decomposition is hypothesised to add
-value and approximates the operational distribution of CLM platforms surveyed in
-Section~\ref{sec:lit:clm}. The 81-contract subset yields
-$81 \times 41 = 3{,}321$ raw (contract, category) pairs per evaluation pass.
+for statistics). The full 102-contract CUAD test split is used; contract lengths
+range from 645 to 300{,}768 characters (median 25{,}657), spanning short NDAs to
+long master agreements. The 102-contract corpus yields
+$102 \times 41 = 4{,}182$ raw (contract, category) pairs per evaluation pass, of
+which $\approx\!2{,}999$ enter each run after the sampler described below.
 
 \paragraph{Sampling strategy.}\label{sec:meth:sampling}\label{sec:sampling}
-A \texttt{neg\_ratio=0.7} sampler produces a 30\%/70\% positive/negative split per
-run, mirroring CUAD's natural class prior at the (contract, category) level. Two
+A \texttt{neg\_ratio=0.7} sampler retains every positive (contract, category)
+pair and approximately $60\%$ of the negative pairs, yielding $\approx\!2{,}999$
+samples per run with a measured positive rate of $41.5\%$. The sampler upsamples
+the positive class relative to CUAD's natural $\approx\!30\%$ prior in order to
+preserve statistical power on rare-tier categories where positive instances are
+sparse. Two
 design considerations motivate this choice. First, ContractEval evaluates 4{,}128
 instances drawn at the natural distribution, and matching that protocol enables direct
 comparability with the closest empirical predecessor~\cite{liu2025contracteval}.
@@ -181,8 +186,8 @@ Each run yields $\approx\!2{,}999$ predictions; 1{,}297 of 164{,}941 total
 
 \paragraph{Prevalence tiers.}
 The 41 CUAD categories are partitioned into three tiers --- \emph{common},
-\emph{moderate}, \emph{rare} --- by natural positive rate in the 81-contract subset.
-Tier cutpoints are fixed before any model is run.
+\emph{moderate}, \emph{rare} --- by natural positive rate in the 102-contract test
+split. Tier cutpoints are fixed before any model is run.
 
 \section{Model Selection}\label{sec:meth:models}
 
@@ -238,9 +243,9 @@ all models at the time experiments were run.}
 
 Open-weights models are excluded from the main panel on two structural grounds: the
 commercial CLM platforms surveyed in Section~\ref{sec:lit:clm} deploy proprietary APIs,
-restricting external-validity claims to that deployment population; and the long-contract
-subset requires context windows of $\geq 128$K tokens, which most open-weights models
-do not support. ContractEval's 19-model evaluation~\cite{liu2025contracteval} documents
+restricting external-validity claims to that deployment population; and the
+long-contract tail of the corpus requires context windows of $\geq 128$K tokens,
+which most open-weights models do not support. ContractEval's 19-model evaluation~\cite{liu2025contracteval} documents
 a persistent proprietary-vs-open-source gap on extraction correctness; pilot work
 (not formally reported) suggested this gap persists under multi-agent decomposition,
 though that experiment should be understood as a scope decision rather than an empirical
@@ -282,14 +287,19 @@ All metrics are reported pooled and per prevalence tier.
 
 \section{Hypotheses}\label{sec:meth:hypotheses}
 
-\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1},\, \text{M2}\}$ such that
-$C$ outperforms $B^\star \in \{\text{B0},\, \text{B1}\}$ on $F_2$.
+\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1}\}$ such that
+$C$ outperforms $B^\star = \text{B0}$ on $F_2$.
 Null: no such $C$ exists.
-Decision rule: reject the null if any of the multi-agent vs.\ baseline pairwise
-McNemar exact tests ($m{=}33$: 3 multi-agent $\times$ 2 baselines $\times$ 11 models,
-retaining the baseline with higher pooled $F_2$ per model) is significant at $\alpha{=}0.05$ after
-BH correction~\cite{benjamini1995controlling}, with directional $\Delta F_2$
-favouring the multi-agent configuration.
+Decision rule: reject the null if any of the multi-agent vs.\ B0 pairwise
+McNemar exact tests ($m{=}22$: 2 multi-agent configurations $\times$ 11 models)
+is significant at $\alpha{=}0.05$ after BH correction~\cite{benjamini1995controlling},
+with directional $\Delta F_2$ favouring the multi-agent configuration.
+\cfgCP\ (M2) is excluded from the H1 family because it is the architecture-control
+ablation for H3 (\S\ref{sec:meth:hypotheses}), not a candidate alternative
+architecture; \cfgCoT\ (B1) is the chain-of-thought baseline against which the
+$F_2$ comparisons are reported descriptively in Chapter~\ref{chapter:results}
+but not used as the H1 reference baseline (B0 is the primary baseline per
+ContractEval~\cite{liu2025contracteval}).
 
 \paragraph{H2.} $\Delta\mathrm{Gap}(C_{\text{multi}}, B^\star) < 0$ where
 $\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$.
@@ -352,8 +362,8 @@ controls the false discovery rate (FDR) at $\alpha{=}0.05$: reject $H_0^{(i)}$ i
   \quad p_{(1)} \leq \cdots \leq p_{(m)}.
 \end{equation}
 %
-The H1 family has $m{=}33$ tests (3 multi-agent configurations $\times$ 2 baselines
-$\times$ 11 models, retaining the baseline with higher pooled $F_2$ per model); the H3 family has
+The H1 family has $m{=}22$ tests (2 multi-agent configurations
+$\times$ 11 models, with B0 as reference baseline); the H3 family has
 $m{=}11$ tests (one M1 vs.\ M2 contrast per model). Raw and BH-corrected $p$-values
 are both reported.
 
@@ -389,9 +399,10 @@ sampling seed, prompt registry, and trace schema constant across configurations.
 not prompt content.
 
 \paragraph{External.} Single language (English), single jurisdiction (predominantly
-U.S.\ commercial contracts), single corpus (CUAD). Findings on the 81-contract
-long-document subset may not extrapolate to short contracts, where context-window
-pressure is lower and the decomposition hypothesis is less applicable. Open-weights
+U.S.\ commercial contracts), single corpus (CUAD). Findings on the 102-contract
+test split may not extrapolate to non-CUAD clause taxonomies; the contract-length
+moderation analysis (\S\ref{sec:res:length}) shows that the architectural ranking
+itself shifts across length quartiles within the corpus. Open-weights
 models are excluded; inference does not generalise beyond the 11 proprietary models
 studied. Model snapshots are pinned; provider updates can shift behaviour.
 

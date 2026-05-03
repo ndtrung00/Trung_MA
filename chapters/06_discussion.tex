@@ -7,9 +7,10 @@ than $0.011$ pooled $F_2$ points across eleven models.
 
 \section{The Headline Finding and Its Conditions}\label{sec:disc:headline}
 
-On the long-contract CUAD subset under the natural class prior, no
-multi-agent configuration improves on the strongest single-agent baseline by
-more than $0.011$ points of mean $F_2$ pooled across the eleven-model panel.
+On the 102-contract CUAD test split under the upsampled-positive class
+distribution described in \S\ref{sec:meth:sampling}, no multi-agent configuration
+improves on the strongest single-agent baseline by more than $0.011$ points of
+mean $F_2$ pooled across the eleven-model panel.
 Under the pre-registered decision rule of Section~\ref{sec:meth:hypotheses},
 H1 is rejected in its universal form: no multi-agent configuration achieves
 consistent superiority across the eleven-model panel, and eleven of the 22
@@ -29,9 +30,9 @@ The Anthropic family achieves its peak under \cfgCoT\
 (B0, $0.826$); the OpenAI family under \cfgCX\
 (M0, $0.783$). The capability-tier gradient in
 Table~\ref{tab:tier-gradient} is consistent with this: light- and mid-tier
-models gain marginally from M0's calibration, while heavy-tier models are
-better served by B0, with the $F_2$ capability gap between Heavy and Light
-tiers narrowing from $0.119$ under B0 to $0.094$ under M0. Decomposition acts partly as a capability-equalising effect, but at a cost
+models gain from M0's calibration, while heavy-tier models are better served
+by B0, with the $F_2$ capability gap between Heavy and Light tiers narrowing
+from $0.106$ under B0 to $0.054$ under M0 --- a $49\%$ reduction. Decomposition acts partly as a capability-equalising effect, but at a cost
 (Section~\ref{sec:disc:cascade}) that is not recovered for heavy models
 that already absorb long-context load in a single call. Prior work has observed
 that a well-prompted single agent matches multi-agent decomposition under
@@ -251,9 +252,10 @@ The threats formalised in Section~\ref{sec:meth:threats} bound the
 generalisation of these findings. Three are most consequential.
 
 \paragraph{Single benchmark.}
-The evaluation is on the CUAD long-contract subset under the natural class
-prior. The findings may not extrapolate to short contracts, to non-CUAD
-clause taxonomies, to non-English contracts, or to non-U.S.\ jurisdictions.
+The evaluation is on the 102-contract CUAD test split under the upsampled-positive
+class distribution (\S\ref{sec:meth:sampling}). The findings may not extrapolate
+to non-CUAD clause taxonomies, to non-English contracts, or to non-U.S.\
+jurisdictions.
 The contract-length moderation result
 (Section~\ref{sec:res:length}, Table~\ref{tab:length-quartile}) shows that
 the architectural ranking is not stable across document lengths within CUAD

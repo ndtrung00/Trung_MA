@@ -14,7 +14,7 @@ multi-agent designs for clause extraction on the CUAD benchmark. Five configurat
 spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed specialists,
 and a consolidated single-agent ablation are evaluated across eleven frontier models from
 three providers, yielding 163{,}644 paired predictions analysed with paired statistical
-tests at the natural class distribution.
+tests on the 102-contract CUAD test split.
 
 No multi-agent configuration consistently outperforms the strongest single-agent
 baseline. Pooled accuracy across the eleven models falls within a one-point band, and
@@ -25,7 +25,7 @@ a \emph{classification-gate rejection cascade} --- its upstream classifier silen
 overrejects on some models --- and the LLM router in the specialist architecture is
 empirically redundant: it converges to a deterministic category lookup and produces
 lower-quality span outputs than the consolidated ablation. Multi-agent configurations
-carry a $24\%$--$70\%$ cost premium without aggregate accuracy benefit.
+carry a $23\%$--$67\%$ cost premium without aggregate accuracy benefit.
 
 These results delineate when multi-agent designs help, are inert, or actively hurt in
 enterprise CLM, and motivate a practitioner-oriented analysis of the gap between

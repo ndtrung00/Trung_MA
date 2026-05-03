@@ -54,10 +54,10 @@ designs: inflated positive ratios produce optimistic precision estimates and mas
 over-extraction as a failure mode (§\ref{sec:lit:cuad}).
 
 No published study simultaneously (i) cross-varies multi-agent architecture and
-frontier-model family on CUAD, (ii) samples at the natural class distribution, (iii)
-applies paired statistical tests with multiple-comparison correction, and (iv) ablates the
-multi-agent design against a consolidated single-agent prompt. This thesis addresses all
-four requirements.
+frontier-model family on CUAD, (ii) reports both laziness and over-extraction as
+paired failure-mode metrics, (iii) applies paired statistical tests with
+multiple-comparison correction, and (iv) ablates the multi-agent design against a
+consolidated single-agent prompt. This thesis addresses all four requirements.
 
 \section{Research Questions}\label{sec:rqs}
 
@@ -116,10 +116,11 @@ properties of the implementation are documented in \S\ref{sec:auditability}.
     without architectural benefit.
 \end{description}
 
-A methodological observation underpins all four contributions. The thesis samples at
-CUAD's natural 30\%/70\% positive/negative class ratio rather than the inflated positive
-ratios used in some prior work, exposing over-extraction as the dominant zero-shot failure
-mode that positive-heavy sampling masks (\S\ref{sec:sampling}).
+A methodological observation underpins all four contributions. The thesis retains
+every positive (contract, category) pair and downsamples negatives to a $41.5\%$
+positive rate (\S\ref{sec:sampling}); the resulting denominator preserves
+over-extraction as an observable failure mode rather than the negligible quantity
+it becomes under positive-heavy sampling.
 
 \section{Thesis Outline}\label{sec:outline}
 
