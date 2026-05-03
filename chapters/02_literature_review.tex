@@ -619,14 +619,16 @@ $\tau{=}0.5$ Jaccard threshold — and extends it along the architectural axis a
 dual failure-mode axis.
 
 \paragraph{Prompt sensitivity as a validity threat.}
-POSIX~\cite{chatterjee2024posix} quantifies the sensitivity of LLM outputs to
-semantically equivalent prompt rewrites, reporting non-trivial sensitivity even on
-well-defined tasks. Prompt sensitivity is therefore a first-order validity threat for
-any architecture comparison in which architectures differ in the number, role, or
-wording of agent prompts. Chapter~3 controls this threat by holding system-prompt
-scaffolds fixed across architectures where the role permits, and reports a
-POSIX-style sensitivity check on the architectural ablations. Observability and trace
-inspection use Langfuse~\cite{langfuse2024}; orchestration uses LangGraph~\cite{langgraph2024}.
+The prompt-sensitivity index of \citeauthor{chatterjee2024posix}~\cite{chatterjee2024posix}
+quantifies the sensitivity of LLM outputs to semantically equivalent prompt
+rewrites and reports non-trivial sensitivity even on well-defined tasks.
+Prompt sensitivity is therefore a first-order validity threat for any
+architecture comparison in which architectures differ in the number, role,
+or wording of agent prompts. Chapter~3 controls this threat by holding
+system-prompt scaffolds fixed across architectures where the role permits,
+and reports an analogous sensitivity check on the architectural ablations.
+Observability and trace inspection use Langfuse~\cite{langfuse2024};
+orchestration uses LangGraph~\cite{langgraph2024}.
 
 \section{Research Gap}\label{sec:lit:synthesis}
 

@@ -392,36 +392,13 @@ For each clause-level decision the system captures:
 (iv)~parsed final answer with parser version and status;
 (v)~routing decision (M1) or classifier verdict (M0) where applicable;
 (vi)~per-call token counts, billed cost, and wall-clock latency.
-M1 traces are parent--child structured: the router call is the parent, the specialist
-call is its child. Listing~\ref{lst:trace} shows a representative M1 record.
+M1 traces are parent--child structured: the router call is the parent, the
+specialist call is its child, and each call serialises the six fields above
+plus its \texttt{parent\_id}, the model snapshot string, and a
+\texttt{parser\_status} marker. A representative JSONL record is included
+verbatim in the released artefact bundle (\S\ref{sec:sys:infra}).
 
-\begin{lstlisting}[caption={Representative M1 trace record (abridged JSONL).},
-  label={lst:trace}, basicstyle=\scriptsize\ttfamily, frame=single]
-{
-  "contract_id": "CUAD_0231",
-  "category":    "Cap On Liability",
-  "config_id":   "M1",
-  "model_id":    "claude-sonnet-4-6-20251001",
-  "calls": [
-    { "role":       "router",
-      "prompt_id":  "m1_router/v3",
-      "completion": "{\"specialist\":\"risk_liability\",\"reasoning\":\"...\"}",
-      "tokens_in":  412,   "tokens_out": 18,
-      "latency_ms": 380,   "cost_usd": 0.0008,
-      "parent_id":  null },
-    { "role":       "specialist_risk_liability",
-      "prompt_id":  "m1_spec_risk/v2",
-      "completion": "<answer>The aggregate liability ... shall not exceed ...</answer>",
-      "tokens_in":  14820, "tokens_out": 96,
-      "latency_ms": 4210,  "cost_usd": 0.0470,
-      "parent_id":  "router" }
-  ],
-  "final_answer":  "The aggregate liability ... shall not exceed ...",
-  "parser_status": "ok"
-}
-\end{lstlisting}
-
-\paragraph{Auditability properties.}
+\paragraph{Auditability properties.}\label{sec:sys:trace-properties}
 The trace structure supports three concrete properties. \emph{Decision attribution}:
 any final answer is traceable to the specific agent, prompt version, and model that
 produced it. \emph{Counterfactual replay}: because prompts and model identifiers are

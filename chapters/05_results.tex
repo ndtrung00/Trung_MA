@@ -608,7 +608,11 @@ a question revisited in Chapter~\ref{chapter:discussion}.
   negative-label instances on which the model emits a non-empty span. Bold:
   best per row. The classification gate cuts $\omega$ by more than half on
   average; the Gemini family gains the most precision at the recall cost
-  documented in Table~\ref{tab:cascade}.}
+  documented in Table~\ref{tab:cascade}. \cfgCoT\ (B1) raises $\omega$ above
+  \cfgZS\ (B0) on every model, evidence that chain-of-thought prompting
+  amplifies over-extraction; \cfgMA\ (M1) stays close to \cfgCX\ (M0) because
+  it inherits the same specialist scaffold; \cfgCP\ (M2) reverts to the
+  free-text baseline.}
   \label{tab:omega}
   \begin{tabular}{lccccc}
     \toprule
@@ -742,7 +746,7 @@ restricted to instances on which the model emitted at least one span.
 
 The predicted-clause column is the audit-relevant denominator: a missed clause
 has no span to ground, but every emitted span is auditable in principle. Under
-that view, \cfgMA's structured-output schema (Listing~\ref{lst:trace})
+that view, \cfgMA's structured-output schema (\S\ref{sec:sys:trace})
 guarantees verbatim citation by construction, and \cfgCX's extractor inherits
 the same scaffold from the M1 specialist prompts. The two single-call
 generative configurations \cfgZS\ and \cfgCP\ leave roughly half of their
