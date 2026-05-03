@@ -107,37 +107,9 @@ non-CUAD test configurations not evaluated in this study.
 \paragraph{Inference parameters.}
 All official model calls used \texttt{temperature=0} and \texttt{max\_tokens=4096}.
 Official runs were executed between \textbf{14 April 2026} and
-\textbf{17 April 2026}. Table~\ref{tab:snapshots} lists the full provider
-snapshot identifier for each of the 11 models.
-
-\begin{table}[h]
-  \centering
-  \small
-  \caption{Provider snapshot identifiers for the 11 models in the official panel.}
-  \label{tab:snapshots}
-  \begin{tabular}{llll}
-    \toprule
-    \textbf{Family} & \textbf{Model} & \textbf{Tier} & \textbf{Snapshot ID} \\
-    \midrule
-    \multirow{4}{*}{Anthropic}
-      & Claude Haiku 4.5  & Light & \texttt{claude-haiku-4-5-20251001}  \\
-      & Claude Sonnet 4   & Mid   & \texttt{claude-sonnet-4-20250514}   \\
-      & Claude Sonnet 4.6 & Mid   & \texttt{claude-sonnet-4-6-20251001} \\
-      & Claude Opus 4.6   & Heavy & \texttt{claude-opus-4-6}            \\
-    \midrule
-    \multirow{4}{*}{Google}
-      & Gemini 2.5 Flash  & Light & \texttt{gemini-2.5-flash}           \\
-      & Gemini 2.5 Pro    & Heavy & \texttt{gemini-2.5-pro}             \\
-      & Gemini 3 Flash    & Light & \texttt{gemini-3-flash-preview}     \\
-      & Gemini 3.1 Pro    & Heavy & \texttt{gemini-3.1-pro-preview}     \\
-    \midrule
-    \multirow{3}{*}{OpenAI}
-      & GPT-4.1           & Mid   & \texttt{gpt-4.1}                    \\
-      & GPT-4.1 Mini      & Light & \texttt{gpt-4.1-mini}               \\
-      & GPT-4.1 Nano      & Light & \texttt{gpt-4.1-nano}               \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\textbf{17 April 2026}. Provider snapshot identifiers for each of the 11
+models are listed in Table~\ref{tab:models} of
+Chapter~\ref{chapter:methodology}.
 
 \section{Shared Abstractions}\label{sec:sys:shared}
 
@@ -503,40 +475,15 @@ per-tier breakdowns, per-call cost and latency views, and trace inspection by sa
 ID. The over-extraction failure mode in Chapter~\ref{chapter:results} was first
 surfaced visually through the dashboard's per-category $\omega$ panel.
 
-\paragraph{Test suite and repository layout.}
-An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard, $\lambda$,
-$\omega$), the loader (filter, sampling determinism, tier assignment), the agent
-topologies (each of B0, B1, M0, M1, M2 has at least one end-to-end test against a
-stub model), and the statistical pipelines (McNemar, bootstrap, BH correction).
-The full suite passes prior to every official run. The repository is organised as in
-Listing~\ref{lst:repo}.
-
-\begin{lstlisting}[caption={Repository layout (abridged).},
-  label={lst:repo}, basicstyle=\footnotesize\ttfamily, frame=single]
-agentic-ai-for-clm/
-  src/
-    agents/       # GraphState, orchestrator, 3 specialists, validation
-    baselines/    # zero_shot (B0), chain_of_thought (B1), combined (M2)
-    data/         # CUAD loader, sampler, tier partition
-    evaluation/   # F1/F2/Jaccard/laziness/over-extraction
-    models/       # ModelClient, diagnostics, config registry (19 models)
-    prompts/      # PromptRegistry + YAML loader
-  prompts/
-    baselines/    # zero_shot.yaml, chain_of_thought.yaml
-    specialists/  # risk_liability.yaml, temporal_renewal.yaml, ip_commercial.yaml
-    system/       # extraction_base.yaml (shared anti-laziness instructions)
-  configs/experiments/
-    baselines.yaml       # B0, B1 parameters and calibration targets
-    multiagent.yaml      # M1, M2 parameters and success criteria
-  experiments/results/   # per-run summary JSON + intermediate JSONL
-  dashboard/             # Next.js inspection UI (TypeScript, Recharts)
-  tests/                 # 81 unit + integration tests
-  notebooks/
-    01_data_exploration.ipynb
-    02_workflow_test.ipynb
-    03_baseline_calibration.ipynb   # B0, B1 only
-    04_multiagent_experiment.ipynb  # M1, M2 + statistical comparison
-\end{lstlisting}
+\paragraph{Test suite.}
+An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard,
+$\lambda$, $\omega$), the loader (filter, sampling determinism, tier
+assignment), the agent topologies (each of B0, B1, M0, M1, M2 has at least one
+end-to-end test against a stub model), and the statistical pipelines
+(McNemar, bootstrap, BH correction). The full suite passes prior to every
+official run; the repository (\texttt{agentic-ai-for-clm}) is publicly
+released alongside the thesis with full source, prompts, configs, and the
+experiment-results JSONL bundle.
 
 \paragraph{Reproducibility.}
 Three commitments support reproducibility: deterministic sampling under

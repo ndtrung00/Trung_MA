@@ -174,6 +174,72 @@ contribution~C2.
   \end{tabular}
 \end{table}
 
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+    cell/.style={
+      rectangle, draw=TUMGray!40, line width=0.4pt,
+      minimum width=1.7cm, minimum height=0.95cm,
+      align=center, font=\small,
+    },
+    bestcell/.style={
+      cell, draw=TUMAccentOrange, line width=1.3pt,
+    },
+    rowlabel/.style={font=\small, anchor=east},
+    collabel/.style={font=\small, anchor=south},
+  ]
+    % column labels
+    \node[collabel] at (1.0, 1.55) {B0};
+    \node[collabel] at (2.7, 1.55) {B1};
+    \node[collabel] at (4.4, 1.55) {M0};
+    \node[collabel] at (6.1, 1.55) {M1};
+    \node[collabel] at (7.8, 1.55) {M2};
+
+    % row labels
+    \node[rowlabel] at (0.0,  1.0) {Light (5)};
+    \node[rowlabel] at (0.0,  0.0) {Mid (3)};
+    \node[rowlabel] at (0.0, -1.0) {Heavy (3)};
+
+    % Light row
+    \node[cell, fill=TUMBlue!27] at (1.0,  1.0) {0.744};
+    \node[cell, fill=TUMBlue!25] at (2.7,  1.0) {0.740};
+    \node[bestcell, fill=TUMBlue!30] at (4.4,  1.0) {0.751};
+    \node[cell, fill=TUMBlue!26] at (6.1,  1.0) {0.743};
+    \node[cell, fill=TUMBlue!19] at (7.8,  1.0) {0.728};
+
+    % Mid row
+    \node[cell, fill=TUMBlue!77] at (1.0,  0.0) {0.844};
+    \node[cell, fill=TUMBlue!79] at (2.7,  0.0) {0.848};
+    \node[bestcell, fill=TUMBlue!82] at (4.4, 0.0) {0.855};
+    \node[cell, fill=TUMBlue!61] at (6.1,  0.0) {0.812};
+    \node[cell, fill=TUMBlue!77] at (7.8,  0.0) {0.844};
+
+    % Heavy row
+    \node[bestcell, fill=TUMBlue!80] at (1.0, -1.0) {0.851};
+    \node[cell, fill=TUMBlue!74] at (2.7, -1.0) {0.839};
+    \node[cell, fill=TUMBlue!57] at (4.4, -1.0) {0.805};
+    \node[cell, fill=TUMBlue!77] at (6.1, -1.0) {0.844};
+    \node[cell, fill=TUMBlue!74] at (7.8, -1.0) {0.839};
+
+    % colorbar legend
+    \foreach \i/\v in {0/0.72, 14/0.75, 28/0.78, 42/0.81, 56/0.83, 70/0.86} {
+      \node[rectangle, fill=TUMBlue!\i, draw=TUMGray!40, line width=0.3pt,
+            minimum width=0.7cm, minimum height=0.32cm,
+            font=\tiny, text=TUMDarkGray]
+        at (1.0 + \i*0.1, -2.1) {\v};
+    }
+    \node[font=\scriptsize, anchor=west] at (8.6, -2.1) {$\overline{F_2}$};
+  \end{tikzpicture}
+  \caption{Capability tier $\times$ configuration heatmap of mean $F_2$.
+  Cells coloured by $\overline{F_2}$; orange outline marks the best
+  configuration per tier. \cfgCX\ (M0) wins on Light and Mid tiers; \cfgZS\
+  (B0) wins on Heavy. Decomposition narrows the Heavy--Light capability gap
+  from $0.106$ under B0 to $0.054$ under M0 (49\% reduction); the same
+  decomposition penalises Heavy models on $F_2$ because they already absorb
+  long-context load in a single call (see \S\ref{sec:disc:headline}).}
+  \label{fig:tier-heatmap}
+\end{figure}
+
 Table~\ref{tab:h1-stats} reports the H1 paired tests. Each row is one
 multi-agent vs.\ B0 contrast on the sample-ID intersection. McNemar exact
 $p$-values are computed via Eq.~\ref{eq:mcnemar} and corrected for the
@@ -558,6 +624,56 @@ restricted to instances on which the model emitted at least one span.
     \bottomrule
   \end{tabular}
 \end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      ybar=2pt,
+      width=0.88\linewidth, height=6.2cm,
+      bar width=10pt,
+      ymin=0, ymax=1.05,
+      ylabel={Mean grounding rate},
+      ylabel style={font=\small},
+      ytick={0,0.2,0.4,0.6,0.8,1.0},
+      yticklabels={0, .2, .4, .6, .8, 1.0},
+      yticklabel style={font=\scriptsize},
+      symbolic x coords={B0,B1,M0,M1,M2},
+      xtick=data,
+      xticklabel style={font=\small},
+      enlarge x limits=0.12,
+      ymajorgrids, grid style={dotted, draw=TUMGray!40},
+      axis line style={TUMGray!60}, tick style={TUMGray!60},
+      legend style={
+        at={(0.02,0.97)}, anchor=north west,
+        font=\scriptsize, draw=TUMGray!30, fill=white,
+        legend cell align=left,
+      },
+      nodes near coords,
+      nodes near coords style={font=\tiny, color=TUMDarkGray},
+      every node near coord/.append style={
+        /pgf/number format/fixed,
+        /pgf/number format/precision=2,
+      },
+    ]
+      \addplot[fill=TUMAccentLightBlue!50, draw=TUMBlue]
+        coordinates {(B0,0.299) (B1,0.373) (M0,0.375) (M1,0.456) (M2,0.248)};
+      \addplot[fill=TUMAccentOrange!70, draw=TUMAccentOrange]
+        coordinates {(B0,0.543) (B1,0.594) (M0,0.893) (M1,1.000) (M2,0.415)};
+      \legend{All samples, Predicted-clause only}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Mean grounding rate by configuration, two denominators.
+  \emph{All samples} (blue) includes the $\approx\!58\%$ ``no related clause''
+  returns where grounding is undefined and conventionally scored~$0$;
+  \emph{predicted-clause only} (orange) is the audit-relevant view, conditioned
+  on a non-empty extraction. \cfgMA\ (M1) reaches $1.000$ verbatim citation on
+  every predicted clause across all eleven models; \cfgCX\ (M0) reaches
+  $0.893$. The two free-text generative configurations (\cfgZS, \cfgCP)
+  leave $46$--$58\%$ of their predicted spans paraphrased or
+  hallucinated.}
+  \label{fig:grounding}
+\end{figure}
 
 The predicted-clause column is the audit-relevant denominator: a missed clause
 has no span to ground, but every emitted span is auditable in principle. Under
