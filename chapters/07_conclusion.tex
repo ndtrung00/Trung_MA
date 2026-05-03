@@ -25,7 +25,7 @@ thesis (Section~\ref{sec:sys:infra}).
 Architectural ranking is not constant across the model panel. Pooled $F_2$
 across the five configurations spans a $0.011$-point band and per-model
 winners are split four ways (Table~\ref{tab:h1-f2}). The capability-tier
-breakdown (Table~\ref{tab:tier-gradient}) reveals the gradient: light- and
+breakdown (Figure~\ref{fig:tier-heatmap}) reveals the gradient: light- and
 mid-tier models gain from \cfgCX's (M0) calibration; heavy-tier models are
 dominated by \cfgZS\ (B0). No architecture is universally optimal; the choice is conditional on
 model family, capability tier, and the chosen $\beta$ of the $F_\beta$
@@ -101,7 +101,7 @@ decision attribution --- routing decision, specialist extraction, validation
 outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). The
 trace structure is paired with schema-enforced grounding: \cfgMA\ reaches
 $100\%$ verbatim contract-text citation on every predicted clause and
-\cfgCX\ reaches $89.3\%$, against $54.3\%$ for \cfgZS\ and $41.5\%$ for
+\cfgCX\ reaches $89\%$, against $54\%$ for \cfgZS\ and $42\%$ for
 \cfgCP\ (Table~\ref{tab:grounding}). The practitioner-relevant tradeoffs are
 storage cost (approximately $4\times$ the token volume of a B0 call per M1
 run), attribution faithfulness (the trace is faithful to the call graph but

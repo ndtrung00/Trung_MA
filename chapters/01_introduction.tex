@@ -78,11 +78,13 @@ systems, and which architectural patterns are most effective?
 \section{Hypotheses}\label{sec:hypotheses}
 
 \begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=2pt]
-  \item[\textbf{H1.}] At least one multi-agent configuration outperforms the strongest
-    single-agent baseline on $F_2$ (defined in §\ref{sec:lit:eval}; McNemar exact, $\alpha{=}0.05$,
-    Benjamini--Hochberg corrected).
-  \item[\textbf{H2.}] Multi-agent configurations reduce the rare--common $F_2$ gap
-    relative to single-agent baselines (paired bootstrap on gap difference, 95\% CI).
+  \item[\textbf{H1.}] Multi-agent configurations consistently outperform the
+    strongest single-agent baseline on $F_2$ across the model panel
+    (defined in §\ref{sec:lit:eval}; McNemar exact, $\alpha{=}0.05$,
+    Benjamini--Hochberg corrected; consistency operationalised in §\ref{sec:meth:hypotheses}).
+  \item[\textbf{H2.}] Multi-agent configurations consistently reduce the rare--common
+    $F_2$ gap relative to single-agent baselines across the model panel
+    (paired bootstrap on gap difference, 95\% CI).
   \item[\textbf{H3.}] \cfgMA\ (M1) is statistically distinguishable
     from \cfgCP\ (M2) on $F_2$ (two-sided McNemar exact).
 \end{description}
@@ -93,27 +95,23 @@ properties of the implementation are documented in \S\ref{sec:auditability}.
 \section{Contributions}\label{sec:contributions}
 
 \begin{description}[leftmargin=3em, labelwidth=2.5em, itemsep=4pt]
-  \item[\textbf{C1}] \textbf{Cross-architecture benchmark.} The first cross-family
-    cross-architecture comparison on CUAD: 5 architectural configurations $\times$ 11
-    frontier models, yielding 163{,}644 paired sample-level predictions analysed with
-    McNemar exact tests, paired bootstrap, and Benjamini--Hochberg correction.
-  \item[\textbf{C2}] \textbf{Model-scale gradient.} Architectural ranking is not constant
-    across the model panel: larger models achieve their best $F_2$ under simpler
-    single-agent baselines, while lighter or weaker models gain from structured
-    decomposition. No architecture is universally optimal: pooled $F_2$ across all five
-    configurations (\cfgZS, \cfgCoT, \cfgCX, \cfgMA, \cfgCP; defined in Table~\ref{tab:configs}) spans a 0.011-point band.
-  \item[\textbf{C3}] \textbf{Classification-gate cascade.} A failure mode of
-    pipeline-decomposition architectures, named and quantified: the upstream classifier
-    propagates silent rejections downstream, suppressing extractor recall.
-    Gemini~2.5~Flash's wrong-rejection rate rises from 2.7\% to 40.9\% under the
-    pipeline; direction is predictable from a single-agent calibration pass
-    (§\ref{sec:res:cascade}).
-  \item[\textbf{C4}] \textbf{Routing redundancy with span-quality degradation.} The LLM
-    router in the specialist architecture is empirically redundant: it agrees with a
-    deterministic category-to-specialist mapping on every model in the panel --- 100\%
-    routing accuracy on 10 of 11 models --- and the consolidated single-agent ablation
-    matches it on $F_2$ while producing cleaner spans. The routing topology adds cost
-    without architectural benefit.
+  \item[\textbf{C1}] \textbf{Cross-architecture benchmark.} 5 configurations
+    $\times$ 11 frontier models on CUAD, yielding 163{,}644 paired predictions
+    analysed under McNemar exact, paired bootstrap, and BH correction
+    (Chapter~\ref{chapter:methodology}).
+  \item[\textbf{C2}] \textbf{Family $\times$ tier interaction.} Pooled $F_2$
+    spans a $0.011$-point band across configurations; per-family and per-tier
+    winners differ, so no architecture is universally optimal
+    (\S\ref{sec:res:h1}).
+  \item[\textbf{C3}] \textbf{Classification-gate cascade.} Pipeline
+    decomposition exhibits an upstream-rejection cascade --- Gemini~2.5~Flash's
+    false-negative rate rises from $9.6\%$ under \cfgZS\ to $42.2\%$ under \cfgCX\
+    ($97.9\%$ gate-attributable) --- with direction predictable from a B0
+    calibration pass (\S\ref{sec:res:cascade}).
+  \item[\textbf{C4}] \textbf{Routing redundancy.} The LLM router agrees with
+    a deterministic category-to-specialist mapping on $99.91\%$ of requests,
+    and the consolidated ablation matches it on $F_2$ while producing tighter
+    spans (\S\ref{sec:res:h3}).
 \end{description}
 
 A methodological observation underpins all four contributions. The thesis retains

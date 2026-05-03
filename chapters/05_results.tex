@@ -166,7 +166,7 @@ family peaks under a different configuration.
 
 Table~\ref{tab:h1-f2} reports per-model $F_2$. No configuration is uniformly
 best: B0 wins on 4 models, M0 on 4, B1 on 2, and M1 on 1. The ranking also
-varies with model compute tier (Table~\ref{tab:tier-gradient}): \cfgCX\ leads
+varies with model compute tier (Figure~\ref{fig:tier-heatmap}): \cfgCX\ leads
 on light- and mid-tier models, while \cfgZS\ leads on heavy models, qualifying
 contribution~C2.
 
@@ -197,30 +197,6 @@ contribution~C2.
     GPT-4.1 Nano       & 0.488 & 0.612 & \textbf{0.659} & 0.547 & 0.545 \\
     \midrule
     \textbf{Mean}      & \textbf{0.801} & 0.796 & 0.794 & 0.790 & 0.790 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{table}[h]
-  \centering
-  \small
-  \caption{Mean $F_2$ by model compute tier $\times$ configuration, under the
-  tier assignment of Table~\ref{tab:models}. Light:
-  Claude~Haiku~4.5, Gemini~2.5~Flash, Gemini~3~Flash, GPT-4.1~Mini,
-  GPT-4.1~Nano. Mid: Claude~Sonnet~4, Claude~Sonnet~4.6, GPT-4.1.
-  Heavy: Claude~Opus~4.6, Gemini~2.5~Pro, Gemini~3.1~Pro. Bold: best per row.
-  The architectural ranking inverts across the tier axis: \cfgCX\ (M0) wins on
-  Light and Mid, \cfgZS\ (B0) wins on Heavy. The $F_2$ gap between Heavy and
-  Light tiers is $0.106$ under B0 and $0.054$ under M0 --- decomposition narrows
-  the capability gap by $49\%$. Configuration names defined in Table~\ref{tab:configs}.}
-  \label{tab:tier-gradient}
-  \begin{tabular}{lccccc}
-    \toprule
-    \textbf{Tier} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
-    \midrule
-    Light (5 models)  & 0.744 & 0.740 & \textbf{0.751} & 0.743 & 0.728 \\
-    Mid (3 models)    & 0.844 & 0.848 & \textbf{0.855} & 0.812 & 0.844 \\
-    Heavy (3 models)  & \textbf{0.851} & 0.839 & 0.805 & 0.844 & 0.839 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -340,28 +316,18 @@ full-run values in Table~\ref{tab:h1-f2}.
 \end{table}
 
 \paragraph{H1 verdict.}
-H1 is rejected in its universal form. Eleven of the 22 per-model contrasts in
-Table~\ref{tab:h1-stats} are positive and eleven are negative or zero;
-no multi-agent configuration achieves consistent superiority across the
-eleven-model panel. Conditional improvement exists in two subfamilies: the
-OpenAI family benefits from M0 (GPT-4.1\,Nano: $+0.171$; pooled: $+0.052$),
-and lighter Anthropic models benefit from M0 and B1 (Sonnet\,4: $+0.025$;
-Sonnet\,4.6: $+0.047$). For the Google family, B0 dominates: M0 regresses by
-up to $0.210$ points on Gemini\,2.5\,Flash, and M1 fails to improve over B0 on
-all four Google models. Pooled $F_2$ is within a $0.011$-point band; the
-model-family interaction is the dominant signal. On $F_1$, M0 leads all
-configurations pooled ($0.798$ vs.\ $0.737$ for B0), reversing the $F_2$
-ranking and reframing the architectural choice as a metric-dependent decision
-(Section~\ref{sec:res:rq-summary}). Cohen's~$g = c/(b{+}c) - 0.5$ on the
-McNemar discordant pairs is reported for completeness in the released
-artefacts: across the 22 H1 contrasts $g$ ranges from $+0.005$ to $+0.363$
-(median $\approx{}0.20$, ``medium'' by Cohen's thresholds). All values are
-positive --- discordant pairs favour the multi-agent configuration on raw
-binary correctness (TP\,+\,TN) --- but $F_2$'s recall-weighted denominator
-flips the ranking on most cells because the precision gains accrue
-disproportionately to the negative-instance count. The discordant-pair
-direction and $F_2$ direction therefore disagree by construction; both are
-faithful summaries of different cost structures.
+H1 is rejected: 11 of 22 per-model contrasts are positive, 11 negative or
+zero, so no multi-agent configuration consistently outperforms B0 across the
+panel. Conditional improvements survive --- the OpenAI family benefits from
+M0 (GPT-4.1\,Nano $+0.171$; pooled $+0.052$), lighter Anthropic models benefit
+from M0/B1 (Sonnet\,4.6 M0 $+0.047$) --- but the model-family interaction is
+the dominant signal, with pooled $F_2$ within a $0.011$-point band. On $F_1$,
+M0 leads pooled ($0.798$ vs.\ $0.737$), reversing the $F_2$ ranking and
+making the architectural choice metric-dependent (\S\ref{sec:res:rq-summary}).
+Cohen's $g$ on the 22 H1 contrasts ranges $+0.005$ to $+0.363$ (median
+$\approx 0.20$); all values are positive on raw binary correctness, but
+$F_2$'s recall-weighted denominator flips the ranking because precision
+gains accrue to the negative-instance count.
 
 \section{H2 --- Rare-Category Gap}\label{sec:res:h2}
 
@@ -774,56 +740,6 @@ restricted to instances on which the model emitted at least one span.
   \end{tabular}
 \end{table}
 
-\begin{figure}[h]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}[
-      ybar=2pt,
-      width=0.88\linewidth, height=6.2cm,
-      bar width=10pt,
-      ymin=0, ymax=1.05,
-      ylabel={Mean grounding rate},
-      ylabel style={font=\small},
-      ytick={0,0.2,0.4,0.6,0.8,1.0},
-      yticklabels={0, .2, .4, .6, .8, 1.0},
-      yticklabel style={font=\scriptsize},
-      symbolic x coords={B0,B1,M0,M1,M2},
-      xtick=data,
-      xticklabel style={font=\small},
-      enlarge x limits=0.12,
-      ymajorgrids, grid style={dotted, draw=TUMGray!40},
-      axis line style={TUMGray!60}, tick style={TUMGray!60},
-      legend style={
-        at={(0.02,0.97)}, anchor=north west,
-        font=\scriptsize, draw=TUMGray!30, fill=white,
-        legend cell align=left,
-      },
-      nodes near coords,
-      nodes near coords style={font=\tiny, color=TUMDarkGray},
-      every node near coord/.append style={
-        /pgf/number format/fixed,
-        /pgf/number format/precision=2,
-      },
-    ]
-      \addplot[fill=TUMAccentLightBlue!50, draw=TUMBlue]
-        coordinates {(B0,0.299) (B1,0.373) (M0,0.375) (M1,0.456) (M2,0.248)};
-      \addplot[fill=TUMAccentOrange!70, draw=TUMAccentOrange]
-        coordinates {(B0,0.543) (B1,0.594) (M0,0.893) (M1,1.000) (M2,0.415)};
-      \legend{All samples, Predicted-clause only}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Mean grounding rate by configuration, two denominators.
-  \emph{All samples} (blue) includes the $\approx\!58\%$ ``no related clause''
-  returns where grounding is undefined and conventionally scored~$0$;
-  \emph{predicted-clause only} (orange) is the audit-relevant view, conditioned
-  on a non-empty extraction. \cfgMA\ (M1) reaches $1.000$ verbatim citation on
-  every predicted clause across all eleven models; \cfgCX\ (M0) reaches
-  $0.893$. The two free-text generative configurations (\cfgZS, \cfgCP)
-  leave $46$--$58\%$ of their predicted spans paraphrased or
-  hallucinated.}
-  \label{fig:grounding}
-\end{figure}
-
 The predicted-clause column is the audit-relevant denominator: a missed clause
 has no span to ground, but every emitted span is auditable in principle. Under
 that view, \cfgMA's structured-output schema (Listing~\ref{lst:trace})
@@ -987,43 +903,20 @@ CUAD-class contract lengths.
 
 \section{Answers to Research Questions}\label{sec:res:rq-summary}
 
-\paragraph{RQ1 (which architectural pattern wins, and under what conditions).}
-No architectural pattern wins universally on $F_2$. Pooled $F_2$ ranks within a
-$0.011$-point band, and per-model winners are split four ways across the panel.
-The dominant signal is the model-family interaction: the Anthropic family peaks
-at B1 ($\overline{F_2} = 0.851$), the Google family at B0 ($0.826$), and the
-OpenAI family at M0 ($0.783$). The choice of evaluation metric also flips the
-ranking: M0 dominates the panel on $F_1$ ($0.798$ vs.\ $0.737$ for B0) by
-suppressing over-extraction. The condition under which a multi-agent pipeline (M0) is preferable on $F_1$
-is therefore: the model is OpenAI-family, the practitioner accepts the
-$1.67\times$ cost premium, and precision is the primary criterion. Under the
-pre-registered primary metric $F_2$, no multi-agent configuration consistently
-dominates B0; all other conditions favour simpler baselines.
+The full RQ answers are stated in Chapter~\ref{chapter:conclusion},
+\S\ref{sec:concl:rqs}; this section gives the one-line summary that the
+results justify.
 
-\paragraph{RQ2 (cost-effectiveness vs.\ single-agent baselines).}
-B0 occupies the Pareto frontier at every cost level. Multi-agent configurations
-carry mean cost premiums of $1.23\times$ (M1) to $1.67\times$ (M0) without
-compensating $F_2$ gains pooled across the panel. The only cost premium that
-partially pays back is M0 on the OpenAI family ($+0.052$ $F_2$ over B0), but
-even that is dominated in $F_2$/\$ by cheaper B0 deployments on the Google
-family. Cost-aware deployment of clause extraction at CUAD-class scale should
-default to single-agent zero-shot on a small, fast model unless the deployment
-context provides specific reasons to prefer higher precision over recall.
+\paragraph{RQ1.} No architecture wins universally on $F_2$ (pooled spread
+$0.011$); the model-family interaction is dominant (Anthropic peaks at B1,
+Google at B0, OpenAI at M0), and the metric choice flips the ranking
+($F_1$: M0 leads pooled; $F_2$: B0 leads pooled).
 
-\paragraph{RQ3 (auditable reasoning traces).}
-Addressed by system design in Chapter~\ref{chapter:system-design}. The M1
-trace structure produces explicit parent-child decision attribution --- routing
-decision, specialist extraction, validation outcome --- that B0 does not.
-Three tradeoffs attend this auditability surplus. Token storage scales with
-trace depth: each M1 call emits a LangFuse trace of approximately $4\times$
-the token volume of a B0 call (orchestrator hop plus three specialist
-sub-prompts logged at inference time), raising persistent storage requirements
-proportionally. Attribution faithfulness is bounded by the trace format: LangFuse
-records the \emph{submitted} prompt and \emph{returned} completion but cannot
-verify that the model's stated reasoning reflects its actual inference process,
-so the trace is auditable but not interpretable in a mechanistic sense. Routing
-redundancy is overhead without decision diversity: the M1 router is empirically
-a deterministic lookup (Section~\ref{sec:res:h3}, $99.91\%$ accuracy), so the
-orchestrator adds latency and cost without altering routing outcomes. Whether the
-auditability surplus justifies these costs is a deployment question revisited in
-Chapter~\ref{chapter:discussion}.
+\paragraph{RQ2.} B0 occupies the Pareto frontier at every cost level
+(Figure~\ref{fig:pareto}); multi-agent cost premiums of $1.23$--$1.67\times$
+do not pay back in pooled $F_2$.
+
+\paragraph{RQ3.} M0 and M1 produce the trace primitives B0 cannot
+(\S\ref{sec:auditability}, Table~\ref{tab:grounding}); the $4\times$ token
+volume, the routing redundancy ($99.91\%$ deterministic), and the bounded
+attribution faithfulness are the costs.

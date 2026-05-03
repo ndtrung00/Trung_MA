@@ -168,19 +168,15 @@ which $\approx\!2{,}999$ enter each run after the sampler described below.
 A \texttt{neg\_ratio=0.7} sampler retains every positive (contract, category)
 pair and approximately $60\%$ of the negative pairs, yielding $\approx\!2{,}999$
 samples per run with a measured positive rate of $41.5\%$. The sampler upsamples
-the positive class relative to CUAD's natural $\approx\!30\%$ prior in order to
-preserve statistical power on rare-tier categories where positive instances are
-sparse. Two
-design considerations motivate this choice. First, ContractEval evaluates 4{,}128
-instances drawn at the natural distribution, and matching that protocol enables direct
-comparability with the closest empirical predecessor~\cite{liu2025contracteval}.
-Second, prior work that resamples to inflated positive ratios suppresses the
-false-positive denominator and masks over-extraction (Eq.~\ref{eq:overextract}),
-detaching the evaluation distribution from any deployable distribution. The natural
-prior preserves both laziness (Eq.~\ref{eq:laziness}) and over-extraction
-(Eq.~\ref{eq:overextract}) as observable quantities. Sampling is seeded
-(\texttt{seed=42}) so the same (contract, category) pairs are evaluated across all
-configurations, making every statistical test paired at the instance level.
+the positive class relative to CUAD's natural $\approx\!30\%$ prior to preserve
+statistical power on rare-tier categories, where positive instances are sparse;
+without upsampling, fewer than ten positive instances per rare category would
+remain. Aggressive resampling toward a balanced class distribution is rejected
+because it suppresses the false-positive denominator and masks over-extraction
+(Eq.~\ref{eq:overextract}); the chosen $41.5\%$ rate keeps both laziness
+(Eq.~\ref{eq:laziness}) and over-extraction observable. Sampling is seeded
+(\texttt{seed=42}) so the same (contract, category) pairs are evaluated across
+all configurations, making every statistical test paired at the instance level.
 Each run yields $\approx\!2{,}999$ predictions; 1{,}297 of 164{,}941 total
 ($0.79\%$) were excluded for malformed classification tokens.
 
@@ -287,13 +283,16 @@ All metrics are reported pooled and per prevalence tier.
 
 \section{Hypotheses}\label{sec:meth:hypotheses}
 
-\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1}\}$ such that
-$C$ outperforms $B^\star = \text{B0}$ on $F_2$.
-Null: no such $C$ exists.
-Decision rule: reject the null if any of the multi-agent vs.\ B0 pairwise
-McNemar exact tests ($m{=}22$: 2 multi-agent configurations $\times$ 11 models)
-is significant at $\alpha{=}0.05$ after BH correction~\cite{benjamini1995controlling},
-with directional $\Delta F_2$ favouring the multi-agent configuration.
+\paragraph{H1.} For every $C \in \{\text{M0},\, \text{M1}\}$, $C$ outperforms
+$B^\star = \text{B0}$ on $F_2$ across the eleven-model panel.
+Null: $C$ does not outperform B0 on the panel.
+Decision rule: reject the null \emph{in favour of H1} only if
+\emph{a majority} of the multi-agent vs.\ B0 pairwise McNemar exact tests
+($m{=}22$: 2 multi-agent configurations $\times$ 11 models) is significant at
+$\alpha{=}0.05$ after BH correction~\cite{benjamini1995controlling} with
+directional $\Delta F_2$ favouring the multi-agent configuration; otherwise H1
+is rejected. Per-model significant positive contrasts are reported as
+\emph{conditional} improvements rather than as evidence for H1 itself.
 \cfgCP\ (M2) is excluded from the H1 family because it is the architecture-control
 ablation for H3 (\S\ref{sec:meth:hypotheses}), not a candidate alternative
 architecture; \cfgCoT\ (B1) is the chain-of-thought baseline against which the
@@ -302,10 +301,14 @@ but not used as the H1 reference baseline (B0 is the primary baseline per
 ContractEval~\cite{liu2025contracteval}).
 
 \paragraph{H2.} $\Delta\mathrm{Gap}(C_{\text{multi}}, B^\star) < 0$ where
-$\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$.
-Null: $\Delta\mathrm{Gap} \geq 0$.
-Decision rule: reject the null if the upper bound of the 95\% paired bootstrap CI on
-$\Delta\mathrm{Gap}$ is strictly less than zero.
+$\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$ holds across
+the eleven-model panel.
+Null: H2 does not hold on the panel.
+Decision rule: reject the null in favour of H2 for a given (model,
+configuration) pair if the upper bound of the 95\% paired bootstrap CI on
+$\Delta\mathrm{Gap}$ is strictly less than zero. H2 is supported pooled if
+\emph{a majority} of the 22 (model, configuration) contrasts satisfy this rule;
+otherwise H2 is rejected.
 
 \paragraph{H3.} \cfgMA\ (M1) and \cfgCP\ (M2) are statistically distinguishable on $F_2$.
 Null: $\Delta F_2(\text{M1},\,\text{M2}) = 0$.

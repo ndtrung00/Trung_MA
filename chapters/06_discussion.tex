@@ -29,7 +29,7 @@ The Anthropic family achieves its peak under \cfgCoT\
 (B1, $\overline{F_2}{=}0.851$); the Google family under \cfgZS\
 (B0, $0.826$); the OpenAI family under \cfgCX\
 (M0, $0.783$). The capability-tier gradient in
-Table~\ref{tab:tier-gradient} is consistent with this: light- and mid-tier
+Figure~\ref{fig:tier-heatmap} is consistent with this: light- and mid-tier
 models gain from M0's calibration, while heavy-tier models are better served
 by B0, with the $F_2$ capability gap between Heavy and Light tiers narrowing
 from $0.106$ under B0 to $0.054$ under M0 --- a $49\%$ reduction. Decomposition acts partly as a capability-equalising effect, but at a cost
@@ -75,10 +75,10 @@ suppressing recall. Models with low B0 over-extraction (GPT-4.1~Nano
 $\omega_{\text{B0}}{=}0.085$) gain from the gate because their single-agent
 extraction loses ground to laziness rather than to over-extraction. The
 practitioner heuristic is: run B0, inspect $\omega_{\text{B0}}$, and deploy
-M0 only if $\omega_{\text{B0}}$ is moderate-to-low; within the present panel,
-within the present eleven-model panel, models with
-$\omega_{\text{B0}} \lesssim 0.20$ gain on $F_1$ under M0, those above that
-threshold do not; this boundary is indicative, not validated.
+M0 only if $\omega_{\text{B0}}$ is moderate-to-low. Within the present
+eleven-model panel, models with $\omega_{\text{B0}} \lesssim 0.20$ gain on
+$F_1$ under M0; those above that threshold do not. The boundary is indicative,
+not validated.
 
 This result connects to the failure-mode taxonomy of \textcite{cemri2025why},
 who identify the inter-agent verification gap as a leading cause of
@@ -148,103 +148,50 @@ widens further.
 
 \section{Benchmark-to-Production Gaps}\label{sec:disc:practitioner}
 
-The CUAD-based evaluation establishes what current architectures achieve
-under idealised conditions: clean born-digital text, a fixed forty-one-category
-taxonomy, expert-annotated ground truth, and a single contract per query.
-\paragraph{1. Document quality is the first bottleneck.}
+CUAD measures one axis --- extraction accuracy under a fixed forty-one-category
+taxonomy on clean born-digital text with expert ground truth --- that is
+necessary but not sufficient for production deployment. Three deployment axes
+relocate the architectural argument.
+
+\paragraph{Preprocessing and retrieval are upstream of architecture.}
 CUAD contracts are EDGAR filings: clean, machine-readable, consistently
 formatted. Enterprise repositories contain scanned PDFs of variable OCR
-quality, handwritten margin annotations, partial digitisations of legacy
-contracts, and redacted sections. In the authors' assessment of production CLM deployments, document
-preprocessing quality sets the primary performance ceiling --- a factor upstream
-of model selection. A
-model achieving high $F_2$ on CUAD text need not retain that performance on
-a poorly scanned contract with OCR artefacts. This shifts the
-practitioner-relevant axis of architectural design from which prompt
-structure handles the contract to which preprocessing pipeline is needed
-before any extraction architecture is invoked. The multi-agent design space
-examined in this thesis is downstream of that question.
+quality, redactions, and partial digitisations; document-preprocessing
+quality is the primary performance ceiling, set before any extraction
+architecture is invoked. CUAD's one-to-one (contract, category) framing
+also omits the retrieve-then-extract pipeline production reviewers actually
+run --- which contracts contain uncapped liability across the repository?
+The classification-gate cascade (\S\ref{sec:disc:cascade}) is the
+single-contract analogue of that retrieval failure: the same
+upstream-rejection dynamics that suppress M0 recall on Gemini~2.5 will
+plausibly suppress retrieval-extraction recall in production.
 
-\paragraph{2. The task is multi-contract, not single-contract.}
-CUAD evaluates a one-to-one mapping: one contract, one category. The
-practitioner workflow is retrieve-then-extract: a question (``which supplier
-contracts expose us to uncapped liability?'') is first resolved against a
-repository of hundreds or thousands of contracts, then the relevant subset
-is extracted from. This pipeline introduces three challenges that no current public benchmark
-addresses: cross-contract consistency, deduplication, and result aggregation, and it shifts the architecture's value proposition from
-extraction accuracy to retrieval-extraction integration. Multi-agent designs
-in which a retrieval agent precedes an extraction agent are a natural fit
-for this workflow, and the M0 classify-then-extract pattern is the simplest
-non-trivial member of that family. The cascade failure mode of
-Section~\ref{sec:disc:cascade} therefore has direct deployment relevance:
-the same upstream-rejection dynamics that suppress M0 recall on Gemini~2.5
-will plausibly suppress retrieval-extraction recall in production. A
-controlled retrieve-then-extract benchmark on a multi-contract corpus is
-identified as future work in Chapter~\ref{chapter:conclusion}.
+\paragraph{Open taxonomies and cross-contract reasoning are unmodelled.}
+CUAD's forty-one categories cover general commercial provisions; construction
+contracts (variation orders, retention, defects liability), SaaS agreements
+(SLA penalties, sub-processor notice), and jurisdictional clause variants
+do not map cleanly onto the schema. The fixed three-domain specialist
+partition tested here (M1, M2) is not extensible to an open taxonomy without
+re-routing. Cross-contract questions --- consistency of liability caps
+across vendor agreements; impact analysis on a counterparty acquisition ---
+require portfolio-level orchestration over per-contract agents that no
+public benchmark currently evaluates and that this thesis identifies as
+future work (\S\ref{sec:concl:outlook}).
 
-\paragraph{3. Clause taxonomies are domain-specific and open-ended.}
-The forty-one CUAD categories cover general commercial provisions.
-Construction contracts contain liquidated damages tied to project milestones,
-variation orders, retention terms, and defects-liability periods; SaaS
-agreements contain SLA penalties, data-processing addenda, and sub-processor
-notification clauses. None of these map cleanly to CUAD's category schema.
-A production CLM system handles an open-ended and evolving taxonomy. The
-specialist-decomposition design tested here (M1, M2) is a fixed three-domain
-partition; its extensibility to an open taxonomy is the question that
-matters for production, and is not what this thesis evaluates.
-
-\paragraph{4. Production has no ground truth.}
-CUAD provides expert annotations against which $F_2$, Jaccard, and $\omega$
-can be computed. A production deployment has none. Evaluation proceeds
-through user feedback, spot-checking, and exception triage --- none of
-which benchmark metrics capture. This is the deployment-side argument for
-the observability work in Chapter~\ref{chapter:system-design}: in the
-absence of ground truth, the most valuable architectural property is whether
-each decision can be attributed to a specific agent, prompt, and routing
-branch, so that exceptions can be triaged at the source
-(Section~\ref{sec:auditability}). The M0 classifier verdict and the M1
-routed-specialist label are precisely the trace primitives a production
-reviewer needs, even when the underlying $F_2$ is dominated by a simpler
-single-agent baseline. The thesis's headline result --- that multi-agent $F_2$ does not beat
-single-agent --- does not therefore translate into ``deploy single-agent in
-production'', because the production utility function includes auditability,
-not only $F_2$ (see Section~\ref{sec:auditability} and
-Table~\ref{tab:h3} for the trace-completeness evidence).
-
-\paragraph{5. Cross-contract reasoning is required and unmeasured.}
-Production CLM questions span contracts: ``are our liability caps consistent
-across all vendor agreements?''; ``which contracts are affected if
-Vendor~X is acquired?''. Cross-contract reasoning requires maintaining
-context across documents and detecting relationships between clauses in
-different agreements. Neither CUAD nor the architectures evaluated here
-address this. Hierarchical multi-agent designs --- a portfolio-level
-orchestrator over per-contract extraction agents --- are a natural fit for
-this workflow and are identified as future work in
-Section~\ref{sec:concl:outlook}.
-
-\paragraph{6. Integration determines deployment value.}
-A system with high benchmark accuracy fails in production if it cannot
-surface results inside the platform of record, in formats downstream systems
-consume (risk reports, obligation trackers, renewal calendars), with
-sufficient context to act upon. The post-extraction integration challenge --- transforming an extracted clause
-into an actionable insight --- is largely orthogonal to architectural choice
-within the extraction layer and is the axis on which
-production CLM platforms compete most directly.
-
-\medskip
-\noindent
-These gaps locate the CUAD evaluation rather than invalidating it: the thesis
-measures one axis (extraction accuracy under fixed taxonomy and clean text)
-that is necessary but not sufficient for production deployment. The
-practitioner argument for multi-agent architectures therefore shifts axis:
-not that decomposition raises extraction accuracy --- the data indicate it
-generally does not on this benchmark --- but that decomposition provides trace primitives (structured per-agent decision
-logs), modular update boundaries, and integration seams (interface boundaries
-where components can be replaced or extended) that production deployments need
-on axes the benchmark does not measure. This is
-a defensible reason to build multi-agent CLM systems even when the benchmark
-$F_2$ ranking favours single-agent baselines. It is a weaker reason than ``decomposition wins on accuracy'', and the
-empirical record is better served by stating it cleanly.
+\paragraph{Production has no ground truth, so trace primitives carry the value.}
+A production deployment cannot compute $F_2$, Jaccard, or $\omega$;
+evaluation proceeds through user feedback, spot-checking, and exception
+triage. The most valuable architectural property in that regime is whether
+each decision is attributable to a specific agent, prompt, and routing
+branch (\S\ref{sec:auditability}). The M0 classifier verdict and the M1
+routed-specialist label are exactly the trace primitives a reviewer needs,
+together with the schema-enforced $1.000$ grounding rate of M1
+(Table~\ref{tab:grounding}). The benchmark $F_2$ ranking therefore does not
+translate into ``deploy single-agent in production'': the production utility
+function includes auditability, modular update boundaries, and integration
+seams that the benchmark does not measure. This is a defensible reason to
+build multi-agent CLM systems --- weaker than ``decomposition wins on
+accuracy'', but cleanly stated.
 
 \section{Threats to Validity}\label{sec:disc:threats}
 

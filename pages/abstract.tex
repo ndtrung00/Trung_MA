@@ -13,20 +13,23 @@ This thesis presents a controlled cross-architecture cross-model comparison of
 multi-agent designs for clause extraction on the CUAD benchmark. Five configurations
 spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed specialists,
 and a consolidated single-agent ablation are evaluated across eleven frontier models from
-three providers, yielding 163{,}644 paired predictions analysed with paired statistical
-tests on the 102-contract CUAD test split.
+three providers, yielding 163{,}644 paired predictions on the 102-contract CUAD test
+split, analysed with McNemar exact tests, paired bootstrap confidence intervals, and
+Benjamini--Hochberg correction.
 
 No multi-agent configuration consistently outperforms the strongest single-agent
-baseline. Pooled accuracy across the eleven models falls within a one-point band, and
-architectural ranking varies with model scale rather than model family: larger models
-perform best under simpler baselines, while lighter models gain from structured
-decomposition. Two mechanisms explain the null result. The pipeline architecture exhibits
-a \emph{classification-gate rejection cascade} --- its upstream classifier silently
-overrejects on some models --- and the LLM router in the specialist architecture is
-empirically redundant: it converges to a deterministic category lookup and produces
-lower-quality span outputs than the consolidated ablation. Multi-agent configurations
-carry a $23\%$--$67\%$ cost premium without aggregate accuracy benefit.
+baseline. Pooled accuracy across the eleven models falls within a one-point band;
+architectural ranking varies jointly with model family and capability tier, with the
+family interaction dominant: each provider family peaks under a different
+configuration, and lighter models gain from structured decomposition where heavier
+ones do not. Two mechanisms explain the null result. The pipeline architecture
+exhibits a \emph{classification-gate rejection cascade} --- its upstream classifier
+silently overrejects on some models --- and the LLM router in the specialist
+architecture is empirically redundant: it converges to a deterministic category
+lookup and produces lower-quality span outputs than the consolidated ablation.
+Multi-agent configurations carry a $23\%$--$67\%$ cost premium without aggregate
+accuracy benefit.
 
-These results delineate when multi-agent designs help, are inert, or actively hurt in
-enterprise CLM, and motivate a practitioner-oriented analysis of the gap between
-benchmark performance and production deployment.
+The results identify which model--architecture combinations gain, lose, or are
+unchanged on $F_2$, and identify the auditability surplus that survives the headline
+null result.

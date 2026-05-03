@@ -5,7 +5,7 @@
 Evaluating whether multi-agent architectures improve contract clause extraction
 requires grounding in four technical areas: what CLM systems do and where
 extraction fits within them (\S\ref{sec:lit:clm}), how LLMs generate text and
-why long-context tasks are structurally different (\S\ref{sec:lit:llms}), what
+why long-context tasks are structurally different (\S\ref{sec:lit:llm-background}), what
 agentic decomposition adds and at what cost (\S\ref{sec:lit:mas-background}),
 and what CUAD measures and why its class distribution matters
 (\S\ref{sec:lit:cuad}). Sections~\ref{sec:lit:methods}--\ref{sec:lit:eval}
@@ -18,9 +18,9 @@ thesis addresses.
 
 \section{Contract Lifecycle Management}\label{sec:lit:clm}
 
-Contract Lifecycle Management (CLM) denotes the systematic management of a
-contractual agreement across six canonical stages: request, author, negotiate,
-execute, monitor, and renew or retire~\cite{worldcc2025benchmark}.
+CLM denotes the systematic management of a contractual agreement across six
+canonical stages: request, author, negotiate, execute, monitor, and renew or
+retire~\cite{worldcc2025benchmark}.
 Each transition produces auditable artefacts — drafts, redlines, signature blocks,
 obligation registers — and each stage admits distinct algorithmic interventions,
 from clause assembly at the authoring stage to obligation extraction at the
@@ -466,7 +466,8 @@ Section~\ref{sec:lit:mas-background}.
       & Statutory reasoning & Single-agent & Static & Per-step CoT layers & Self-consistency \\
     \midrule
     \textbf{This thesis}
-      & CUAD test split (102) & Both & All three & All three & Reflexion + judge \\
+      & CUAD test split (102) & Both & All three & All three &
+      None (M0/M1); reflective verifier untested, \S\ref{sec:concl:outlook} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -594,8 +595,11 @@ bootstrap.
 CUAD's natural clause-presence rate is $\approx\!30\%$ positive at the instance level.
 Resampling to balance positive and negative instances inflates apparent precision and
 suppresses Eq.~\eqref{eq:overextract}, detaching the evaluation from any deployable
-distribution where 41 categories are scanned per contract and most are absent. Natural
-prevalence is retained throughout~\cite{liu2025contracteval}.
+distribution where 41 categories are scanned per contract and most are absent. The
+present evaluation retains every positive (contract, category) pair and downsamples
+negatives to a measured $41.5\%$ positive rate (\S\ref{sec:meth:sampling}); this
+preserves rare-tier statistical power while keeping over-extraction
+(Eq.~\eqref{eq:overextract}) observable~\cite{liu2025contracteval}.
 
 \paragraph{ContractEval as direct empirical predecessor.}
 ContractEval~\cite{liu2025contracteval} evaluates 19 LLMs (4 proprietary, 15
