@@ -2,27 +2,28 @@
   \centering
 
   \IfFileExists{logos/tum.pdf}{%
-    \includegraphics[height=20mm]{logos/tum.pdf}
+    \includegraphics[height=18mm]{logos/tum.pdf}
   }{%
-    \vspace*{20mm}
+    \vspace*{18mm}
   }
 
-  \vspace{5mm}
+  \vspace{4mm}
   {\huge\MakeUppercase{\getFaculty{}}}\\
 
-  \vspace{5mm}
+  \vspace{3mm}
   {\large\MakeUppercase{\getUniversity{}}}\\
 
-  \vspace{20mm}
+  \vspace{12mm}
   {\Large \getDoctype{}}
 
-  \vspace{15mm}
-  {\huge\bfseries \getTitle{} \par}
-
   \vspace{10mm}
-  {\huge\bfseries \foreignlanguage{ngerman}{\getTitleGer{}} \par}
+  {\LARGE\bfseries \getTitle{} \par}
 
-  \vspace{15mm}
+  \vspace{8mm}
+  {\LARGE\bfseries \foreignlanguage{ngerman}{\getTitleGer{}} \par}
+
+  \vfill
+
   \begin{tabular}{l l}
     Author:          & \getAuthor{} \\
     Supervisor:      & \getSupervisor{} \\
@@ -30,8 +31,9 @@
     Submission Date: & \getSubmissionDate{} \\
   \end{tabular}
 
+  \vspace{35mm}
+
   \IfFileExists{logos/faculty.pdf}{%
-    \vfill{}
     \includegraphics[height=20mm]{logos/faculty.pdf}
   }{}
 \end{titlepage}

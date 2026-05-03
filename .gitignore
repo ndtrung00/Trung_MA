@@ -1,6 +1,5 @@
 /build/*
 !/build/main.pdf
-/logos/*.pdf
 samples_qualitative.jsonl
 review
 .DS_Store
