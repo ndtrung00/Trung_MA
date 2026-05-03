@@ -158,10 +158,10 @@ this thesis.
     lbl/.style={font=\small\bfseries, text=TUMBlue,
                 minimum width=2.8cm, minimum height=0.42cm, anchor=west},
     used/.style={rectangle, rounded corners=1.5pt, draw=TUMBlue,
-                 fill=TUMAccentLightBlue!45, font=\footnotesize,
+                 fill=TUMAccentLightBlue!20, font=\footnotesize,
                  minimum height=0.42cm, inner xsep=5pt, inner ysep=2pt},
-    unused/.style={rectangle, rounded corners=1.5pt, draw=gray!40,
-                   fill=gray!8, font=\footnotesize, text=gray!50,
+    unused/.style={rectangle, rounded corners=1.5pt, draw=TUMGray!50,
+                   fill=TUMGray!8, font=\footnotesize, text=TUMGray!60,
                    minimum height=0.42cm, inner xsep=5pt, inner ysep=2pt},
     node distance=0.18cm
   ]
@@ -315,22 +315,24 @@ motivates the domain-specialisation hypothesis (H2).
       yticklabel style={font=\scriptsize, text width=3.0cm, align=right},
       bar width=0.32cm,
       enlarge y limits=0.05,
+      xmajorgrids, grid style={dotted, draw=TUMGray!40},
+      axis line style={TUMGray!60}, tick style={TUMGray!60},
       legend style={
         at={(0.5,-0.16)}, anchor=north,
-        font=\scriptsize, draw=gray!30, fill=white,
+        font=\scriptsize, draw=TUMGray!30, fill=white,
         legend columns=3, column sep=0.5cm
       },
     ]
-      % Common tier
-      \addplot[fill=TUMBlue!65, draw=TUMBlue, bar shift=0pt] coordinates {
+      % Common tier (TUMBlue — high F1, positive outcome)
+      \addplot[fill=TUMBlue, draw=TUMBlue, bar shift=0pt] coordinates {
         (0.85, 12) (0.82, 11) (0.76, 10) (0.72, 9)
       };
-      % Moderate tier
+      % Moderate tier (TUMAccentGray — neutral)
       \addplot[fill=TUMAccentGray, draw=TUMDarkGray!50, bar shift=0pt] coordinates {
         (0.58, 8) (0.52, 7) (0.47, 6) (0.41, 5) (0.38, 4)
       };
-      % Rare tier
-      \addplot[fill=TUMAccentOrange!75, draw=TUMAccentOrange, bar shift=0pt] coordinates {
+      % Rare tier (TUMAccentOrange — near-zero, attention)
+      \addplot[fill=TUMAccentOrange, draw=TUMAccentOrange, bar shift=0pt] coordinates {
         (0.04, 3) (0.05, 2) (0.03, 1) (0.01, 0)
       };
       \legend{Common ($F_1 > 0.70$), Moderate ($0.30$--$0.70$), Rare ($< 0.15$)}

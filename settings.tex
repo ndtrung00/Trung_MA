@@ -72,11 +72,70 @@
 \definecolor{TUMAccentLightBlue}{HTML}{98C6EA}
 \definecolor{TUMAccentBlue}{HTML}{64A0C8}
 
+% ── Semantic colour assignments (apply consistently across all figures) ───
+%   Primary concept / processing node  draw=TUMBlue,        fill=TUMAccentLightBlue!20
+%   Data / storage node                draw=TUMBlue,        fill=TUMAccentLightBlue!8
+%   Specialist / external component    draw=TUMAccentOrange, fill=TUMAccentOrange!15
+%   Disabled / not-ablated option      draw=TUMGray!50,     fill=TUMGray!8, text=TUMGray!60
+%
+%   Configuration colour mapping (multi-series plots):
+%   B1  TUMBlue         zero-shot baseline
+%   B4  TUMAccentGreen  chain-of-thought baseline
+%   M0  TUMAccentOrange classify-then-extract
+%   M1  TUMAccentBlue   full multi-agent (routed specialists)
+%   M6  TUMGray         combined-prompts ablation
+%
+%   Tier colour mapping (CUAD prevalence tiers):
+%   Common    TUMBlue          high-F1 categories
+%   Moderate  TUMAccentGray    mid-F1 categories (neutral)
+%   Rare      TUMAccentOrange  near-zero-F1 categories (attention)
+
+% ── Global TikZ node styles ───────────────────────────────────────────────
+% Use these names in every chapter instead of redeclaring local styles.
+\tikzset{
+  thnode/.style={
+    rectangle, rounded corners=2pt,
+    draw=TUMBlue, fill=TUMAccentLightBlue!20,
+    font=\small, text centered, inner sep=4pt, minimum height=0.60cm},
+  thstore/.style={
+    rectangle, draw=TUMBlue, fill=TUMAccentLightBlue!8,
+    font=\small, text centered, inner sep=4pt, minimum height=0.60cm},
+  thspec/.style={
+    rectangle, rounded corners=2pt,
+    draw=TUMAccentOrange, fill=TUMAccentOrange!15,
+    font=\small, text centered, inner sep=4pt, minimum height=0.60cm},
+  thdead/.style={
+    rectangle, rounded corners=2pt,
+    draw=TUMGray!50, fill=TUMGray!8, text=TUMGray!60,
+    font=\small, text centered, inner sep=4pt, minimum height=0.60cm},
+  thdia/.style={
+    diamond, draw=TUMBlue, fill=TUMAccentLightBlue!20,
+    font=\small, aspect=2, inner sep=2pt},
+  tharrow/.style={->, thick, >=Stealth},
+  thdash/.style={->, dashed, draw=TUMGray!60, >=Stealth},
+}
+
 % Settings for pgfplots
 \pgfplotsset{compat=newest}
 \pgfplotsset{
-  % For available color names, see http://www.latextemplates.com/svgnames-colors
-  cycle list={TUMBlue\\TUMAccentOrange\\TUMAccentGreen\\TUMSecondaryBlue2\\TUMDarkGray\\},
+  % Configuration colour cycle (B1, B4, M0, M1, M6)
+  cycle list={TUMBlue\\TUMAccentGreen\\TUMAccentOrange\\TUMAccentBlue\\TUMGray\\},
+  % Shared bar-chart style — use as: \begin{axis}[th bar, ...]
+  th bar/.style={
+    ybar, bar width=0.55cm,
+    enlarge x limits=0.15,
+    ymajorgrids, grid style={dotted, draw=TUMGray!40},
+    axis line style={TUMGray!60}, tick style={TUMGray!60},
+    every node near coord/.append style={font=\scriptsize, TUMDarkGray},
+    nodes near coords, nodes near coords align={vertical},
+  },
+  % Shared horizontal bar-chart style
+  th hbar/.style={
+    xbar, bar width=0.40cm,
+    enlarge y limits=0.08,
+    xmajorgrids, grid style={dotted, draw=TUMGray!40},
+    axis line style={TUMGray!60}, tick style={TUMGray!60},
+  },
 }
 
 % Settings for lstlistings
