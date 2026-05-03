@@ -105,8 +105,8 @@ extraction calls (\S\ref{sec:concl:outlook}); under that cost model, RQ2 is open
 
 \paragraph{RQ3 --- Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
-decision attribution --- routing decision, specialist extraction, validation
-outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). Trace
+decision attribution (routing decision, specialist extraction, validation
+outcome) that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). Trace
 completeness is $100\%$ on B0/B1/M2/M0 and $95.2\%$ on M1, with the residual
 $4.8\%$ attributable to provider-side truncation on long contracts
 (\S\ref{sec:sys:trace-properties}). The trace structure is paired with
@@ -120,7 +120,7 @@ hop plus three specialist sub-prompts logged at inference time).
 \emph{Attribution faithfulness} is bounded by the trace format: the record
 is faithful to the call graph but does not certify the model's internal
 computation. \emph{Routing redundancy} adds latency without decision
-diversity --- the $99.91\%$ deterministic routing result means the
+diversity: the $99.91\%$ deterministic routing result means the
 orchestrator layer can be replaced by a static dictionary at zero LLM cost.
 
 \section{Limitations}\label{sec:concl:limitations}\label{sec:disc:threats}
@@ -192,9 +192,9 @@ letting the extractor override a silent rejection on confidence-flagged
 borderline cases. Tool-calling specialists that retrieve clause exemplars
 or jurisdictional indicators before extracting extend the design to
 open-taxonomy deployments (\S\ref{sec:disc:practitioner}). Hierarchical
-orchestration --- a portfolio-level orchestrator over per-contract
-extraction agents --- targets cross-contract reasoning and is expected to
-dominate on multi-contract benchmarks that do not yet exist.
+orchestration (a portfolio-level orchestrator over per-contract
+extraction agents) targets cross-contract reasoning, which is not exercised
+by any current public benchmark.
 
 \paragraph{Beyond CUAD.}
 Four extensions widen the evaluation envelope: open-weights models, where
@@ -220,11 +220,8 @@ remains open.
 
 \medskip
 \noindent
-The slice tested here is the slice production teams are most likely to
-build first, and on its own does not justify multi-agent deployment over a
-strong single-agent baseline on accuracy grounds. The case for multi-agent
-architectures rests on axes the benchmark does not measure --- auditability,
-modular update boundaries, integration seams, open-taxonomy extensibility,
-cross-contract reasoning --- and future work should evaluate those axes
-directly rather than continue to test decomposition against benchmarks
-where single-agent long-context already absorbs the workload.
+On accuracy alone, the slice tested here does not justify multi-agent
+deployment over a strong single-agent baseline. The case for multi-agent
+architectures rests on axes the benchmark does not measure: auditability,
+open-taxonomy extensibility, and cross-contract reasoning. Future work
+should evaluate those axes directly.

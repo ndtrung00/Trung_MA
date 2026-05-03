@@ -7,9 +7,9 @@ Across 55 (model, configuration) cells and 163{,}644 paired predictions, no mult
 \section{Run Coverage and Sample Accounting}\label{sec:res:overview}
 
 The 55-cell grid yielded 164{,}941 raw JSONL records. After dropping 1{,}297
-records ($0.79\%$) with no usable classification token --- concentrated in
-\cfgZS\ (B0, $n{=}838$) and \cfgCX\ (M0, $n{=}362$) --- 163{,}644 paired
-sample-level predictions remain. The exclusion criterion is encoded in
+records ($0.79\%$) with no usable classification token, 163{,}644 paired
+sample-level predictions remain. The dropped records concentrate in
+\cfgZS\ (B0, $n{=}838$) and \cfgCX\ (M0, $n{=}362$). The exclusion criterion is encoded in
 \texttt{src/evaluation/metrics.py}: a record is excluded if and only if its
 \texttt{evaluation.classification} field is not one of \{\texttt{TP},
 \texttt{FP}, \texttt{FN}, \texttt{TN}\} after parsing.\footnote{Inspection of
@@ -360,9 +360,9 @@ median $\approx 0.20$): multi-agent configurations win on raw paired-binary
 correctness on every single contrast, and the H1 rejection is driven by
 $F_2$'s recall-weighted denominator inverting precision gains because
 correctly identifying a true negative does not enter the $F_2$ numerator.
-Conditional improvements survive --- the OpenAI family benefits from M0
-(GPT-4.1\,Nano $+0.171$; pooled $+0.052$), lighter Anthropic models benefit
-from M0/B1 (Sonnet\,4.6 M0 $+0.047$) --- but the model-family interaction
+Conditional improvements survive: the OpenAI family benefits from M0
+(GPT-4.1\,Nano $+0.171$; pooled $+0.052$), and lighter Anthropic models benefit
+from M0/B1 (Sonnet\,4.6 M0 $+0.047$). The model-family interaction
 is the dominant signal, with pooled $F_2$ within a $0.011$-point band. On
 $F_1$, M0 leads pooled ($0.798$ vs.\ $0.737$), reversing the $F_2$ ranking
 and making the architectural choice metric-dependent (the empirical $\beta$
@@ -434,8 +434,8 @@ Chapter~\ref{chapter:methodology}.
 Figure~\ref{fig:tier-winners} disaggregates by prevalence tier to expose which
 configuration wins at each tier rather than on a gap-adjusted average. The
 pattern reverses across tiers: M1 leads on common categories, M0 on moderate,
-and B0 on rare. Multi-agent specialisation therefore benefits the clauses models
-already extract well, not the ones they fail on.\footnote{The
+and B0 on rare. Multi-agent specialisation therefore benefits common-tier categories
+more than rare-tier ones (Figure~\ref{fig:tier-winners}).\footnote{The
 rare-tier mean masks per-category heterogeneity. M0 leads decisively on
 specific rare categories where the gate's precision gain compensates the
 recall cost: \textit{Source Code Escrow} ($F_2{=}1.000$ vs.\ B0~$0.943$),
@@ -514,7 +514,7 @@ than a routing defect. Routing is empirically a deterministic lookup: the
 router's decisions can be replicated by a static dictionary mapping category
 names to specialist labels at zero LLM cost. We therefore present no figure for
 routing accuracy and treat M1 vs.\ M2 as a test of whether dispatch architecture
---- with routing held empirically constant --- adds value over a single-agent
+(with routing held empirically constant) adds value over a single-agent
 prompt containing the same specialist text.
 
 Table~\ref{tab:h3} reports the M1--M2 contrasts on $F_2$ and on average
@@ -565,8 +565,8 @@ than the routed specialist pipeline (contribution~C4).
 \paragraph{H3 verdict.}
 H3 is supported at the per-model level: \cfgMA\ and \cfgCP\ are statistically
 distinguishable on $F_2$ for all 11 models after BH correction (McNemar
-two-sided, $\alpha{=}0.05$, $m{=}11$). The direction of the difference, however,
-is inconsistent --- M1 outperforms M2 on 5 models, M2 on 6 --- and pooled $F_2$
+two-sided, $\alpha{=}0.05$, $m{=}11$). The direction is inconsistent: M1
+outperforms M2 on 5 models, M2 on 6, and pooled $F_2$
 is identical to three decimal places ($0.790$ vs.\ $0.790$). H3 therefore
 confirms that dispatch architecture alters model behaviour, not that it
 improves it. The direction inconsistency is itself a finding: routing overhead
@@ -622,7 +622,7 @@ extraction failure.
 
 The cascade is the dominant cause of M0's $F_2$ regression on the Google
 family. On Gemini\,2.5\,Flash, M0 FN-rate jumps to $42.2\%$ from B0's $9.6\%$
---- a $4.4{\times}$ amplification --- and $97.9\%$ of those FNs are
+(a $4.4{\times}$ amplification), and $97.9\%$ of those FNs are
 gate-attributable. The cascade interacts with category prevalence: rare-tier
 $F_2$ on Gemini\,2.5\,Flash drops from $0.719$ (B0) to $0.381$ (M0), a
 $0.338$-point loss that fully accounts for the rare-gap widening in
@@ -788,12 +788,11 @@ that view, \cfgMA's structured-output schema (\S\ref{sec:sys:trace})
 guarantees verbatim citation by construction, and \cfgCX's extractor inherits
 the same scaffold from the M1 specialist prompts. The two single-call
 generative configurations \cfgZS\ and \cfgCP\ leave roughly half of their
-extractions paraphrased or hallucinated --- the dominant failure mode is
+extractions paraphrased or hallucinated. The dominant failure mode is
 extraction of \emph{plausible} legal text that cannot be located verbatim
-in the source contract. This finding qualifies contribution~C4: the
-auditability advantage of multi-agent topologies is not solely the trace
-structure (Section~\ref{sec:auditability}) but also the schema-enforced
-grounding that the topology makes operationally feasible.
+in the source contract. This finding qualifies contribution~C4: M1's
+auditability surplus comes from two mechanisms, the trace structure
+(Section~\ref{sec:auditability}) and schema-enforced grounding.
 
 \section{Cost-Efficiency Frontier}\label{sec:res:cost}
 
@@ -942,9 +941,9 @@ exposed to larger token windows, increasing the probability of conservative
 \texttt{predicted\_no\_clause} decisions that trigger the cascade documented
 in Section~\ref{sec:res:cascade}. For M1, long-contract degradation may
 reflect specialist prompt dilution when many clause types from one domain
-appear in a single long document. In either case, multi-agent decomposition
-as implemented offers no context-window advantage over a zero-shot prompt on
-CUAD-class contract lengths.
+appear in a single long document. Multi-agent decomposition as implemented
+offers no context-window advantage over a zero-shot prompt on CUAD-class
+contract lengths.
 
 \section{Answers to Research Questions}\label{sec:res:rq-summary}
 

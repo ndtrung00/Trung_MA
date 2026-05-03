@@ -9,7 +9,7 @@ negotiates, executes, monitors, and retires its contractual instruments. The sca
 9\% of annual revenue through poor contracting practices, with contract data dispersed
 across an average of 24 systems and 83\% of executives reporting their contracts too rigid
 to accommodate change~\cite{worldcc2025benchmark}. Goldman Sachs estimates 44\% of
-U.S.\ legal-task time is technically automatable by generative AI --- second-highest
+U.S.\ legal-task time is technically automatable by generative AI, the second-highest
 exposure across all professions~\cite{goldmansachs2023ai}.
 
 Frontier large language models (LLMs) match junior lawyers on issue-identification
@@ -18,29 +18,28 @@ $\approx\!100\times$~\cite{martin2024bettercallgpt}, and independent benchmarks 
 competitiveness on standardised clause-extraction
 tasks~\cite{hendrycks2021cuad,liu2025contracteval}. Single-prompt deployments nonetheless
 dominate commercial CLM, and three production failures persist: hallucination, prompt
-sensitivity~\cite{chatterjee2024posix}, and laziness --- the silent default to
+sensitivity~\cite{chatterjee2024posix}, and laziness: the silent default to
 ``no related clause'' even when the clause is present in the
 contract~\cite{liu2025contracteval}.
 
 Multi-agent architectures are the proposed remedy. Decomposing clause analysis into
-specialised agents promises improved recall through specialisation, improved explainability through
-inspectable inter-agent traces, and improved transparency through traceable per-decision
-provenance required under Article~13 of the EU~AI~Act~\cite{euaiact2024} and Article~22
-of the GDPR~\cite{gdpr2016}. Frameworks including AutoGen~\cite{wu2023autogen},
+specialised agents promises higher recall through specialisation and inspectable
+per-decision provenance traces of the kind required under Article~13 of the
+EU~AI~Act~\cite{euaiact2024} and Article~22 of the GDPR~\cite{gdpr2016}.
+Frameworks including AutoGen~\cite{wu2023autogen},
 MetaGPT~\cite{hong2024metagpt}, and Mixture-of-Agents~\cite{wang2024moa} have made such
-architectures straightforward to instantiate. Whether they actually improve contract analysis is,
-however, an open empirical question.
+architectures straightforward to instantiate. Whether they improve contract analysis
+is an open empirical question.
 
 \section{Research Gap}\label{sec:gap}
 
-Existing legal multi-agent systems --- ChatLaw~\cite{cui2024chatlaw},
-PAKTON~\cite{raptopoulos2025pakton}, L-MARS~\cite{wang2025lmars} --- each evaluate a single
+Existing legal multi-agent systems (ChatLaw~\cite{cui2024chatlaw},
+PAKTON~\cite{raptopoulos2025pakton}, L-MARS~\cite{wang2025lmars}) each evaluate a single
 architecture on a single benchmark without ablating the architectural choice itself. The
 empirical question of which multi-agent pattern is preferable for clause-level contract
 analysis under a fixed model and task remains unresolved.
 
-Recent cross-domain work questions whether multi-agent designs confer measurable benefit once
-base-model capability is high. \textcite{gao2025single} show diminishing returns for frontier
+\textcite{gao2025single} show diminishing returns for frontier
 models whose long-context reasoning absorbs the workload that previously required
 decomposition. \textcite{cemri2025why} construct a 14-mode failure taxonomy
 across seven multi-agent frameworks and report only modest 14--15\% recovery from simple
@@ -89,9 +88,9 @@ systems, and which architectural patterns are most effective?
     from \cfgCP\ (M2) on $F_2$ (two-sided McNemar exact).
 \end{description}
 
-RQ3 is descriptive --- it asks which auditability properties each configuration
-enables --- and is therefore addressed by system-design documentation rather
-than statistical hypothesis test; the per-configuration trace primitives are
+RQ3 is descriptive: it asks which auditability properties each configuration
+enables, and is therefore addressed by system-design documentation rather
+than statistical hypothesis test. The per-configuration trace primitives are
 catalogued in \S\ref{sec:auditability} and the schema-enforced grounding rates
 are reported in Table~\ref{tab:grounding}.
 
@@ -107,9 +106,9 @@ are reported in Table~\ref{tab:grounding}.
     winners differ, so no architecture is universally optimal
     (\S\ref{sec:res:h1}).
   \item[\textbf{C3}] \textbf{Classification-gate cascade.} Pipeline
-    decomposition exhibits an upstream-rejection cascade --- Gemini~2.5~Flash's
-    false-negative rate rises from $9.6\%$ under \cfgZS\ to $42.2\%$ under \cfgCX\
-    ($97.9\%$ gate-attributable) --- with direction predictable from a B0
+    decomposition exhibits an upstream-rejection cascade: Gemini~2.5~Flash's
+    false-negative rate rises from $9.6\%$ under \cfgZS\ to $42.2\%$ under \cfgCX,
+    of which $97.9\%$ is gate-attributable. Direction is predictable from a B0
     calibration pass (\S\ref{sec:res:cascade}).
   \item[\textbf{C4}] \textbf{Routing redundancy.} The LLM router agrees with
     a deterministic category-to-specialist mapping on $99.91\%$ of requests,

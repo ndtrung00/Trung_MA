@@ -21,8 +21,8 @@ thesis addresses.
 CLM denotes the systematic management of a contractual agreement across six
 canonical stages: request, author, negotiate, execute, monitor, and renew or
 retire~\cite{worldcc2025benchmark}.
-Each transition produces auditable artefacts — drafts, redlines, signature blocks,
-obligation registers — and each stage admits distinct algorithmic interventions,
+Each transition produces auditable artefacts (drafts, redlines, signature blocks,
+obligation registers), and each stage admits distinct algorithmic interventions,
 from clause assembly at the authoring stage to obligation extraction at the
 monitoring stage. Figure~\ref{fig:clm-lifecycle} visualises the lifecycle;
 the NLP-heavy stages are highlighted.
@@ -98,7 +98,7 @@ Training minimises the negative log-likelihood
 $\mathcal{L}(\theta) = -\sum_{t} \log p_\theta(x_t \mid x_{<t})$
 over large text corpora following the Transformer
 derivation~\cite{devlin2019bert}. Modern frontier LLMs extend Eq.~\eqref{eq:autoreg}
-with three post-training techniques decisive for agentic deployment: supervised
+with three post-training techniques used in every model in the panel: supervised
 instruction tuning, preference alignment via reinforcement learning from human or AI
 feedback (RLHF), and structured-output fine-tuning that turns free-form generation
 into validated JSON and tool calls.
@@ -106,7 +106,7 @@ into validated JSON and tool calls.
 Table~\ref{tab:llm-frontier} summarises the frontier-model releases relevant
 to the experimental envelope of this thesis. Models included in the
 experimental evaluation are specified in §\ref{sec:meth:models}; the remaining
-entries provide contextual background on the frontier landscape.
+entries provide background on the frontier model releases.
 
 \begin{table}[h]
   \centering
@@ -240,9 +240,8 @@ framework-specific structured messages.
 
 Production-relevant orchestrators include AutoGen~\cite{wu2023autogen},
 MetaGPT~\cite{hong2024metagpt}, LangGraph~\cite{langgraph2024}, CrewAI, and
-OpenAI's Agents SDK. The five axes — topology, routing, specialisation granularity,
-verification structure, and communication protocol — define the design space whose
-CLM-relevant slice this thesis ablates in Chapter~3.
+OpenAI's Agents SDK. Chapter~3 ablates the CLM-relevant slice of this design
+space.
 
 \section{The CUAD Benchmark}\label{sec:lit:cuad}\label{sec:cuad}
 
@@ -280,11 +279,11 @@ The instance count is highly imbalanced: at the (contract, category) level, the
 natural prevalence of positive instances is $\approx\!30\%$, a structural property
 of contract review rather than a sampling artefact. This thesis evaluates on the
 full 102-contract CUAD test split (character lengths 645\,--\,300{,}768; median
-25{,}657), of which 14 contracts exceed 100{,}000 characters. Retaining the full
-test split preserves the long-contract tail, where context-window pressure is
-highest, while keeping the short-contract regime in scope so the
-contract-length moderation analysis (\S\ref{sec:res:length}) can identify the
-length range over which architectural decomposition is favourable.
+25{,}657), of which 14 contracts exceed 100{,}000 characters. The full split
+preserves the long-contract tail, where context-window pressure is highest.
+The short-contract regime is also retained so that the contract-length
+moderation analysis (\S\ref{sec:res:length}) can identify the length range
+over which architectural decomposition is favourable.
 Figure~\ref{fig:cuad-tiers} shows pooled per-category $F_1$ for 13
 representative categories under the zero-shot baseline (B0) across the
 11-model panel of this thesis (\S\ref{sec:meth:models}); error bars span
@@ -393,7 +392,7 @@ Better Call GPT~\cite{martin2024bettercallgpt} reported that GPT-4 with structur
 prompting can match or exceed human associates on contract-review subtasks under
 controlled conditions. ContractEval~\cite{liu2025contracteval} evaluated 19 LLMs
 (4 proprietary, 15 open-source) on CUAD, found a persistent gap between proprietary
-and open-source models, and identified the named failure mode of \emph{laziness} —
+and open-source models, and identified the named failure mode of \emph{laziness}:
 the model declines to extract any span when the clause is present. ContractEval also
 documented a tension between reasoning mode and correctness: chain-of-thought-style
 decoding improved Jaccard span overlap on positive instances but degraded overall
@@ -499,10 +498,10 @@ cross-architecture ablation on a fixed CUAD evaluation harness.
 reasoning and tool-use tasks that single, well-prompted LLMs frequently match or exceed
 multi-agent configurations once the latter are corrected for cost and prompting parity,
 and that observed multi-agent gains often disappear under stronger single-agent baselines.
-\textcite{cemri2025why} taxonomise multi-agent failure modes —
-specification drift between agents, inter-agent verification gaps, lossy summarisation
-across hand-offs — and document that these failures account for the majority of
-regressions in the systems they audit. \textcite{bogavelli2025agentarch}
+\textcite{cemri2025why} taxonomise multi-agent failure modes
+(specification drift between agents, inter-agent verification gaps, lossy
+summarisation across hand-offs) and document that these failures account for
+the majority of regressions in the systems they audit. \textcite{bogavelli2025agentarch}
 run a large architectural sweep across orchestration patterns and base models and find
 substantial model-family $\times$ architecture interactions: an architecture that is
 optimal under one model family is often dominated under another.
@@ -516,10 +515,10 @@ properly normalised single-agent baseline~\cite{gao2025single}, so the hypothesi
 stated and evaluated as conditional. (H2) The relative ordering of architectures will
 depend on the underlying model family~\cite{bogavelli2025agentarch}, encoded as an
 explicit interaction term in the experimental design. (H3) Classification-gate
-cascades — a router agent that decides whether to extract before invoking an extractor
-— are a natural counter to the verification-gap and laziness failures
-catalogued in~\cite{cemri2025why}, motivating the M0 ablation in Chapter~3; whether
-this counter is effective is tested empirically in §\ref{sec:res:cascade}.
+cascades (a router agent that decides whether to extract before invoking an
+extractor) are a natural counter to the verification-gap and laziness failures
+catalogued in~\cite{cemri2025why}, motivating the M0 ablation in Chapter~3.
+Whether this counter is effective is tested empirically in §\ref{sec:res:cascade}.
 
 \section{Evaluation Methodology}\label{sec:lit:eval}\label{sec:eval}
 
@@ -564,7 +563,7 @@ rate at which an LLM declines to extract on instances where a gold span exists:
                  {|\{(c,d): |S^*_{c,d}|>0\}|}.
 \end{equation}
 %
-The dual failure mode is \emph{over-extraction} — the per-model rate of producing
+The dual failure mode is \emph{over-extraction}: the per-model rate of producing
 spans on negative instances:
 %
 \begin{equation}\label{eq:overextract}
@@ -641,7 +640,7 @@ analysis on this task, despite the prediction in~\cite{bogavelli2025agentarch} t
 such interactions dominate single-axis effects. (iii) No published study tracks both
 Eq.~\eqref{eq:laziness} and Eq.~\eqref{eq:overextract} under any deployable
 class distribution that preserves over-extraction as observable, leaving the
-recall--precision asymmetry intrinsic to legal review unobserved. (iv) Production CLM platforms — Sirion, Icertis, Ironclad, DocuSign —
+recall--precision asymmetry intrinsic to legal review unobserved. (iv) Production CLM platforms (Sirion, Icertis, Ironclad, DocuSign)
 disclose single-prompt or retrieval-augmented LLM deployments with no public
 multi-agent ablation, leaving the architectural design space untested in the regime
 where the question is commercially decisive.
@@ -650,7 +649,7 @@ This thesis designs and evaluates a slice of the multi-agent design space (topol
 $\times$ routing $\times$ specialisation $\times$ verification) on the 102-contract
 CUAD test split under the ContractEval protocol extended with
 Eq.~\eqref{eq:overextract}
-and a model-family interaction term, in order to determine — with statistical control
-across the architecture grid~\cite{benjamini1995controlling,dror2018hitchhikers} —
+and a model-family interaction term, in order to determine, with statistical control
+across the architecture grid~\cite{benjamini1995controlling,dror2018hitchhikers},
 under which conditions multi-agent decomposition is justified for CLM deployment and
 under which conditions it is dominated by a stronger single-agent baseline.

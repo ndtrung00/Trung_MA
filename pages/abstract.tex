@@ -19,13 +19,13 @@ Benjamini--Hochberg correction.
 
 No multi-agent configuration consistently outperforms the strongest single-agent
 baseline. Pooled accuracy falls within a $0.011$-point band. Each provider
-family peaks under a different configuration --- Anthropic under
-chain-of-thought, Google under zero-shot, OpenAI under classify-then-extract
---- and lighter models gain from decomposition where heavier ones do not,
+family peaks under a different configuration: Anthropic under
+chain-of-thought, Google under zero-shot, OpenAI under classify-then-extract.
+Lighter models gain from decomposition where heavier ones do not,
 across the eleven-model frontier-proprietary panel evaluated here.
 Two mechanisms explain the null result. The pipeline architecture
-exhibits a \emph{classification-gate rejection cascade} --- its upstream classifier
-silently overrejects on some models --- and the LLM router in the specialist
+exhibits a \emph{classification-gate rejection cascade} (its upstream classifier
+silently overrejects on some models), and the LLM router in the specialist
 architecture is empirically redundant: it converges to a deterministic category
 lookup and produces lower-quality span outputs than the consolidated ablation.
 Multi-agent configurations carry a $23\%$--$67\%$ cost premium under per-call
@@ -40,4 +40,4 @@ unchanged on $F_2$, and quantify the auditability surplus
 \noindent
 For teams building contract-review software, this means a well-prompted
 single model is usually the right default, and the case for adding agents
-should rest on auditability and traceable review, not on accuracy gains.
+rests on auditability and traceable review rather than on accuracy gains.

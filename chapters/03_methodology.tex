@@ -181,8 +181,8 @@ Each run yields $\approx\!2{,}999$ predictions; 1{,}297 of 164{,}941 total
 ($0.79\%$) were excluded for malformed classification tokens.
 
 \paragraph{Prevalence tiers.}
-The 41 CUAD categories are partitioned into three tiers --- \emph{common},
-\emph{moderate}, \emph{rare} --- by natural positive rate in the 102-contract test
+The 41 CUAD categories are partitioned into three tiers (\emph{common},
+\emph{moderate}, \emph{rare}) by natural positive rate in the 102-contract test
 split. Tier cutpoints are fixed before any model is run.
 
 \section{Model Selection}\label{sec:meth:models}
@@ -266,8 +266,8 @@ contract, whereas a spurious extraction is caught by a reviewing lawyer. $F_2$ i
 primary hypothesis-testing metric and the basis for H1--H3.
 
 \paragraph{$F_1$ (secondary).}
-Equal-weight $F$-score, reported for comparability with prior work --- ContractEval
-reports $F_1$ as its headline metric~\cite{liu2025contracteval}.
+Equal-weight $F$-score, reported for comparability with prior work.
+ContractEval reports $F_1$ as its headline metric~\cite{liu2025contracteval}.
 
 \paragraph{Jaccard similarity (span quality).}
 $|A \cap B| / |A \cup B|$ over token sets, computed conditional on a non-empty
@@ -421,7 +421,7 @@ intersection size is reported with each test.
 sampling seed, prompt registry, and trace schema constant across configurations.
 The M1 vs.\ M2 contrast is the most architecturally informative but not a
 clean single-axis ablation: M1 differs from M2 on three jointly-varied
-components --- prompt-format split (one focused specialist preamble vs.\
+components: prompt-format split (one focused specialist preamble vs.\
 the textual union of three), dispatch overhead (router LLM call plus
 orchestrator hop), and per-call latency. Effects observed on the M1 vs.\ M2
 contrast are therefore attributable to the joint architectural delta, not
@@ -443,11 +443,8 @@ is mitigated by reporting precision, recall, $\lambda$, and $\omega$ separately 
 that a reviewer with a different cost ratio can re-rank architectures.
 
 \paragraph{Conclusion.}
-Prompt sensitivity is a first-order threat for any architecture comparison in which
-configurations differ in the number, role, or wording of agent prompts.
-\textcite{chatterjee2024posix} report non-trivial
-sensitivity even on well-defined tasks, with neither parameter count nor instruction
-tuning systematically reducing it. We mitigate by holding prompt templates fixed
+The prompt-sensitivity threat is established in \S\ref{sec:lit:eval}.
+We mitigate it by holding prompt templates fixed
 across models per configuration, documenting them in full in Chapter~4, and treating
 prompt-perturbation analysis as future work.
 

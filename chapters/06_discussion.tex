@@ -15,8 +15,8 @@ Under the pre-registered decision rule of Section~\ref{sec:meth:hypotheses},
 H1 is rejected in its universal form: no multi-agent configuration achieves
 consistent superiority across the eleven-model panel, and eleven of the 22
 per-model contrasts are negative or zero. Conditional improvement exists for
-individual (model, configuration) cells --- \cfgCX\ (M0) on the OpenAI family
-and lighter Anthropic models --- but the pooled signal is dominated by the
+individual (model, configuration) cells (\cfgCX\ (M0) on the OpenAI family
+and lighter Anthropic models), but the pooled signal is dominated by the
 model-family interaction. H2 is rejected: both pipeline decomposition
 (\cfgCX, M0) and specialist routing (\cfgMA, M1) widen the rare--common $F_2$
 gap relative to \cfgZS\ (B0). H3 is supported per model --- \cfgMA\ (M1) and
@@ -46,7 +46,7 @@ narrower than the literature on agentic legal AI implies. A practitioner
 asking whether decomposition helps a CUAD-class extraction task must answer
 two prior questions: which model family, and which capability tier. On the
 eleven models tested, only the OpenAI family receives a meaningful
-multi-agent benefit at the pooled level, and even that benefit is dominated
+multi-agent benefit at the pooled level. That benefit is in turn dominated
 in $F_2$/\$ by a B0 deployment on a cheaper Google Flash model.
 
 \section{The Cascade as a Recall--Precision Exchange}\label{sec:disc:cascade}
@@ -62,10 +62,11 @@ from $0.320$ under \cfgZS\ (B0) to $0.130$ under \cfgCX\ (M0), a $59\%$
 reduction (Table~\ref{tab:omega}). Under $F_1$, which weights precision and
 recall equally, the gate's gain is sufficient to push M0 to the highest pooled
 score ($\overline{F_1}{=}0.798$ vs.\ B0's $0.737$). Under $F_2$, the gain
-is insufficient to compensate the recall loss. The cascade is thus not evidence that M0 is broken, but evidence that M0 makes
-a different operating-point trade. Under the pre-registered primary metric
-$F_2$, the trade is unfavourable for 7 of 11 models. The practitioner question
-is which operating point matches the deployment cost structure.
+is insufficient to compensate the recall loss. The cascade reflects an
+operating-point trade rather than a broken architecture. Under the pre-registered
+primary metric $F_2$, the trade is unfavourable for 7 of 11 models. The
+practitioner question is which operating point matches the deployment cost
+structure.
 
 The cascade direction is predictable from a single-agent calibration pass.
 Models with high B0 over-extraction rates (Gemini~2.5~Pro
@@ -83,8 +84,8 @@ not validated.
 This result connects to the failure-mode taxonomy of \textcite{cemri2025why},
 who identify the inter-agent verification gap as a leading cause of
 multi-agent regression: the downstream extractor cannot override the upstream
-classifier's silent rejection. A reflective verifier agent --- absent in
-M0 --- would be the natural mitigation, and is identified as an untested
+classifier's silent rejection. A reflective verifier agent (absent in
+M0) would be the natural mitigation, and is identified as an untested
 architectural pattern in Section~\ref{sec:concl:outlook}.
 
 \section{Routing as a Deterministic Lookup}\label{sec:disc:routing}
@@ -121,19 +122,19 @@ M2 receives the textual union of three), the dispatch overhead (M1 incurs
 an orchestrator hop and a router LLM call that M2 does not), and the
 per-call latency. The Jaccard $+0.071$ pooled advantage for M2
 (Table~\ref{tab:h3}) is therefore not cleanly attributable to consolidation
-alone; the most parsimonious reading is attentional --- the union prompt
+alone; the most parsimonious reading is attentional. The union prompt
 presents all three category-cluster framings simultaneously and lets the
 model choose, rather than committing the dispatch decision before the
-contract is read --- but a router-disabled M1 ablation would be required to
+contract is read. A router-disabled M1 ablation would be required to
 isolate the prompt-format component from the dispatch-overhead component
 (\S\ref{sec:concl:outlook}).
 
 The combined implication for the design of legal-AI multi-agent systems is
-that the value of specialist decomposition lies in the prompt content, not
-in the dispatch architecture. A practitioner with a fixed specialist
-taxonomy is better served by a single agent receiving the union of
-specialist instructions than by a router-plus-specialists topology, and
-eliminates the $23\%$ orchestrator cost premium.
+that specialist prompt content, rather than dispatch architecture, accounts
+for the M1/M2 delta. A practitioner with a fixed specialist taxonomy is
+better served by a single agent receiving the union of specialist
+instructions than by a router-plus-specialists topology, and eliminates
+the $23\%$ orchestrator cost premium.
 
 \section{The $\beta{=}2$ Choice and Operating-Point Sensitivity}\label{sec:disc:metric}
 
@@ -164,8 +165,7 @@ The commitment to $\beta{=}2$ is justified in
 Section~\ref{sec:meth:metrics} by the deployment cost structure of CLM
 review: a missed clause carries the legal cost of an undisclosed obligation,
 whereas a spurious extraction is corrected at the lower cost of attorney
-review time. The empirical question of where the cost ratio actually sits is
-deployment-dependent and falls outside the scope of this thesis. The
+review time. Deployment cost ratios are out of scope here. The
 sensitivity is mitigated by reporting $F_1$, recall, precision, $\omega$,
 and FN-rate alongside $F_2$, so a deployment with a different cost ratio can
 re-rank architectures from the same data. The practitioner recommendation is
@@ -206,7 +206,7 @@ require portfolio-level orchestration over per-contract agents that no
 public benchmark currently evaluates and that this thesis identifies as
 future work (\S\ref{sec:concl:outlook}).
 
-\paragraph{Production has no ground truth, so trace primitives carry the value.}
+\paragraph{Trace primitives under no ground truth.}
 A production deployment cannot compute $F_2$, Jaccard, or $\omega$;
 evaluation proceeds through user feedback, spot-checking, and exception
 triage. The single architectural property the benchmark does measure that
@@ -220,9 +220,8 @@ auditability finding the benchmark supports without auxiliary measurement,
 and is the measured basis for preferring a multi-agent topology in deployments
 where extraction provenance is a regulatory or contractual requirement
 (EU AI Act Art.~13~\cite{euaiact2024}, GDPR Art.~22~\cite{gdpr2016}).
-The benchmark $F_2$ ranking therefore does not translate directly into
-``deploy single-agent in production'': on the one production-relevant axis the
-benchmark does measure, multi-agent dominates.
+On grounding (the one production-relevant axis the benchmark does measure),
+multi-agent dominates (Table~\ref{tab:grounding}).
 
 % Limitations and threats to validity are consolidated alongside the future-work
 % directions in Chapter~\ref{chapter:conclusion}, Section~\ref{sec:concl:limitations}.
