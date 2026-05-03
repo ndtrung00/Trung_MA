@@ -209,7 +209,7 @@ this thesis.
   \end{tikzpicture}
   \caption{Multi-agent design space: five structural axes and their principal options.
   Shaded boxes mark options covered by at least one experimental configuration
-  (B0, B1, M0, M1, M2) in this thesis. Chapter~3 specifies which configuration
+  (B0, B4, M0, M1, M6) in this thesis. Chapter~3 specifies which configuration
   selects which option.}
   \label{fig:mas-design-space}
 \end{figure}

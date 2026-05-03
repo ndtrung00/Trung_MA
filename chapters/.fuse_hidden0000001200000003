@@ -20,22 +20,20 @@ attributable to architecture or model, not dataset drift.
 \begin{table}[h]
   \centering
   \small
-  \caption{Five evaluated configurations. B1 vs.\ B0 isolates chain-of-thought;
-  M0 vs.\ B0 isolates the classification gate; M1 vs.\ M2 isolates routing and
-  specialist decomposition (architecture ablation).
-  ${}^\dagger$Artifact IDs used in the experiment repository: B0\,=\,B1,
-  B1\,=\,B4, M0\,=\,M0, M1\,=\,M1, M2\,=\,M6.}
+  \caption{Five evaluated configurations. B4 vs.\ B1 isolates chain-of-thought;
+  M0 vs.\ B1 isolates the classification gate; M1 vs.\ M6 isolates routing and
+  specialist decomposition (architecture ablation).}
   \label{tab:configs}
   \begin{tabular}{lllll}
     \toprule
     \textbf{ID} & \textbf{Name} & \textbf{Stages} & \textbf{Routing} &
     \textbf{Specialisation} \\
     \midrule
-    B0 & \cfgZS                & 1 & None        & Generalist \\
-    B1 & \cfgCoT               & 1 & None        & Generalist + chain-of-thought \\
+    B1 & \cfgZS                & 1 & None        & Generalist \\
+    B4 & \cfgCoT               & 1 & None        & Generalist + chain-of-thought \\
     M0 & \cfgCX                & 2 & Static gate & Generalist \\
     M1 & \cfgMA                & 2 & LLM router  & Three domain specialists \\
-    M2 & \cfgCP                & 1 & None        & Union of M1 specialist prompts \\
+    M6 & \cfgCP                & 1 & None        & Union of M1 specialist prompts \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -59,7 +57,7 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
     >=stealth, thick
   }
 
-  % ---- Row 1: Baselines (B0, B1) ----
+  % ---- Row 1: Baselines (B1, B4) ----
   \begin{subfigure}[b]{0.28\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
@@ -69,7 +67,7 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
       \draw[->] (i) -- (l);
       \draw[->] (l) -- (o);
     \end{tikzpicture}
-    \caption{\cfgZS\ (B0)}
+    \caption{\cfgZS\ (B1)}
     \label{fig:arch-b1}
   \end{subfigure}
   \hfil
@@ -84,13 +82,13 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
       \draw[->] (l) -- (c);
       \draw[->] (c) -- (o);
     \end{tikzpicture}
-    \caption{\cfgCoT\ (B1)}
+    \caption{\cfgCoT\ (B4)}
     \label{fig:arch-b4}
   \end{subfigure}
 
   \par\bigskip
 
-  % ---- Row 2: Multi-agent (M0, M1, M2) ----
+  % ---- Row 2: Multi-agent (M0, M1, M6) ----
   \begin{subfigure}[b]{0.30\textwidth}
     \centering
     \begin{tikzpicture}[node distance=0.42cm]
@@ -143,7 +141,7 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
       \draw[->] (i) -- (l);
       \draw[->] (l) -- (o);
     \end{tikzpicture}
-    \caption{\cfgCP\ (M2)}
+    \caption{\cfgCP\ (M6)}
     \label{fig:arch-m6}
   \end{subfigure}
 
@@ -276,8 +274,8 @@ All metrics are reported pooled and per prevalence tier.
 
 \section{Hypotheses}\label{sec:meth:hypotheses}
 
-\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1},\, \text{M2}\}$ such that
-$C$ outperforms $B^\star \in \{\text{B0},\, \text{B1}\}$ on $F_2$.
+\paragraph{H1.} $\exists\, C \in \{\text{M0},\, \text{M1},\, \text{M6}\}$ such that
+$C$ outperforms $B^\star \in \{\text{B1},\, \text{B4}\}$ on $F_2$.
 Null: no such $C$ exists.
 Decision rule: reject the null if any of the multi-agent vs.\ baseline pairwise
 McNemar exact tests ($m{=}33$: 3 multi-agent $\times$ 2 baselines $\times$ 11 models,
@@ -291,10 +289,10 @@ Null: $\Delta\mathrm{Gap} \geq 0$.
 Decision rule: reject the null if the upper bound of the 95\% paired bootstrap CI on
 $\Delta\mathrm{Gap}$ is strictly less than zero.
 
-\paragraph{H3.} \cfgMA\ (M1) and \cfgCP\ (M2) are statistically distinguishable on $F_2$.
-Null: $\Delta F_2(\text{M1},\,\text{M2}) = 0$.
+\paragraph{H3.} \cfgMA\ (M1) and \cfgCP\ (M6) are statistically distinguishable on $F_2$.
+Null: $\Delta F_2(\text{M1},\,\text{M6}) = 0$.
 Decision rule: reject the null (two-sided) if the McNemar exact $p$-value is below
-$\alpha{=}0.05$ after BH correction ($m{=}11$, one M1 vs.\ M2 contrast per model).
+$\alpha{=}0.05$ after BH correction ($m{=}11$, one M1 vs.\ M6 contrast per model).
 The hypothesis is two-sided because direction is not pre-specified; if rejected, the
 direction of the effect is reported separately because direction may be inconsistent
 across the model panel.
@@ -348,7 +346,7 @@ controls the false discovery rate (FDR) at $\alpha{=}0.05$: reject $H_0^{(i)}$ i
 %
 The H1 family has $m{=}33$ tests (3 multi-agent configurations $\times$ 2 baselines
 $\times$ 11 models, retaining the baseline with higher pooled $F_2$ per model); the H3 family has
-$m{=}11$ tests (one M1 vs.\ M2 contrast per model). Raw and BH-corrected $p$-values
+$m{=}11$ tests (one M1 vs.\ M6 contrast per model). Raw and BH-corrected $p$-values
 are both reported.
 
 \paragraph{Effect size.}
@@ -378,8 +376,8 @@ intersection size is reported with each test.
 
 \paragraph{Internal.} Configuration parity is maintained by holding the CUAD loader,
 sampling seed, prompt registry, and trace schema constant across configurations.
-\cfgMA\ (M1) and \cfgCP\ (M2) share the same textual specialist instructions
-(split vs.\ concatenated), so the M1 vs.\ M2 contrast isolates architecture,
+\cfgMA\ (M1) and \cfgCP\ (M6) share the same textual specialist instructions
+(split vs.\ concatenated), so the M1 vs.\ M6 contrast isolates architecture,
 not prompt content.
 
 \paragraph{External.} Single language (English), single jurisdiction (predominantly

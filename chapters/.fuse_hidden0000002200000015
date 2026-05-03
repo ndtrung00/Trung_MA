@@ -45,7 +45,7 @@ and connects it to the inter-agent verification gap taxonomy of
 \paragraph{C4 --- Routing redundancy with span-quality degradation.}
 The LLM router agreed with a deterministic category-to-specialist dictionary
 on $99.91\%$ of requests across the panel and on $100\%$ for ten of eleven
-models. \cfgCP\ (M2) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals, while
+models. \cfgCP\ (M6) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals, while
 producing measurably cleaner spans (Jaccard $+0.071$ on ten of eleven models;
 Table~\ref{tab:h3}). In closed-vocabulary specialist-routing designs, the
 LLM-mediated routing call adds orchestrator cost without architectural

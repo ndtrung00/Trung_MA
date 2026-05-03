@@ -29,8 +29,8 @@ sampler reproduced CUAD's class prior.
   \label{tab:coverage}
   \begin{tabular}{lrrrrrr}
     \toprule
-    \textbf{Model} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} &
-    \textbf{M2} & \textbf{Total} \\
+    \textbf{Model} & \textbf{B0} & \textbf{B4} & \textbf{M0} & \textbf{M1} &
+    \textbf{M6} & \textbf{Total} \\
     \midrule
     Claude Haiku 4.5   & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 \\
     Claude Opus 4.6    & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 2{,}999 & 14{,}995 \\
@@ -74,31 +74,31 @@ eleven models, and per provider family.
     \midrule
     \multirow{5}{*}{Anthropic}
       & B0 & 0.828 & 0.736 & 0.911 & 0.628 & 0.391 \\
-      & B1 & \textbf{0.851} & 0.740 & 0.928 & 0.624 & 0.436 \\
+      & B4 & \textbf{0.851} & 0.740 & 0.928 & 0.624 & 0.436 \\
       & M0 & 0.848 & \textbf{0.826} & 0.857 & \textbf{0.808} & \textbf{0.162} \\
       & M1 & 0.839 & 0.803 & 0.860 & 0.774 & 0.205 \\
-      & M2 & 0.836 & 0.760 & 0.882 & 0.673 & 0.330 \\
+      & M6 & 0.836 & 0.760 & 0.882 & 0.673 & 0.330 \\
     \midrule
     \multirow{5}{*}{Google}
       & B0 & \textbf{0.826} & 0.747 & 0.851 & 0.683 & 0.351 \\
-      & B1 & 0.763 & 0.689 & 0.795 & 0.622 & 0.399 \\
+      & B4 & 0.763 & 0.689 & 0.795 & 0.622 & 0.399 \\
       & M0 & 0.748 & 0.777 & 0.732 & \textbf{0.844} & \textbf{0.099} \\
       & M1 & 0.808 & 0.782 & 0.823 & 0.762 & 0.205 \\
-      & M2 & 0.778 & 0.706 & 0.819 & 0.641 & 0.376 \\
+      & M6 & 0.778 & 0.706 & 0.819 & 0.641 & 0.376 \\
     \midrule
     \multirow{5}{*}{OpenAI}
       & B0 & 0.731 & 0.725 & 0.737 & 0.722 & \textbf{0.176} \\
-      & B1 & 0.768 & 0.701 & 0.815 & 0.628 & 0.365 \\
+      & B4 & 0.768 & 0.701 & 0.815 & 0.628 & 0.365 \\
       & M0 & \textbf{0.783} & \textbf{0.789} & 0.781 & \textbf{0.798} & 0.138 \\
       & M1 & 0.700 & 0.735 & 0.696 & 0.787 & 0.111 \\
-      & M2 & 0.744 & 0.698 & 0.762 & 0.645 & 0.306 \\
+      & M6 & 0.744 & 0.698 & 0.762 & 0.645 & 0.306 \\
     \midrule
     \multirow{5}{*}{All (11)}
       & B0 & \textbf{0.801} & 0.737 & \textbf{0.854} & 0.666 & 0.320 \\
-      & B1 & 0.796 & 0.711 & 0.871 & 0.611 & 0.385 \\
+      & B4 & 0.796 & 0.711 & 0.871 & 0.611 & 0.385 \\
       & M0 & 0.794 & \textbf{0.798} & 0.793 & \textbf{0.813} & \textbf{0.130} \\
       & M1 & 0.790 & 0.776 & 0.801 & 0.768 & 0.179 \\
-      & M2 & 0.790 & 0.724 & 0.844 & 0.642 & 0.339 \\
+      & M6 & 0.790 & 0.724 & 0.844 & 0.642 & 0.339 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -112,7 +112,7 @@ the lowest over-extraction rate ($0.130$). The $\beta{=}2$ weighting of $F_2$
 rewards \cfgZS's recall; $F_1$'s equal weighting rewards \cfgCX's calibration.
 
 Table~\ref{tab:h1-f2} reports per-model $F_2$. No configuration is uniformly
-best: B0 wins on 4 models, M0 on 4, B1 on 2, and M1 on 1. The ranking also
+best: B0 wins on 4 models, M0 on 4, B4 on 2, and M1 on 1. The ranking also
 varies with model compute tier (Table~\ref{tab:tier-gradient}): \cfgCX\ leads on
 light models while \cfgZS\ leads on heavy models, qualifying contribution~C2.
 
@@ -123,12 +123,12 @@ light models while \cfgZS\ leads on heavy models, qualifying contribution~C2.
   \caption{$F_2$ by model and configuration. Bold: best per row.
   Configuration names defined in Table~\ref{tab:configs}.
   The family interaction is pronounced: the Anthropic family peaks under \cfgCoT\
-  (B1), the Google family under \cfgZS\ (B0), and the OpenAI family under
+  (B4), the Google family under \cfgZS\ (B0), and the OpenAI family under
   \cfgCX\ (M0).}
   \label{tab:h1-f2}
   \begin{tabular}{lccccc}
     \toprule
-    \textbf{Model} & $F_2$(B0) & $F_2$(B1) & $F_2$(M0) & $F_2$(M1) & $F_2$(M2) \\
+    \textbf{Model} & $F_2$(B0) & $F_2$(B4) & $F_2$(M0) & $F_2$(M1) & $F_2$(M6) \\
     \midrule
     Claude Haiku 4.5   & 0.783 & \textbf{0.849} & 0.792 & 0.835 & 0.822 \\
     Claude Opus 4.6    & 0.863 & \textbf{0.865} & 0.864 & 0.860 & 0.846 \\
@@ -161,7 +161,7 @@ light models while \cfgZS\ leads on heavy models, qualifying contribution~C2.
   \label{tab:tier-gradient}
   \begin{tabular}{lccccc}
     \toprule
-    \textbf{Tier} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
+    \textbf{Tier} & \textbf{B0} & \textbf{B4} & \textbf{M0} & \textbf{M1} & \textbf{M6} \\
     \midrule
     Light (5 models)  & 0.745 & 0.740 & \textbf{0.751} & 0.743 & 0.728 \\
     Mid (3 models)    & 0.831 & \textbf{0.834} & 0.814 & 0.831 & 0.831 \\
@@ -219,7 +219,7 @@ Table~\ref{tab:h1-stats} are positive and eleven are negative or zero;
 no multi-agent configuration achieves consistent superiority across the
 eleven-model panel. Conditional improvement exists in two subfamilies: the
 OpenAI family benefits from M0 (GPT-4.1\,Nano: $+0.171$; pooled: $+0.052$),
-and lighter Anthropic models benefit from M0 and B1 (Sonnet\,4: $+0.025$;
+and lighter Anthropic models benefit from M0 and B4 (Sonnet\,4: $+0.025$;
 Sonnet\,4.6: $+0.047$). For the Google family, B0 dominates: M0 regresses by
 up to $0.210$ points on Gemini\,2.5\,Flash, and M1 fails to improve over B0 on
 all four Google models. Pooled $F_2$ is within a $0.011$-point band; the
@@ -244,16 +244,16 @@ together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$
   $g = F_2^c - F_2^r$ for all five configurations. Lower $g$ is better.
   M0's mean gap (0.284) exceeds B0's (0.276) due to gate-induced rare-tier
   collapse on Gemini\,2.5\,Flash/Pro. M1's mean gap (0.342) is worst, driven by
-  GPT-family specialist failure on rare categories. Only B1 and M2 reduce the
+  GPT-family specialist failure on rare categories. Only B4 and M6 reduce the
   gap relative to B0 (means 0.240 and 0.226).}
   \label{tab:h2-tier}
   \begin{tabular}{lcccccccccc}
     \toprule
     & \multicolumn{2}{c}{\textbf{B0}}
-    & \multicolumn{2}{c}{\textbf{B1}}
+    & \multicolumn{2}{c}{\textbf{B4}}
     & \multicolumn{2}{c}{\textbf{M0}}
     & \multicolumn{2}{c}{\textbf{M1}}
-    & \multicolumn{2}{c}{\textbf{M2}} \\
+    & \multicolumn{2}{c}{\textbf{M6}} \\
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
     \textbf{Model}
     & $F_2^c$ & $g$ & $F_2^c$ & $g$ & $F_2^c$ & $g$
@@ -283,8 +283,8 @@ mechanisms. Under M0, the classification gate (Section~\ref{sec:res:cascade})
 collapses rare-tier $F_2$ on the Gemini family (Gemini\,2.5\,Flash: $F_2^r$
 drops from $0.719$ under B0 to $0.381$ under M0). Under M1, GPT-family
 specialists fail catastrophically on rare categories (GPT-4.1: $F_2^r$ drops
-$0.704 \to 0.430$; GPT-4.1\,Nano: $0.253 \to 0.167$). The B1 chain-of-thought
-baseline and M2 consolidated specialist do reduce the gap (means 0.240 and
+$0.704 \to 0.430$; GPT-4.1\,Nano: $0.253 \to 0.167$). The B4 chain-of-thought
+baseline and M6 consolidated specialist do reduce the gap (means 0.240 and
 0.226), but neither is a multi-agent architecture in the sense of
 Chapter~\ref{chapter:methodology}.
 
@@ -307,8 +307,8 @@ already extract well, not the ones they fail on.
   \label{tab:tier-winners}
   \begin{tabular}{lccccc}
     \toprule
-    \textbf{Prevalence tier} & \textbf{B0} & \textbf{B1} & \textbf{M0} &
-    \textbf{M1} & \textbf{M2} \\
+    \textbf{Prevalence tier} & \textbf{B0} & \textbf{B4} & \textbf{M0} &
+    \textbf{M1} & \textbf{M6} \\
     \midrule
     Common (F1$_{CE} > 0.7$, 6 cats)   & 0.911 & 0.930 & 0.878 & \textbf{0.935} & 0.928 \\
     Moderate (0.3--0.7, 14 cats) & 0.754 & 0.734 & \textbf{0.778} & 0.718 & 0.727 \\
@@ -325,19 +325,19 @@ GPT-4.1\,Nano (29 mis-routes out of 2{,}999), yielding $99.91\%$ routing
 accuracy across the panel. Routing is empirically a deterministic lookup: the
 router's decisions can be replicated by a static dictionary mapping category
 names to specialist labels at zero LLM cost. We therefore present no figure for
-routing accuracy and treat M1 vs.\ M2 as a test of whether dispatch architecture
+routing accuracy and treat M1 vs.\ M6 as a test of whether dispatch architecture
 --- with routing held empirically constant --- adds value over a single-agent
 prompt containing the same specialist text.
 
-Table~\ref{tab:h3} reports the M1--M2 contrasts on $F_2$ and on average
+Table~\ref{tab:h3} reports the M1--M6 contrasts on $F_2$ and on average
 Jaccard span overlap.
 
 \begin{table}[h]
   \centering
   \setlength{\tabcolsep}{4pt}
   \small
-  \caption{H3 contrasts: \cfgMA\ (M1) vs.\ \cfgCP\ (M2). Both configurations are
-  tied on pooled $F_2$ ($\overline{\Delta F_2} = -0.0002$; 5 M1 wins, 6 M2 wins).
+  \caption{H3 contrasts: \cfgMA\ (M1) vs.\ \cfgCP\ (M6). Both configurations are
+  tied on pooled $F_2$ ($\overline{\Delta F_2} = -0.0002$; 5 M1 wins, 6 M6 wins).
   On span quality (Jaccard), \cfgCP\ dominates on 10 of 11 models, mean
   advantage $+0.071$. BH: BH-corrected significance ($\alpha{=}0.05$, $m{=}11$).
   All 11 contrasts are significant. The single M1 exception on Jaccard is
@@ -346,8 +346,8 @@ Jaccard span overlap.
   \begin{tabular}{lcccccc}
     \toprule
     \textbf{Model}
-    & $F_2$(M1) & $F_2$(M2) & $\Delta F_2$ & BH
-    & Jacc.\,(M1) & Jacc.\,(M2) \\
+    & $F_2$(M1) & $F_2$(M6) & $\Delta F_2$ & BH
+    & Jacc.\,(M1) & Jacc.\,(M6) \\
     \midrule
     Claude Haiku 4.5   & 0.835 & 0.822 & $+0.013$ & \checkmark & 0.403 & \textbf{0.449} \\
     Claude Opus 4.6    & 0.860 & 0.846 & $+0.014$ & \checkmark & 0.429 & \textbf{0.492} \\
@@ -366,10 +366,10 @@ Jaccard span overlap.
   \end{tabular}
 \end{table}
 
-Despite identical routing, \cfgMA\ (M1) and \cfgCP\ (M2) are statistically
+Despite identical routing, \cfgMA\ (M1) and \cfgCP\ (M6) are statistically
 distinguishable on $F_2$ for all 11 models after BH correction (McNemar
 two-sided, $\alpha{=}0.05$, $m{=}11$; Table~\ref{tab:h3}). The direction is
-inconsistent: M1 outperforms M2 on 5 models, M2 on 6. There is no systematic
+inconsistent: M1 outperforms M6 on 5 models, M6 on 6. There is no systematic
 family pattern. On the secondary axis of span quality, \cfgCP\ dominates 10
 of 11 models with a $+0.071$ Jaccard advantage, indicating that the
 consolidated single-agent prompt produces more precise, tighter extractions
@@ -379,13 +379,13 @@ than the routed specialist pipeline (contribution~C4).
 H3 is supported at the per-model level: \cfgMA\ and \cfgCP\ are statistically
 distinguishable on $F_2$ for all 11 models after BH correction (McNemar
 two-sided, $\alpha{=}0.05$, $m{=}11$). The direction of the difference, however,
-is inconsistent --- M1 outperforms M2 on 5 models, M2 on 6 --- and pooled $F_2$
+is inconsistent --- M1 outperforms M6 on 5 models, M6 on 6 --- and pooled $F_2$
 is identical to three decimal places ($0.790$ vs.\ $0.790$). H3 therefore
 confirms that dispatch architecture alters model behaviour, not that it
 improves it. The direction inconsistency is itself a finding: routing overhead
 hurts precision-oriented models (GPT-family, $\Delta F_2 {=} -0.056$ to
 $-0.076$) and helps recall-deficient ones (Gemini\,3\,Flash,
-$\Delta F_2 {=} +0.138$). On the secondary axis of span quality, M2 dominates
+$\Delta F_2 {=} +0.138$). On the secondary axis of span quality, M6 dominates
 10 of 11 models with a $+0.071$ Jaccard advantage (contribution~C4): the
 single-agent consolidated prompt produces tighter, more precise extractions
 than the routed specialist pipeline. A deterministic lookup replaces the LLM
@@ -464,7 +464,7 @@ a question revisited in Chapter~\ref{chapter:discussion}.
   \label{tab:omega}
   \begin{tabular}{lccccc}
     \toprule
-    \textbf{Model} & $\omega$(B0) & $\omega$(B1) & $\omega$(M0) & $\omega$(M1) & $\omega$(M2) \\
+    \textbf{Model} & $\omega$(B0) & $\omega$(B4) & $\omega$(M0) & $\omega$(M1) & $\omega$(M6) \\
     \midrule
     Claude Haiku 4.5   & .478 & .369 & \textbf{.158} & .191 & .316 \\
     Claude Opus 4.6    & .330 & .436 & \textbf{.169} & .184 & .335 \\
@@ -508,7 +508,7 @@ B0.
   \label{tab:cost}
   \begin{tabular}{lrrrrr}
     \toprule
-    \textbf{Model} & B0 (\$) & B1 (\$) & M0 (\$) & M1 (\$) & M2 (\$) \\
+    \textbf{Model} & B0 (\$) & B4 (\$) & M0 (\$) & M1 (\$) & M6 (\$) \\
     \midrule
     Claude Haiku 4.5    &  36.70 &  43.11 &  60.66 &  45.00 &  43.29 \\
     Claude Opus 4.6     & 185.02 & 213.30 & 302.96 & 215.49 & 211.10 \\
@@ -574,7 +574,7 @@ higher cost than B0 Gemini alternatives.
           (0.4665,0.8317)(1.9410,0.8162)(0.6397,0.6085)(2.4247,0.8536)
           (2.4741,0.8534)(0.5284,0.8330)(0.1220,0.5452)
         };
-      \legend{B0, B1, M0, M1, M2}
+      \legend{B0, B4, M0, M1, M6}
     \end{axis}
   \end{tikzpicture}
   \caption{$F_2$ vs.\ per-sample cost across all 55 cells. The Pareto frontier
@@ -616,7 +616,7 @@ comparable with the main analysis metrics.
   \label{tab:length-quartile}
   \begin{tabular}{lcccccc}
     \toprule
-    \textbf{Quartile} & \textbf{Range (chars)} & \textbf{B0} & \textbf{B1} &
+    \textbf{Quartile} & \textbf{Range (chars)} & \textbf{B0} & \textbf{B4} &
     \textbf{M0} & \textbf{M1} & \textbf{Best} \\
     \midrule
     Q1 (shortest) & 0--14{,}384    & 0.756 & 0.767 & \textbf{0.776} & \textbf{0.793} & M1 \\
@@ -647,7 +647,7 @@ CUAD-class contract lengths.
 No architectural pattern wins universally on $F_2$. Pooled $F_2$ ranks within a
 $0.011$-point band, and per-model winners are split four ways across the panel.
 The dominant signal is the model-family interaction: the Anthropic family peaks
-at B1 ($\overline{F_2} = 0.851$), the Google family at B0 ($0.826$), and the
+at B4 ($\overline{F_2} = 0.851$), the Google family at B0 ($0.826$), and the
 OpenAI family at M0 ($0.783$). The choice of evaluation metric also flips the
 ranking: M0 dominates the panel on $F_1$ ($0.798$ vs.\ $0.737$ for B0) by
 suppressing over-extraction. The condition under which a multi-agent pipeline (M0) is preferable on $F_1$

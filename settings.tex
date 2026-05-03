@@ -138,6 +138,23 @@
   },
 }
 
+% ── Configuration name macros ─────────────────────────────────────────────
+% Descriptive names for the five experimental configurations.
+% Thesis IDs: B0, B1, M0, M1, M2  (sequential, reader-friendly)
+% Repo artifact IDs: B1, B4, M0, M1, M6  (internal experiment identifiers)
+% Use these macros in prose; IDs are reserved for table column headers and
+% mathematical expressions such as $F_2(\text{B0})$.
+%
+%   Prose pattern — first mention per section:  \cfgZS\ (B0)
+%   Prose pattern — subsequent mentions:        \cfgZS
+%   Table column headers:                       \textbf{B0} (caption references Tab. 3.1)
+%
+\newcommand{\cfgZS}{Zero-Shot}               % B0  (repo: B1)
+\newcommand{\cfgCoT}{CoT}                    % B1  (repo: B4)
+\newcommand{\cfgCX}{Classify-Extract}        % M0  (repo: M0)
+\newcommand{\cfgMA}{Multi-Agent (Full)}      % M1  (repo: M1)
+\newcommand{\cfgCP}{Multi-Agent (Prompt-Only)} % M2  (repo: M6)
+
 % Settings for lstlistings
 \lstset{%
   basicstyle=\ttfamily,

@@ -84,7 +84,7 @@ systems, and which architectural patterns are most effective?
   \item[\textbf{H2.}] Multi-agent configurations reduce the rare--common $F_2$ gap
     relative to single-agent baselines (paired bootstrap on gap difference, 95\% CI).
   \item[\textbf{H3.}] \cfgMA\ (M1) is statistically distinguishable
-    from \cfgCP\ (M2) on $F_2$ (two-sided McNemar exact).
+    from \cfgCP\ (M6) on $F_2$ (two-sided McNemar exact).
 \end{description}
 
 RQ3 is addressed by system design rather than statistical hypothesis test; the auditability
@@ -123,21 +123,9 @@ mode that positive-heavy sampling masks (\S\ref{sec:sampling}).
 
 \section{Thesis Outline}\label{sec:outline}
 
-\hyperref[chapter:literature-review]{Chapter~\ref*{chapter:literature-review}}
-defines the foundational concepts (LLMs, agentic systems, CUAD, CLM) and surveys
-prior multi-agent legal-AI systems along four dimensions: topology, routing,
-specialisation granularity, and verification structure.
-\hyperref[chapter:methodology]{Chapter~\ref*{chapter:methodology}} specifies the
-five configurations (B0--M2), the 11-model panel, the sampling strategy, the three
-pre-registered hypotheses, and the statistical test suite.
-\hyperref[chapter:system-design]{Chapter~\ref*{chapter:system-design}} documents
-the LangGraph implementation, the YAML prompt registry, the output schema, and the
-reproducibility infrastructure.
-\hyperref[chapter:results]{Chapter~\ref*{chapter:results}} reports $F_2$, $F_1$,
-precision, recall, cost, and span-quality results across the 55-run grid and tests
-H1--H3.
-\hyperref[chapter:discussion]{Chapter~\ref*{chapter:discussion}} interprets the
-headline null result, the classification-gate cascade, routing redundancy, and
-operating-point sensitivity.
-\hyperref[chapter:conclusion]{Chapter~\ref*{chapter:conclusion}} restates the four
-contributions, answers the research questions, and identifies three open directions.
+Chapter~\ref{chapter:literature-review} surveys background and related work.
+Chapter~\ref{chapter:methodology} specifies methodology.
+Chapter~\ref{chapter:system-design} documents the implementation.
+Chapter~\ref{chapter:results} reports empirical results.
+Chapter~\ref{chapter:discussion} discusses findings and
+Chapter~\ref{chapter:conclusion} concludes.

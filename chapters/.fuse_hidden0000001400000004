@@ -84,7 +84,7 @@ statistical pipeline and the inspection dashboard.
   \emph{Orange boxes}: external provider APIs.
   \emph{Dashed arrows}: control flow (Driver initialises inputs before each run).
   \emph{Solid arrows}: data flow.
-  Only the StateGraph topology varies across B0--M2; all other components are
+  Only the StateGraph topology varies across B1--M6; all other components are
   configuration-agnostic.}
   \label{fig:sys-components}
 \end{figure}
@@ -176,17 +176,17 @@ class GraphState(TypedDict, total=False):
 \paragraph{Prompt registry.}
 Prompts are stored as YAML and loaded once per run; the schema version hash is
 written to the run metadata so prompt drift is detectable post-hoc. Two roots:
-\texttt{prompts/baselines/} (B0, B1, and the M0 classifier and extractor) and
-\texttt{prompts/specialists/} (the three M1 domain specialists and the M2
+\texttt{prompts/baselines/} (B1, B4, and the M0 classifier and extractor) and
+\texttt{prompts/specialists/} (the three M1 domain specialists and the M6
 consolidated prompt). A shared \texttt{system/} directory holds anti-laziness
 instructions and the verbatim-span output contract, referenced by all configurations,
 ensuring that the anti-laziness and verbatim-span output instructions are identical
-across B0, B1, M0, M1, and M2.
+across B1, B4, M0, M1, and M6.
 
 \paragraph{Common parser.}
 A single parser converts every model completion to a canonical
-\texttt{(spans: list[str]~|~None)} representation. For B0, the parser accepts
-verbatim quoted spans or the literal string ``no related clause''. For B1 and
+\texttt{(spans: list[str]~|~None)} representation. For B1, the parser accepts
+verbatim quoted spans or the literal string ``no related clause''. For B4 and
 M0-extractor, the parser additionally requires a \texttt{<answer>...</answer>} tag
 and issues a single repair re-prompt if the tag is absent. On persistent failure the
 record is marked \texttt{parser\_status="rejected"} and excluded from official
@@ -194,13 +194,13 @@ statistics (1{,}297 of 164{,}941 predictions, $0.79\%$).
 
 \section{Baseline Architectures}\label{sec:sys:baselines}
 
-\paragraph{B0 --- Zero-shot single agent.}
-B0 replicates the zero-shot prompt protocol of~\cite{liu2025contracteval}. The model
+\paragraph{B1 --- Zero-shot single agent.}
+B1 replicates the zero-shot prompt protocol of~\cite{liu2025contracteval}. The model
 receives one user message containing the contract text, the target category name, the
 category indicator, and an explicit instruction to return verbatim span(s) or the
 literal string ``no related clause''. No examples, no chain-of-thought directives.
 
-\begin{promptbox}{B0: zero-shot user template}
+\begin{promptbox}{B1: zero-shot user template}
 You are reviewing a commercial contract. Determine whether the contract contains
 any clause(s) of the category below. If yes, return the verbatim span(s); each span
 must appear exactly as in the contract. If no, return exactly: ``no related clause''.
@@ -211,8 +211,8 @@ must appear exactly as in the contract. If no, return exactly: ``no related clau
 \textbf{Contract:} \{\{contract\_text\}\}
 \end{promptbox}
 
-\paragraph{B1 --- Chain-of-thought single agent.}
-B1 retains B0's task framing but elicits explicit step-by-step reasoning before a
+\paragraph{B4 --- Chain-of-thought single agent.}
+B4 retains B1's task framing but elicits explicit step-by-step reasoning before a
 final structured answer. The model is instructed to restate what the category covers,
 scan for candidate spans, weigh ambiguous matches against the indicator, and emit a
 final \texttt{<answer>...</answer>} block. A parsing bug in pilot work caused
@@ -387,12 +387,12 @@ call structure reproduced in the Langfuse trace.
   \label{fig:m1-sequence}
 \end{figure}
 
-\paragraph{M2 --- Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
+\paragraph{M6 --- Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
 Its prompt is the textual union of the three M1 specialist prompts, concatenated
 into a single agent with no router, no orchestrator, and no per-category branching:
 %
 \begin{equation*}
-  \texttt{prompt}_{\text{M2}} = \mathrm{join}\!\left(
+  \texttt{prompt}_{\text{M6}} = \mathrm{join}\!\left(
     \texttt{prompt}_{\text{risk}},\;
     \texttt{prompt}_{\text{temporal}},\;
     \texttt{prompt}_{\text{ip}}
@@ -400,9 +400,9 @@ into a single agent with no router, no orchestrator, and no per-category branchi
 \end{equation*}
 %
 The three preambles are separated by domain headings; the verbatim-span output
-contract is stated once at the end. M2's purpose is methodological: M1 vs.\ M2
-isolates routing and decomposition; M2 vs.\ B0 isolates prompt content. Together
-the two contrasts decompose the M1-vs-B0 delta into an architectural component and a
+contract is stated once at the end. M6's purpose is methodological: M1 vs.\ M6
+isolates routing and decomposition; M6 vs.\ B1 isolates prompt content. Together
+the two contrasts decompose the M1-vs-B1 delta into an architectural component and a
 prompt-content component, which is the basis for the routing-redundancy finding in
 Section~\ref{sec:res:h3}.
 
@@ -466,7 +466,7 @@ a chain-of-thought trace records what the model emitted, not what it computed.
 
 \paragraph{Trace completeness.}
 Trace completeness --- the fraction of model calls for which all expected fields are
-populated --- was $100\%$ for B0, B1, and M2 (single-call configurations with no
+populated --- was $100\%$ for B1, B4, and M6 (single-call configurations with no
 routing decisions), $100\%$ for M0 (two-call pipeline with deterministic branching),
 and $95.2\%$ for M1 across official runs. The binding constraint is M1: the remaining
 $4.8\%$ are provider-side truncations on long contracts and are flagged in the run
@@ -501,7 +501,7 @@ surfaced visually through the dashboard's per-category $\omega$ panel.
 \paragraph{Test suite and repository layout.}
 An 81-test suite covers the metric implementations ($F_1$/$F_2$, Jaccard, $\lambda$,
 $\omega$), the loader (filter, sampling determinism, tier assignment), the agent
-topologies (each of B0, B1, M0, M1, M2 has at least one end-to-end test against a
+topologies (each of B1, B4, M0, M1, M6 has at least one end-to-end test against a
 stub model), and the statistical pipelines (McNemar, bootstrap, BH correction).
 The full suite passes prior to every official run. The repository is organised as in
 Listing~\ref{lst:repo}.
@@ -511,7 +511,7 @@ Listing~\ref{lst:repo}.
 agentic-ai-for-clm/
   src/
     agents/       # GraphState, orchestrator, 3 specialists, validation
-    baselines/    # zero_shot (B0), chain_of_thought (B1), combined (M2)
+    baselines/    # zero_shot (B1), chain_of_thought (B4), combined (M6)
     data/         # CUAD loader, sampler, tier partition
     evaluation/   # F1/F2/Jaccard/laziness/over-extraction
     models/       # ModelClient, diagnostics, config registry (19 models)
@@ -521,16 +521,16 @@ agentic-ai-for-clm/
     specialists/  # risk_liability.yaml, temporal_renewal.yaml, ip_commercial.yaml
     system/       # extraction_base.yaml (shared anti-laziness instructions)
   configs/experiments/
-    baselines.yaml       # B0, B1 parameters and calibration targets
-    multiagent.yaml      # M1, M2 parameters and success criteria
+    baselines.yaml       # B1, B4 parameters and calibration targets
+    multiagent.yaml      # M1, M6 parameters and success criteria
   experiments/results/   # per-run summary JSON + intermediate JSONL
   dashboard/             # Next.js inspection UI (TypeScript, Recharts)
   tests/                 # 81 unit + integration tests
   notebooks/
     01_data_exploration.ipynb
     02_workflow_test.ipynb
-    03_baseline_calibration.ipynb   # B0, B1 only
-    04_multiagent_experiment.ipynb  # M1, M2 + statistical comparison
+    03_baseline_calibration.ipynb   # B1, B4 only
+    04_multiagent_experiment.ipynb  # M1, M6 + statistical comparison
 \end{lstlisting}
 
 \paragraph{Reproducibility.}

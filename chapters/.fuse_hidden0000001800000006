@@ -18,25 +18,25 @@ individual (model, configuration) cells --- \cfgCX\ (M0) on the OpenAI family
 and lighter Anthropic models --- but the pooled signal is dominated by the
 model-family interaction. H2 is rejected: both pipeline decomposition
 (\cfgCX, M0) and specialist routing (\cfgMA, M1) widen the rare--common $F_2$
-gap relative to \cfgZS\ (B0). H3 is supported per model --- \cfgMA\ (M1) and
-\cfgCP\ (M2) are statistically distinguishable on every model after BH
+gap relative to \cfgZS\ (B1). H3 is supported per model --- \cfgMA\ (M1) and
+\cfgCP\ (M6) are statistically distinguishable on every model after BH
 correction --- but the direction is inconsistent across the panel and the
 pooled $F_2$ difference is zero to three decimals.
 
 The single most informative pattern is the model-family interaction.
 The Anthropic family achieves its peak under \cfgCoT\
-(B1, $\overline{F_2}{=}0.851$); the Google family under \cfgZS\
-(B0, $0.826$); the OpenAI family under \cfgCX\
+(B4, $\overline{F_2}{=}0.851$); the Google family under \cfgZS\
+(B1, $0.826$); the OpenAI family under \cfgCX\
 (M0, $0.783$). The capability-tier gradient in
 Table~\ref{tab:tier-gradient} is consistent with this: light- and mid-tier
 models gain marginally from M0's calibration, while heavy-tier models are
-better served by B0, with the $F_2$ capability gap between Heavy and Light
-tiers narrowing from $0.119$ under B0 to $0.094$ under M0. Decomposition acts partly as a capability-equalising effect, but at a cost
+better served by B1, with the $F_2$ capability gap between Heavy and Light
+tiers narrowing from $0.119$ under B1 to $0.094$ under M0. Decomposition acts partly as a capability-equalising effect, but at a cost
 (Section~\ref{sec:disc:cascade}) that is not recovered for heavy models
 that already absorb long-context load in a single call. Prior work has observed
 that a well-prompted single agent matches multi-agent decomposition under
 stronger base models \cite{gao2025single}; the present data reproduce this:
-the Anthropic Opus tier achieves its best $F_2$ under B1, not under any
+the Anthropic Opus tier achieves its best $F_2$ under B4, not under any
 decomposed architecture.
 
 The implication for the open empirical question of when multi-agent
@@ -46,7 +46,7 @@ asking whether decomposition helps a CUAD-class extraction task must answer
 two prior questions: which model family, and which capability tier. On the
 eleven models tested, only the OpenAI family receives a meaningful
 multi-agent benefit at the pooled level, and even that benefit is dominated
-in $F_2$/\$ by a B0 deployment on a cheaper Google Flash model.
+in $F_2$/\$ by a B1 deployment on a cheaper Google Flash model.
 
 \section{The Cascade as a Recall--Precision Exchange}\label{sec:disc:cascade}
 
@@ -57,26 +57,26 @@ at the gate rather than at the extractor. The discussion here defends the
 framing of this as a recall--precision exchange rather than as pure regression.
 
 The classifier reduces over-extraction substantially: mean $\omega$ drops
-from $0.320$ under \cfgZS\ (B0) to $0.130$ under \cfgCX\ (M0), a $59\%$
+from $0.320$ under \cfgZS\ (B1) to $0.130$ under \cfgCX\ (M0), a $59\%$
 reduction (Table~\ref{tab:omega}). Under $F_1$, which weights precision and
 recall equally, the gate's gain is sufficient to push M0 to the highest pooled
-score ($\overline{F_1}{=}0.798$ vs.\ B0's $0.737$). Under $F_2$, the gain
+score ($\overline{F_1}{=}0.798$ vs.\ B1's $0.737$). Under $F_2$, the gain
 is insufficient to compensate the recall loss. The cascade is thus not evidence that M0 is broken, but evidence that M0 makes
 a different operating-point trade. Under the pre-registered primary metric
 $F_2$, the trade is unfavourable for 7 of 11 models. The practitioner question
 is which operating point matches the deployment cost structure.
 
 The cascade direction is predictable from a single-agent calibration pass.
-Models with high B0 over-extraction rates (Gemini~2.5~Pro
-$\omega_{\text{B0}}{=}0.456$; Gemini~2.5~Flash $0.392$) inherit a permissive
+Models with high B1 over-extraction rates (Gemini~2.5~Pro
+$\omega_{\text{B1}}{=}0.456$; Gemini~2.5~Flash $0.392$) inherit a permissive
 prior on negative instances; the gate amplifies the cautious prior,
-suppressing recall. Models with low B0 over-extraction (GPT-4.1~Nano
-$\omega_{\text{B0}}{=}0.085$) gain from the gate because their single-agent
+suppressing recall. Models with low B1 over-extraction (GPT-4.1~Nano
+$\omega_{\text{B1}}{=}0.085$) gain from the gate because their single-agent
 extraction loses ground to laziness rather than to over-extraction. The
-practitioner heuristic is: run B0, inspect $\omega_{\text{B0}}$, and deploy
-M0 only if $\omega_{\text{B0}}$ is moderate-to-low; within the present panel,
+practitioner heuristic is: run B1, inspect $\omega_{\text{B1}}$, and deploy
+M0 only if $\omega_{\text{B1}}$ is moderate-to-low; within the present panel,
 within the present eleven-model panel, models with
-$\omega_{\text{B0}} \lesssim 0.20$ gain on $F_1$ under M0, those above that
+$\omega_{\text{B1}} \lesssim 0.20$ gain on $F_1$ under M0, those above that
 threshold do not; this boundary is indicative, not validated.
 
 This result connects to the failure-mode taxonomy of \textcite{cemri2025why},
@@ -106,9 +106,9 @@ falls below ceiling. The generalisable claim is therefore narrower: in a
 closed-vocabulary specialist-routing design, the router's contribution is
 replicable by a deterministic dictionary at zero LLM cost.
 
-Second, \cfgMA\ (M1) and \cfgCP\ (M2) differ statistically on every model
+Second, \cfgMA\ (M1) and \cfgCP\ (M6) differ statistically on every model
 despite identical routing. The difference is not in dispatch but in prompt
-format: M1 sees one focused specialist preamble per call, M2 sees the textual
+format: M1 sees one focused specialist preamble per call, M6 sees the textual
 union of three.
 Consolidating the specialist content into a single prompt produces measurably
 better span coverage (Jaccard $+0.071$ pooled, Table~\ref{tab:h3}) without
@@ -140,7 +140,7 @@ deployment-dependent and falls outside the scope of this thesis. The
 sensitivity is mitigated by reporting $F_1$, recall, precision, $\omega$,
 and FN-rate alongside $F_2$, so a deployment with a different cost ratio can
 re-rank architectures from the same data. The practitioner recommendation is
-conditional on $\beta$: at $\beta{=}2$ deploy B0; at $\beta{=}1$ deploy M0;
+conditional on $\beta$: at $\beta{=}2$ deploy B1; at $\beta{=}1$ deploy M0;
 below $\beta{=}1$ (where false positives are costlier than false negatives,
 as in some compliance-screening workflows), M0's calibration advantage
 widens further.
@@ -188,7 +188,7 @@ variation orders, retention terms, and defects-liability periods; SaaS
 agreements contain SLA penalties, data-processing addenda, and sub-processor
 notification clauses. None of these map cleanly to CUAD's category schema.
 A production CLM system handles an open-ended and evolving taxonomy. The
-specialist-decomposition design tested here (M1, M2) is a fixed three-domain
+specialist-decomposition design tested here (M1, M6) is a fixed three-domain
 partition; its extensibility to an open taxonomy is the question that
 matters for production, and is not what this thesis evaluates.
 

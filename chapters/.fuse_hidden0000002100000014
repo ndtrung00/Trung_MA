@@ -19,7 +19,7 @@ and lighter Anthropic models --- but the pooled signal is dominated by the
 model-family interaction. H2 is rejected: both pipeline decomposition
 (\cfgCX, M0) and specialist routing (\cfgMA, M1) widen the rare--common $F_2$
 gap relative to \cfgZS\ (B0). H3 is supported per model --- \cfgMA\ (M1) and
-\cfgCP\ (M2) are statistically distinguishable on every model after BH
+\cfgCP\ (M6) are statistically distinguishable on every model after BH
 correction --- but the direction is inconsistent across the panel and the
 pooled $F_2$ difference is zero to three decimals.
 
@@ -106,9 +106,9 @@ falls below ceiling. The generalisable claim is therefore narrower: in a
 closed-vocabulary specialist-routing design, the router's contribution is
 replicable by a deterministic dictionary at zero LLM cost.
 
-Second, \cfgMA\ (M1) and \cfgCP\ (M2) differ statistically on every model
+Second, \cfgMA\ (M1) and \cfgCP\ (M6) differ statistically on every model
 despite identical routing. The difference is not in dispatch but in prompt
-format: M1 sees one focused specialist preamble per call, M2 sees the textual
+format: M1 sees one focused specialist preamble per call, M6 sees the textual
 union of three.
 Consolidating the specialist content into a single prompt produces measurably
 better span coverage (Jaccard $+0.071$ pooled, Table~\ref{tab:h3}) without
@@ -188,7 +188,7 @@ variation orders, retention terms, and defects-liability periods; SaaS
 agreements contain SLA penalties, data-processing addenda, and sub-processor
 notification clauses. None of these map cleanly to CUAD's category schema.
 A production CLM system handles an open-ended and evolving taxonomy. The
-specialist-decomposition design tested here (M1, M2) is a fixed three-domain
+specialist-decomposition design tested here (M1, M6) is a fixed three-domain
 partition; its extensibility to an open taxonomy is the question that
 matters for production, and is not what this thesis evaluates.
 

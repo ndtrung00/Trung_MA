@@ -27,7 +27,7 @@ across the five configurations spans a $0.011$-point band and per-model
 winners are split four ways (Table~\ref{tab:h1-f2}). The capability-tier
 breakdown (Table~\ref{tab:tier-gradient}) reveals the gradient: light- and
 mid-tier models gain from \cfgCX's (M0) calibration; heavy-tier models are
-dominated by \cfgZS\ (B0). No architecture is universally optimal; the choice is conditional on
+dominated by \cfgZS\ (B1). No architecture is universally optimal; the choice is conditional on
 model family, capability tier, and the chosen $\beta$ of the $F_\beta$
 metric.
 
@@ -37,7 +37,7 @@ exchange mediated by the classification gate. On Gemini~2.5~Flash and Pro,
 $97.8$--$97.9\%$ of M0 false negatives originate at the gate rather than at
 the extractor (Table~\ref{tab:cascade}). The exchange's direction is
 predictable from a single-agent calibration pass: models with high \cfgZS\
-(B0) over-extraction lose recall to the gate; models with low B0 over-extraction
+(B1) over-extraction lose recall to the gate; models with low B1 over-extraction
 gain $F_1$ from it. Section~\ref{sec:disc:cascade} formalises the heuristic
 and connects it to the inter-agent verification gap taxonomy of
 \textcite{cemri2025why}.
@@ -45,7 +45,7 @@ and connects it to the inter-agent verification gap taxonomy of
 \paragraph{C4 --- Routing redundancy with span-quality degradation.}
 The LLM router agreed with a deterministic category-to-specialist dictionary
 on $99.91\%$ of requests across the panel and on $100\%$ for ten of eleven
-models. \cfgCP\ (M2) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals, while
+models. \cfgCP\ (M6) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals, while
 producing measurably cleaner spans (Jaccard $+0.071$ on ten of eleven models;
 Table~\ref{tab:h3}). In closed-vocabulary specialist-routing designs, the
 LLM-mediated routing call adds orchestrator cost without architectural
@@ -57,9 +57,9 @@ benefit.
 \emph{Can a multi-agent framework improve contract clause extraction accuracy
 beyond single-agent baselines while providing superior explainability?}
 On accuracy ($F_2$), multi-agent decomposition is dominated at the pooled
-level by \cfgZS\ (B0), and conditionally improves only on the
+level by \cfgZS\ (B1), and conditionally improves only on the
 OpenAI family and on lighter capability tiers. On efficiency
-(cost-adjusted $F_2$), multi-agent configurations are Pareto-dominated by B0
+(cost-adjusted $F_2$), multi-agent configurations are Pareto-dominated by B1
 deployments on cheaper models (Figure~\ref{fig:pareto}). On explainability,
 the pipeline (\cfgCX, M0) and routed-specialist (\cfgMA, M1) topologies
 produce the trace primitives that production review needs
@@ -71,9 +71,9 @@ argument for multi-agent architectures rests
 No pattern wins universally. Pooled $F_2$ ranks \cfgZS\ $>$ \cfgCoT\ $>$
 \cfgCX\ $>$ \cfgMA\ $\approx$ \cfgCP\ within a $0.011$-point band. The
 model-family interaction is the dominant signal: the Anthropic family peaks
-under \cfgCoT\ (B1), the Google family under \cfgZS\ (B0), and the OpenAI
+under \cfgCoT\ (B4), the Google family under \cfgZS\ (B1), and the OpenAI
 family under \cfgCX\ (M0). The prevalence-tier interaction is also large: M1
-specialists lead on common-tier categories, M0 on moderate, and B0 on rare
+specialists lead on common-tier categories, M0 on moderate, and B1 on rare
 (Table~\ref{tab:tier-winners}). The capability-tier interaction completes the
 picture: \cfgCX\ helps light and mid models, \cfgZS\ helps heavy models. The
 answer to RQ1's ``under what conditions'' clause is therefore: M0 is preferable
@@ -83,20 +83,20 @@ cost premium.
 
 \paragraph{RQ2 --- Multi-agent vs.\ single-agent on accuracy and cost.}
 Multi-agent configurations carry mean cost premiums of $1.23\times$
-(\cfgMA, M1) to $1.67\times$ (\cfgCX, M0) over \cfgZS\ (B0) without
+(\cfgMA, M1) to $1.67\times$ (\cfgCX, M0) over \cfgZS\ (B1) without
 compensating $F_2$ gains pooled across the panel. \cfgZS\ occupies the Pareto
 frontier at every cost level (Figure~\ref{fig:pareto}). The only multi-agent
 cost premium that pays back in $F_2$ terms is M0 on the OpenAI family, and
-even that is dominated in $F_2$/\$ by a B0 deployment on Gemini~2.5~Flash.
+even that is dominated in $F_2$/\$ by a B1 deployment on Gemini~2.5~Flash.
 On $F_1$, \cfgCX\ leads pooled and the premium is partially justified for
 precision-critical deployments.
 
 \paragraph{RQ3 --- Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
 decision attribution --- routing decision, specialist extraction, validation
-outcome --- that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}).
+outcome --- that \cfgZS\ (B1) cannot (Section~\ref{sec:auditability}).
 The practitioner-relevant tradeoffs are storage cost (approximately $4\times$
-the token volume of a B0 call per M1 run), attribution faithfulness (the trace is faithful to the call graph
+the token volume of a B1 call per M1 run), attribution faithfulness (the trace is faithful to the call graph
 but does not certify the model's internal computation), and routing
 redundancy (the $99.91\%$ deterministic routing result means the orchestrator
 layer adds latency without contributing decision diversity).
@@ -148,7 +148,7 @@ Two cost mechanisms not exercised here would change the cost picture
 (Section~\ref{sec:res:cost}) materially. \emph{Prompt caching}, supported
 in production by the major providers in the panel, would substantially
 reduce the marginal cost of per-category re-prompting that dominates the
-B0 cost structure on long contracts; the $23$--$67\%$ multi-agent cost
+B1 cost structure on long contracts; the $23$--$67\%$ multi-agent cost
 premium would shrink correspondingly and the Pareto frontier would
 re-form. \emph{Structured-output constraints} would reduce M0
 classifier-call latency to the point where the cascade exchange is
