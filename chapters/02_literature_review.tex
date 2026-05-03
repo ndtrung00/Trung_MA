@@ -2,6 +2,15 @@
 
 \chapter{Background and Related Work}\label{chapter:literature-review}
 
+Sections~\ref{sec:lit:clm}--\ref{sec:lit:cuad} define the four foundational
+concepts: contract lifecycle management, large language models, agentic
+multi-agent systems, and the CUAD benchmark.
+Sections~\ref{sec:lit:methods}--\ref{sec:lit:eval} survey prior work on
+contract analysis, multi-agent legal AI, conditions for multi-agent
+effectiveness, and evaluation methodology.
+Section~\ref{sec:lit:synthesis} identifies the research gap this thesis
+addresses.
+
 \section{Contract Lifecycle Management}\label{sec:lit:clm}
 
 Contract Lifecycle Management (CLM) denotes the systematic management of a
@@ -52,10 +61,11 @@ failures (missed clauses, unobserved obligations, undetected deviations) dominat
 the loss distribution~\cite{worldcc2025benchmark}. Goldman Sachs places the total
 addressable population of U.S.\ legal-services tasks exposed to generative AI at
 approximately 44\%, with contract review repeatedly identified as the
-highest-leverage subset~\cite{goldmansachs2023ai}.
+highest-exposure subset~\cite{goldmansachs2023ai}.
 
-The commercial CLM market is consolidated around platforms whose positioning is
-documented in successive Gartner Magic Quadrants. Sirion, Icertis, Ironclad, and
+% TODO: cite specific Gartner CLM Magic Quadrant report with year
+The commercial CLM market is consolidated around platforms documented in successive
+Gartner CLM Magic Quadrant reports. Sirion, Icertis, Ironclad, and
 DocuSign are the four vendors consistently designated Leaders, each having rebuilt
 portions of their analysis stack on LLMs since 2023. Sirion markets an Extraction
 Agent and a Redline Agent under an ``agentic'' architecture. Icertis ships ICI Copilots
@@ -66,8 +76,9 @@ Management (IAM) platform. Adjacent vendors include Spellbook (in-Word drafting 
 GPT-4 class models) and Harvey, whose contract-analysis workflow serves A\&O Shearman
 and PwC~\cite{harvey2023ao,harvey2023pwc}. Across this set, public product
 documentation describes single-prompt LLM calls, retrieval-augmented prompts, or
-task-specific fine-tunes; no Leader has publicly disclosed a deployed multi-agent
-architecture for clause-level analysis.
+task-specific fine-tunes; as of the literature review conducted for this thesis
+(April~2026), no Leader had publicly disclosed a deployed multi-agent architecture
+for clause-level analysis.
 
 \section{Large Language Models}\label{sec:lit:llm-background}
 
@@ -82,13 +93,15 @@ Training minimises the negative log-likelihood
 $\mathcal{L}(\theta) = -\sum_{t} \log p_\theta(x_t \mid x_{<t})$
 over large text corpora following the Transformer
 derivation~\cite{devlin2019bert}. Modern frontier LLMs extend Eq.~\eqref{eq:autoreg}
-with three post-training layers decisive for agentic deployment: supervised
+with three post-training techniques decisive for agentic deployment: supervised
 instruction tuning, preference alignment via reinforcement learning from human or AI
-feedback, and structured-output fine-tuning that turns free-form generation into
-validated JSON and tool calls.
+feedback (RLHF), and structured-output fine-tuning that turns free-form generation
+into validated JSON and tool calls.
 
 Table~\ref{tab:models} summarises the frontier-model releases relevant to the
-experimental envelope of this thesis.
+experimental envelope of this thesis. Models included in the experimental evaluation
+are specified in §\ref{sec:meth:models}; the remaining entries provide contextual
+background on the frontier landscape.
 
 \begin{table}[h]
   \centering
@@ -121,14 +134,13 @@ experimental envelope of this thesis.
 \end{table}
 
 A parallel layer of legal-domain products consumes these frontier models. Harvey
-serves A\&O Shearman, PwC, O'Melveny \& Myers, and Macfarlanes, and was reported in
-2025 at valuations rising from US\$3B to US\$11B as it expanded into Vault-based
-document review and Agent Builder workflows~\cite{harvey2023ao,harvey2023pwc}.
+serves A\&O Shearman, PwC, O'Melveny \& Myers, and Macfarlanes, and has expanded
+into Vault-based document review and Agent Builder workflows~\cite{harvey2023ao,harvey2023pwc}.
 Lexis+ AI and Thomson Reuters CoCounsel embed retrieval-augmented generation over
 proprietary legal corpora. None of these systems publishes peer-reviewed evaluations
-of clause-level extraction on public benchmarks. ContractEval~\cite{liu2025contracteval}
-is, to our knowledge, the only large-scale academic evaluation of LLMs on contract
-clause extraction conducted on a public benchmark with reproducible methodology.
+of clause-level extraction on public benchmarks as of this review. ContractEval~\cite{liu2025contracteval}
+is the only large-scale academic evaluation of LLMs on contract clause extraction
+conducted on a public benchmark with reproducible methodology.
 
 \section{Agentic AI and Multi-Agent Systems}\label{sec:lit:mas-background}
 
@@ -337,10 +349,10 @@ motivates the domain-specialisation hypothesis (H2).
 The methodological lineage of automated contract analysis runs from rule-based
 extractors through statistical sequence labellers to fine-tuned and prompted
 Transformers. Early systems used hand-written regular expressions and gazetteers over
-POS-tagged text. Linear-chain Conditional Random Fields~\cite{lafferty2001crf} and
+part-of-speech (POS)-tagged text. Linear-chain Conditional Random Fields~\cite{lafferty2001crf} and
 BiLSTM--CRF taggers~\cite{lample2016neural} formalised the task as token-level
 sequence labelling and dominated the LEDGAR~\cite{tuggener2020ledgar} and
-ContractNLI~\cite{koreeda2021contractnli} eras. The release of BERT~\cite{devlin2019bert}
+ContractNLI (Natural Language Inference)~\cite{koreeda2021contractnli} eras. The release of BERT~\cite{devlin2019bert}
 and legal-domain LEGAL-BERT~\cite{chalkidis2020legalbert} shifted the regime from
 feature engineering to pre-train-and-fine-tune. CUAD's reference numbers were obtained
 with RoBERTa-style extractive question answering~\cite{hendrycks2021cuad}. MAUD~\cite{wang2023maud}
@@ -378,20 +390,18 @@ Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
 \end{table}
 
 \paragraph{Why multi-agent for contract analysis.}
-Four properties of the CUAD-style problem motivate ablating multi-agent architectures
-on this task. First, contracts in the long-context subset routinely exceed 100{,}000
-characters; explicit decomposition makes per-call context tractable where single-prompt
-formulations must truncate or chunk silently. Second, the 41 CUAD categories partition
-into risk-oriented, IP/commercial, temporal, and consideration-oriented clusters; a
-specialisation hypothesis predicts that role-conditioned agents may outperform a single
-generalist on within-cluster categories. Third, legal review is recall-asymmetric: a
-missed clause exposes the client to undisclosed obligations whereas a spurious extraction
-is corrected during attorney review at lower cost — motivating $F_2$-weighted evaluation
+Contracts in the long-context subset routinely exceed 100{,}000 characters; explicit
+decomposition makes per-call context tractable where single-prompt formulations must
+truncate or chunk silently. The 41 CUAD categories partition into risk-oriented,
+IP/commercial, temporal, and consideration-oriented clusters, providing a natural basis
+for domain specialisation. Legal review is recall-asymmetric: a missed clause exposes
+the client to undisclosed obligations whereas a spurious extraction is corrected during
+attorney review at lower cost, motivating $F_2$-weighted evaluation
 (Section~\ref{sec:lit:eval}) and architectures that boost recall at controlled precision
-cost. Fourth, regulated environments — the EU AI Act treats certain legal AI uses as
-high-risk~\cite{euaiact2024} and GDPR requires data-protection accountability~\cite{gdpr2016}
-— demand traceable per-decision provenance; multi-agent architectures with explicit
-verifier or judge agents produce that trace at the architectural level.
+cost. Regulated environments additionally require traceable per-decision provenance:
+the EU AI Act treats certain legal AI uses as high-risk~\cite{euaiact2024} and GDPR
+requires data-protection accountability~\cite{gdpr2016}; multi-agent architectures with
+explicit verifier or judge agents produce that trace at the architectural level.
 
 \section{Multi-Agent Legal AI}\label{sec:lit:mas}
 
@@ -454,8 +464,7 @@ cross-architecture ablation on a fixed CUAD evaluation harness.
 
 \section{Conditions for Multi-Agent Effectiveness}\label{sec:lit:when}
 
-Four recent studies bound the conditions under which multi-agent systems produce gains
-over single-agent baselines. Gao et al.~\cite{gao2025single} show on a battery of
+Gao et al.~\cite{gao2025single} show on a battery of
 reasoning and tool-use tasks that single, well-prompted LLMs frequently match or exceed
 multi-agent configurations once the latter are corrected for cost and prompting parity,
 and that observed multi-agent gains often disappear under stronger single-agent baselines.
@@ -470,15 +479,16 @@ Sanwal~\cite{sanwal2025layered} demonstrates that layered single-agent chain-of-
 can recover much of the benefit attributed to multi-agent decomposition without paying
 the coordination cost.
 
-Synthesised against the working hypotheses of this thesis: (H1) a generic claim of
+These findings bear directly on the three working hypotheses. (H1) A generic claim of
 multi-agent superiority on CUAD long-contract extraction is unlikely to survive a
 properly normalised single-agent baseline~\cite{gao2025single}, so the hypothesis is
-stated and evaluated as conditional; (H2) the relative ordering of architectures will
+stated and evaluated as conditional. (H2) The relative ordering of architectures will
 depend on the underlying model family~\cite{bogavelli2025agentarch}, encoded as an
-explicit interaction term in the experimental design; and (H3) classification-gate
+explicit interaction term in the experimental design. (H3) Classification-gate
 cascades — a router agent that decides whether to extract before invoking an extractor
 — are a natural counter to the verification-gap and laziness failures
-catalogued in~\cite{cemri2025why}, motivating the M0 ablation in Chapter~3.
+catalogued in~\cite{cemri2025why}, motivating the M0 ablation in Chapter~3; whether
+this counter is effective is tested empirically in §\ref{sec:res:cascade}.
 
 \section{Evaluation Methodology}\label{sec:lit:eval}\label{sec:eval}
 
@@ -534,27 +544,27 @@ spans on negative instances:
 Equations~\eqref{eq:laziness} and~\eqref{eq:overextract} are a coupled pair:
 evaluations that resample to a balanced class distribution suppress
 Eq.~\eqref{eq:overextract} and hide the precision cost of recall-boosting
-interventions. We therefore evaluate exclusively on the natural CUAD class distribution
-and report both metrics.
+interventions. The evaluation therefore uses exclusively the natural CUAD class
+distribution and reports both metrics.
 
 \paragraph{Statistical testing.}
-We pair every architecture comparison on the same contract set and report McNemar's
-test for instance-level binary outcomes~\cite{mcnemar1947note} and the paired bootstrap
-with $B{=}10{,}000$ resamples for span-level continuous
+Every architecture comparison is paired on the same contract set; McNemar's test
+handles instance-level binary outcomes~\cite{mcnemar1947note} and the paired bootstrap
+with $B{=}300$ resamples handles span-level continuous
 metrics~\cite{efron1979bootstrap,riezler2005pitfalls}. Multiple-comparison control
 across the architecture grid uses Benjamini--Hochberg false-discovery-rate correction
 at $q{=}0.05$~\cite{benjamini1995controlling}. Sample-size and power considerations
 follow Dror et al.~\cite{dror2018hitchhikers} and Card et al.~\cite{card2020little};
 the 81-contract subset gives $\geq 0.8$ power to detect absolute $F_2$ differences of
 $\approx\!2.5$ percentage points at the instance level under the bootstrap.
-Implementations use SciPy~\cite{virtanen2020scipy} and NumPy~\cite{harris2020array}.
+% Implementation libraries documented in Chapter~3.
 
 \paragraph{Sampling design.}
 CUAD's natural clause-presence rate is $\approx\!30\%$ positive at the instance level.
 Resampling to balance positive and negative instances inflates apparent precision and
 suppresses Eq.~\eqref{eq:overextract}, detaching the evaluation from any deployable
-distribution where 41 categories are scanned per contract and most are absent. We
-retain natural prevalence throughout~\cite{liu2025contracteval}.
+distribution where 41 categories are scanned per contract and most are absent. Natural
+prevalence is retained throughout~\cite{liu2025contracteval}.
 
 \paragraph{ContractEval as direct empirical predecessor.}
 ContractEval~\cite{liu2025contracteval} evaluates 19 LLMs (4 proprietary, 15
@@ -563,14 +573,14 @@ schema, holding prompt and decoding constants across models, and reporting Jacca
 overlap, instance-level correctness, and laziness. Its principal findings are: a
 persistent proprietary--open-source gap on legal extraction; a non-monotonic effect of
 explicit reasoning (chain-of-thought improves Jaccard on positive instances while
-degrading correctness through inflated false positives); and laziness as a robust,
+degrading correctness through inflated false positives); and laziness as a persistent,
 model-dependent and category-dependent failure mode. Three properties of the
 ContractEval design define the gaps the present thesis closes: the architectural axis
 is held fixed at single-prompt single-model; model-family interactions are not
 analysed; and over-extraction (Eq.~\eqref{eq:overextract}) is not tracked as a
-first-class metric. We retain ContractEval's evaluation protocol —
+first-class metric. The present thesis retains ContractEval's evaluation protocol —
 natural class distribution, instance-level scoring, laziness reporting,
-$\tau{=}0.5$ Jaccard threshold — and extend it along the architectural axis and the
+$\tau{=}0.5$ Jaccard threshold — and extends it along the architectural axis and the
 dual failure-mode axis.
 
 \paragraph{Prompt sensitivity as a validity threat.}
@@ -585,7 +595,7 @@ inspection use Langfuse~\cite{langfuse2024}; orchestration uses LangGraph~\cite{
 
 \section{Research Gap}\label{sec:lit:synthesis}
 
-Four gaps in the published record jointly motivate this thesis. (i) No published study
+(i) No published study
 performs a controlled cross-architecture ablation on CUAD-class clause extraction; the
 closest predecessor~\cite{liu2025contracteval} varies model identity only.
 (ii) No published study reports a model-family $\times$ architecture interaction
@@ -598,10 +608,10 @@ disclose single-prompt or retrieval-augmented LLM deployments with no public
 multi-agent ablation, leaving the architectural design space untested in the regime
 where the question is commercially decisive.
 
-We design and evaluate a slice of the multi-agent design space (topology $\times$
-routing $\times$ specialisation $\times$ verification) on the long-contract CUAD
-subset under the ContractEval protocol extended with Eq.~\eqref{eq:overextract} and a
-model-family interaction term, in order to determine — with statistical control across
-the architecture grid~\cite{benjamini1995controlling,dror2018hitchhikers} — under
-which conditions multi-agent decomposition is justified for CLM deployment and under
-which conditions it is dominated by a stronger single-agent baseline.
+This thesis designs and evaluates a slice of the multi-agent design space (topology
+$\times$ routing $\times$ specialisation $\times$ verification) on the long-contract
+CUAD subset under the ContractEval protocol extended with Eq.~\eqref{eq:overextract}
+and a model-family interaction term, in order to determine — with statistical control
+across the architecture grid~\cite{benjamini1995controlling,dror2018hitchhikers} —
+under which conditions multi-agent decomposition is justified for CLM deployment and
+under which conditions it is dominated by a stronger single-agent baseline.

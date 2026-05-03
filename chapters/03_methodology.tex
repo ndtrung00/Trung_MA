@@ -20,8 +20,9 @@ attributable to architecture or model, not dataset drift.
 \begin{table}[h]
   \centering
   \small
-  \caption{Five evaluated configurations. M0 vs.\ B1 isolates the classification gate;
-  M1 vs.\ M6 isolates routing and decomposition; B4 vs.\ B1 isolates chain-of-thought.}
+  \caption{Five evaluated configurations. CoT = chain-of-thought. M0 vs.\ B1 isolates
+  the classification gate; M1 vs.\ M6 isolates routing and decomposition; B4 vs.\ B1
+  isolates chain-of-thought.}
   \label{tab:configs}
   \begin{tabular}{lllll}
     \toprule
@@ -140,7 +141,7 @@ Figure~\ref{fig:pipelines} shows the message-flow diagram for each configuration
       \draw[->] (i) -- (l);
       \draw[->] (l) -- (o);
     \end{tikzpicture}
-    \caption{M6: Ablation}
+    \caption{M6: Ablation (consolidated union of M1 specialist prompts)}
     \label{fig:arch-m6}
   \end{subfigure}
 
@@ -182,13 +183,13 @@ Tier cutpoints are fixed before any model is run.
 
 \section{Model Selection}\label{sec:meth:models}
 
-Table~\ref{tab:models} lists the 11 frontier proprietary models in the panel.
-Selection follows three criteria. First, three families span the providers used in
-commercial CLM (Anthropic, Google, OpenAI), so model-family effects predicted
-by~\cite{bogavelli2025agentarch} can be observed. Second, within each family the panel
-spans a compute-tier range from light (Haiku, Flash, Nano) to heavy (Opus, Pro), so
-capability $\times$ architecture interactions can be observed. Third, model identifiers
-are pinned to specific snapshots in the run metadata for reproducibility.
+Table~\ref{tab:models} lists the 11 frontier proprietary models in the panel. Three
+families span the providers used in commercial CLM (Anthropic, Google, OpenAI), so
+model-family effects predicted by~\cite{bogavelli2025agentarch} can be observed; within
+each family the panel spans a compute-tier range from light (Haiku, Flash, Nano) to
+heavy (Opus, Pro), enabling capability $\times$ architecture interactions to be
+observed. Model identifiers are pinned to specific snapshots (see §\ref{sec:sys:stack})
+for reproducibility.
 
 \begin{table}[h]
   \centering
@@ -220,15 +221,22 @@ are pinned to specific snapshots in the run metadata for reproducibility.
   \end{tabular}
 \end{table}
 
-Open-weights models are excluded from the main panel for three reasons. First, the
-commercial CLM platforms surveyed in Section~\ref{sec:lit:clm} deploy
-proprietary APIs, and the thesis's external-validity claim is restricted to that
-deployment population. Second, the long-contract subset requires context windows of
-$\geq 128$K tokens, which most open-weights models do not support. Third,
-ContractEval's 15-model open-weights evaluation~\cite{liu2025contracteval} documents a
-persistent proprietary-vs-open-source gap on extraction correctness; pilot work for
-this thesis (not reported) confirmed that the gap does not invert under multi-agent
-decomposition. Open-weights extension is identified as future work in Chapter~7.
+\paragraph{Inference parameters.}
+All model calls used \texttt{temperature=0} for deterministic output and
+\texttt{max\_tokens=4096}. Official runs were executed between
+\textbf{[TODO: insert start date]} and \textbf{[TODO: insert end date]}.
+Full provider snapshot identifiers for all 11 models are listed in
+Table~\ref{tab:snapshots} in Chapter~\ref{chapter:system-design}.
+
+Open-weights models are excluded from the main panel on two structural grounds: the
+commercial CLM platforms surveyed in Section~\ref{sec:lit:clm} deploy proprietary APIs,
+restricting external-validity claims to that deployment population; and the long-contract
+subset requires context windows of $\geq 128$K tokens, which most open-weights models
+do not support. ContractEval's 15-model evaluation~\cite{liu2025contracteval} documents
+a persistent proprietary-vs-open-source gap on extraction correctness; pilot work
+(not formally reported) suggested this gap persists under multi-agent decomposition,
+though that experiment should be understood as a scope decision rather than an empirical
+claim. Open-weights extension is identified as future work in Chapter~7.
 
 \section{Metrics}\label{sec:meth:metrics}
 
@@ -271,15 +279,15 @@ $C$ outperforms $B^\star \in \{\text{B1},\, \text{B4}\}$ on $F_2$.
 Null: no such $C$ exists.
 Decision rule: reject the null if any of the multi-agent vs.\ baseline pairwise
 McNemar exact tests ($m{=}33$: 3 multi-agent $\times$ 2 baselines $\times$ 11 models,
-retaining the stronger baseline per model) is significant at $\alpha{=}0.05$ after
+retaining the baseline with higher pooled $F_2$ per model) is significant at $\alpha{=}0.05$ after
 BH correction~\cite{benjamini1995controlling}, with directional $\Delta F_2$
 favouring the multi-agent configuration.
 
 \paragraph{H2.} $\Delta\mathrm{Gap}(C_{\text{multi}}, B^\star) < 0$ where
 $\mathrm{Gap}(C) = F_2^{\text{common}}(C) - F_2^{\text{rare}}(C)$.
 Null: $\Delta\mathrm{Gap} \geq 0$.
-Decision rule: reject the null if the 95\% paired bootstrap CI on $\Delta\mathrm{Gap}$
-excludes zero on the negative side.
+Decision rule: reject the null if the upper bound of the 95\% paired bootstrap CI on
+$\Delta\mathrm{Gap}$ is strictly less than zero.
 
 \paragraph{H3.} M1 and M6 are statistically distinguishable on $F_2$.
 Null: $\Delta F_2(\text{M1},\,\text{M6}) = 0$.
@@ -329,7 +337,7 @@ statistics is documented as a sensitivity threat in Section~\ref{sec:meth:threat
 
 \paragraph{Multiple-comparison correction.}
 Within each hypothesis family, Benjamini--Hochberg~\cite{benjamini1995controlling}
-controls FDR at $\alpha{=}0.05$: reject $H_0^{(i)}$ if
+controls the false discovery rate (FDR) at $\alpha{=}0.05$: reject $H_0^{(i)}$ if
 %
 \begin{equation}\label{eq:bh}
   p_{(i)} \leq \frac{i}{m}\,\alpha,
@@ -337,7 +345,7 @@ controls FDR at $\alpha{=}0.05$: reject $H_0^{(i)}$ if
 \end{equation}
 %
 The H1 family has $m{=}33$ tests (3 multi-agent configurations $\times$ 2 baselines
-$\times$ 11 models, retaining the stronger baseline per model); the H3 family has
+$\times$ 11 models, retaining the baseline with higher pooled $F_2$ per model); the H3 family has
 $m{=}11$ tests (one M1 vs.\ M6 contrast per model). Raw and BH-corrected $p$-values
 are both reported.
 

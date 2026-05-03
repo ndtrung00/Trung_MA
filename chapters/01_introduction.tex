@@ -2,18 +2,15 @@
 
 \chapter{Introduction}\label{chapter:introduction}
 
-This chapter states the research context, identifies the empirical gap, and derives the research questions, hypotheses, and contributions that the thesis addresses. Section~\ref{sec:outline} maps the chapter structure of the remainder of the document.
-
 \section{Motivation}\label{sec:motivation}
 
 Contract Lifecycle Management (CLM) is the workflow through which an organisation authors,
-negotiates, executes, monitors, and retires its contractual instruments. The economic surface
-is large: organisations forfeit value equivalent to roughly 9\% of annual revenue through
-poor contracting practices, with contract data dispersed across an average of 24 systems and
-83\% of executives reporting their contracts too rigid to accommodate
-change~\cite{worldcc2025benchmark}. Goldman Sachs estimate 44\% of U.S.\ legal-task time is
-technically automatable by generative AI --- second-highest exposure across all
-professions~\cite{goldmansachs2023ai}.
+negotiates, executes, monitors, and retires its contractual instruments. The scale of the problem is substantial: organisations forfeit value equivalent to roughly
+9\% of annual revenue through poor contracting practices, with contract data dispersed
+across an average of 24 systems and 83\% of executives reporting their contracts too rigid
+to accommodate change~\cite{worldcc2025benchmark}. Goldman Sachs estimates 44\% of
+U.S.\ legal-task time is technically automatable by generative AI --- second-highest
+exposure across all professions~\cite{goldmansachs2023ai}.
 
 Frontier large language models (LLMs) match junior lawyers on issue-identification
 $F$-scores ($0.87$ vs.\ $0.88$) while reducing review time by
@@ -26,25 +23,23 @@ sensitivity~\cite{chatterjee2024posix}, and laziness --- the silent default to
 contract~\cite{liu2025contracteval}.
 
 Multi-agent architectures are the proposed remedy. Decomposing clause analysis into
-specialised agents promises improved recall through specialisation, improved explainability
-through inspectable inter-agent traces, and addresses transparency and traceability
-requirements under Article~13 of the EU~AI~Act~\cite{euaiact2024} and Article~22 of the
-GDPR~\cite{gdpr2016}. Frameworks including AutoGen~\cite{wu2023autogen},
+specialised agents promises improved recall through specialisation, improved explainability through
+inspectable inter-agent traces, and improved transparency through traceable per-decision
+provenance required under Article~13 of the EU~AI~Act~\cite{euaiact2024} and Article~22
+of the GDPR~\cite{gdpr2016}. Frameworks including AutoGen~\cite{wu2023autogen},
 MetaGPT~\cite{hong2024metagpt}, and Mixture-of-Agents~\cite{wang2024moa} have made such
-architectures cheap to assemble. Whether they actually improve contract analysis is,
+architectures straightforward to instantiate. Whether they actually improve contract analysis is,
 however, an open empirical question.
 
 \section{Research Gap}\label{sec:gap}
 
-Three observations motivate the gap this thesis addresses.
-
-First, existing legal multi-agent systems --- ChatLaw~\cite{cui2024chatlaw},
+Existing legal multi-agent systems --- ChatLaw~\cite{cui2024chatlaw},
 PAKTON~\cite{raptopoulos2025pakton}, L-MARS~\cite{wang2025lmars} --- each evaluate a single
 architecture on a single benchmark without ablating the architectural choice itself. The
 empirical question of which multi-agent pattern is preferable for clause-level contract
-analysis under a fixed model and task remains empirically unresolved.
+analysis under a fixed model and task remains unresolved.
 
-Second, recent cross-domain work questions whether multi-agent designs help at all once
+Recent cross-domain work questions whether multi-agent designs confer measurable benefit once
 base-model capability is high. Gao et al.\ show diminishing returns for frontier models
 whose long-context reasoning absorbs the workload that previously required
 decomposition~\cite{gao2025single}. Cemri et al.\ construct a 14-mode failure taxonomy
@@ -54,9 +49,9 @@ Bogavelli et al.\ find no universally optimal architecture across frontier model
 enterprise tasks, with model--architecture interaction dominating absolute architectural
 ranking~\cite{bogavelli2025agentarch}.
 
-Third, prior CUAD evaluations have used inconsistent sampling designs. Evaluations at
-inflated positive ratios produce optimistic precision estimates because few absent samples
-are tested, masking the dual failure mode of over-extraction.
+Prior CUAD evaluations~\cite{liu2025contracteval} have used inconsistent sampling
+designs: inflated positive ratios produce optimistic precision estimates and mask
+over-extraction as a failure mode (§\ref{sec:lit:cuad}).
 
 No published study simultaneously (i) cross-varies multi-agent architecture and
 frontier-model family on CUAD, (ii) samples at the natural class distribution, (iii)
@@ -66,9 +61,9 @@ four requirements.
 
 \section{Research Questions}\label{sec:rqs}
 
-\noindent\textbf{Main RQ.} Under what conditions do multi-agent architectures improve
-contract analysis accuracy, efficiency, and explainability in enterprise CLM systems, and
-which architectural patterns are most effective?
+\noindent\textbf{Main RQ.} Under what conditions, if any, do multi-agent architectures
+improve contract analysis accuracy, efficiency, and explainability in enterprise CLM
+systems, and which architectural patterns are most effective?
 
 \begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=2pt]
   \item[\textbf{RQ1.}] Under what model-family and prevalence conditions does each
@@ -84,7 +79,8 @@ which architectural patterns are most effective?
 
 \begin{description}[leftmargin=2.5em, labelwidth=2em, itemsep=2pt]
   \item[\textbf{H1.}] At least one multi-agent configuration outperforms the strongest
-    single-agent baseline on $F_2$ (McNemar exact, $\alpha{=}0.05$, BH-corrected).
+    single-agent baseline on $F_2$ (defined in §\ref{sec:lit:eval}; McNemar exact, $\alpha{=}0.05$,
+    Benjamini--Hochberg corrected).
   \item[\textbf{H2.}] Multi-agent configurations reduce the rare--common $F_2$ gap
     relative to single-agent baselines (paired bootstrap on gap difference, 95\% CI).
   \item[\textbf{H3.}] The LLM-routed specialist system M1 is statistically distinguishable
@@ -104,16 +100,14 @@ properties of the implementation are documented in \S\ref{sec:auditability}.
   \item[\textbf{C2}] \textbf{Model-scale gradient.} Architectural ranking is not constant
     across the model panel: larger models achieve their best $F_2$ under simpler
     single-agent baselines, while lighter or weaker models gain from structured
-    decomposition. No architecture is universally optimal --- pooled $F_2$ across all five
-    configurations spans a 0.011-point band.
+    decomposition. No architecture is universally optimal: pooled $F_2$ across all five
+    configurations (B1, B4, M0, M1, M6; defined in Chapter~3) spans a 0.011-point band.
   \item[\textbf{C3}] \textbf{Classification-gate cascade.} A failure mode of
-    pipeline-decomposition multi-agent architectures, named and quantified: the upstream
-    classifier accounts for the majority of false negatives, propagating silent rejections
-    downstream. The cascade is severe --- Gemini~2.5~Flash's wrong-rejection rate jumps
-    from 2.7\% under a single-agent baseline to 40.9\% in the pipeline --- and its
-    direction depends on the base model's laziness profile, harming low-laziness models and
-    helping high-laziness ones, making the effect predictable from a single-agent baseline
-    run.
+    pipeline-decomposition architectures, named and quantified: the upstream classifier
+    propagates silent rejections downstream, suppressing extractor recall.
+    Gemini~2.5~Flash's wrong-rejection rate rises from 2.7\% to 40.9\% under the
+    pipeline; direction is predictable from a single-agent calibration pass
+    (§\ref{sec:res:cascade}).
   \item[\textbf{C4}] \textbf{Routing redundancy with span-quality degradation.} The LLM
     router in the specialist architecture is empirically redundant: it agrees with a
     deterministic category-to-specialist mapping on every model in the panel --- 100\%
@@ -129,6 +123,9 @@ mode that positive-heavy sampling masks (\S\ref{sec:sampling}).
 
 \section{Thesis Outline}\label{sec:outline}
 
-Chapter~2 surveys background and related work. Chapter~3 specifies methodology.
-Chapter~4 documents the implementation. Chapter~5 reports empirical results.
-Chapters~6 and~7 discuss findings and conclude.
+Chapter~\ref{chapter:literature-review} surveys background and related work.
+Chapter~\ref{chapter:methodology} specifies methodology.
+Chapter~\ref{chapter:system-design} documents the implementation.
+Chapter~\ref{chapter:results} reports empirical results.
+Chapter~\ref{chapter:discussion} discusses findings and
+Chapter~\ref{chapter:conclusion} concludes.

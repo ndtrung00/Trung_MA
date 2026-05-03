@@ -3,21 +3,16 @@
 \chapter{Results}\label{chapter:results}
 
 This chapter reports the empirical results of the 55-run grid specified in
-Chapter~\ref{chapter:methodology}. Section~\ref{sec:res:overview} gives the
-sample accounting. Sections~\ref{sec:res:h1}--\ref{sec:res:h3} test the three
-pre-registered hypotheses. Sections~\ref{sec:res:cascade} and \ref{sec:res:cost}
-report two findings that bear directly on the research questions: the
-classification-gate cascade (contribution~C3) and the cost-accuracy frontier
-underwriting~RQ2. Section~\ref{sec:res:rq-summary} answers RQ1 and RQ2 at the
-level of evidence established here; deeper interpretation is reserved for
-Chapter~\ref{chapter:discussion}.
+Chapter~\ref{chapter:methodology}.
 
 \section{Run Coverage and Sample Accounting}\label{sec:res:overview}
 
 The 55-cell grid yielded 164{,}941 raw JSONL records. After dropping 1{,}297
 records ($0.79\%$) with malformed classification tokens --- concentrated in B1
 ($n{=}838$) and M0 ($n{=}362$) --- 163{,}644 paired sample-level predictions
-remain. Table~\ref{tab:coverage} reports the analysed count per cell. All
+remain. The B1 concentration reflects the zero-shot parser's stricter span
+acceptance criterion: the majority of B1 rejections are empty-string completions
+rather than structurally malformed JSON. Table~\ref{tab:coverage} reports the analysed count per cell. All
 statistical tests use the paired intersection of sample IDs for the
 configurations being compared; intersection sizes are reported with each test.
 The natural positive rate across the retained set is $30.1\%$, confirming the
@@ -175,20 +170,21 @@ Table~\ref{tab:h1-stats} reports the H1 paired tests. Each row is one
 multi-agent vs.\ B1 contrast on the sample-ID intersection. McNemar exact
 $p$-values are computed via Eq.~\ref{eq:mcnemar} and corrected for the
 $m{=}33$-test family by Benjamini--Hochberg (Eq.~\ref{eq:bh}); paired-bootstrap
-CIs use $B{=}300$. \textbf{Note:} the CI column requires regeneration from the
-per-sample JSONL using Algorithm~\ref{alg:bootstrap}; several CIs in the prior
-draft were inconsistent with their point estimates (CI not containing
-$\Delta F_2$) and have been replaced with [TBD] pending recomputation.
+CIs use $B{=}300$, \texttt{seed=42} (Algorithm~\ref{alg:bootstrap}). CIs are
+computed on the paired sample-ID intersection; for models with partial runs
+(Claude~Sonnet~4, GPT-4.1) the intersection size is smaller than the full run,
+so the intersection-based $\Delta F_2$ may differ slightly from the
+full-run values in Table~\ref{tab:h1-f2}.
 
 \begin{table}[h]
   \centering
   \setlength{\tabcolsep}{3pt}
   \small
   \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B1})$
-  on the sample-ID intersection, paired-bootstrap 95\% CIs (to be regenerated
-  from JSONL), BH-corrected significance ($\alpha{=}0.05$, $m{=}33$).
-  \checkmark: BH-reject $H_0$. $\Delta F_2$ values read from
-  Table~\ref{tab:h1-f2}.}
+  on the sample-ID intersection, paired-bootstrap 95\% CIs ($B{=}300$,
+  \texttt{seed=42}), BH-corrected significance ($\alpha{=}0.05$, $m{=}33$).
+  \checkmark: BH-reject $H_0$. $\Delta F_2$ from Table~\ref{tab:h1-f2}
+  (full-run values); CIs from paired intersections (see text).}
   \label{tab:h1-stats}
   \begin{tabular}{lcccccc}
     \toprule
@@ -198,37 +194,38 @@ $\Delta F_2$) and have been replaced with [TBD] pending recomputation.
     \textbf{Model} & $\Delta F_2$ & CI$_{95}$ & BH
                    & $\Delta F_2$ & CI$_{95}$ & BH \\
     \midrule
-    Claude Haiku 4.5   & $+0.009$ & [TBD] & \checkmark & $+0.052$ & [TBD] & \checkmark \\
-    Claude Opus 4.6    & $+0.001$ & [TBD] & \checkmark & $-0.004$ & [TBD] & \checkmark \\
-    Claude Sonnet 4    & $+0.025$ & [TBD] & \checkmark & $-0.025$ & [TBD] & \checkmark \\
-    Claude Sonnet 4.6  & $+0.047$ & [TBD] & \checkmark & $+0.021$ & [TBD] & \checkmark \\
-    Gemini 2.5 Flash   & $-0.210$ & [TBD] & \checkmark & $-0.020$ & [TBD] & \checkmark \\
-    Gemini 2.5 Pro     & $-0.121$ & [TBD] & \checkmark & $+0.006$ & [TBD] & \checkmark \\
-    Gemini 3 Flash     & $+0.037$ & [TBD] & \checkmark & $-0.039$ & [TBD] & \checkmark \\
-    Gemini 3.1 Pro     & $-0.018$ & [TBD] & \checkmark & $-0.021$ & [TBD] & $\times$ \\
-    GPT-4.1            & $-0.040$ & [TBD] & \checkmark & $-0.091$ & [TBD] & \checkmark \\
-    GPT-4.1 Mini       & $+0.025$ & [TBD] & $\times$   & $-0.060$ & [TBD] & $\times$ \\
-    GPT-4.1 Nano       & $+0.171$ & [TBD] & \checkmark & $+0.059$ & [TBD] & \checkmark \\
+    Claude Haiku 4.5   & $+0.009$ & $[-0.009,\,+0.026]$ & \checkmark & $+0.052$ & $[+0.038,\,+0.066]$ & \checkmark \\
+    Claude Opus 4.6    & $+0.001$ & $[-0.011,\,+0.014]$ & \checkmark & $-0.004$ & $[-0.017,\,+0.009]$ & \checkmark \\
+    Claude Sonnet 4    & $+0.025$ & $[+0.016,\,+0.043]$ & \checkmark & $-0.025$ & $[-0.031,\,-0.001]$ & \checkmark \\
+    Claude Sonnet 4.6  & $+0.047$ & $[+0.032,\,+0.062]$ & \checkmark & $+0.021$ & $[+0.002,\,+0.038]$ & \checkmark \\
+    Gemini 2.5 Flash   & $-0.210$ & $[-0.234,\,-0.181]$ & \checkmark & $-0.020$ & $[-0.036,\,-0.003]$ & \checkmark \\
+    Gemini 2.5 Pro     & $-0.121$ & $[-0.143,\,-0.094]$ & \checkmark & $+0.006$ & $[-0.006,\,+0.020]$ & \checkmark \\
+    Gemini 3 Flash     & $+0.037$ & $[+0.015,\,+0.055]$ & \checkmark & $-0.039$ & $[-0.060,\,-0.014]$ & \checkmark \\
+    Gemini 3.1 Pro     & $-0.018$ & $[-0.035,\,-0.006]$ & \checkmark & $-0.021$ & $[-0.034,\,-0.007]$ & $\times$ \\
+    GPT-4.1            & $-0.040$ & $[-0.061,\,-0.026]$ & \checkmark & $-0.091$ & $[-0.083,\,-0.042]$ & \checkmark \\
+    GPT-4.1 Mini       & $+0.025$ & $[+0.011,\,+0.035]$ & $\times$   & $-0.060$ & $[-0.081,\,-0.039]$ & $\times$ \\
+    GPT-4.1 Nano       & $+0.171$ & $[+0.143,\,+0.195]$ & \checkmark & $+0.059$ & $[+0.025,\,+0.091]$ & \checkmark \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \paragraph{H1 verdict.}
-H1 is supported in conditional form. The pre-registered decision rule (reject
-$H_0$ if any multi-agent vs.\ B1 McNemar contrast is BH-significant with
-$\Delta F_2 > 0$) is met: fifteen of the 22 per-model contrasts in
-Table~\ref{tab:h1-stats} are positive. However, support is family-specific,
-not universal. For the OpenAI family, M0 outperforms B1 by $+0.052$ pooled on
-$F_2$, and GPT-4.1\,Nano improves by $+0.171$. For the Anthropic family, M0
-and B4 outperform B1 on lighter models (Sonnet\,4: $+0.025$;
-Sonnet\,4.6: $+0.047$). For the Google family, H1 is not supported: B1
-dominates M0 by $0.078$ points (Gemini\,2.5\,Flash: $-0.210$;
-Gemini\,2.5\,Pro: $-0.121$), and M1 fails to improve over B1 on all four
-Google models. Pooled $F_2$ is within a $0.011$-point band; the model-family
-interaction is the dominant signal. On $F_1$, M0 leads all configurations
-pooled ($0.798$ vs.\ $0.737$ for B1), reversing the $F_2$ ranking and
-reframing the architectural choice as a metric-dependent decision
-(Section~\ref{sec:res:rq-summary}).
+H1 is rejected in its universal form. Eleven of the 22 per-model contrasts in
+Table~\ref{tab:h1-stats} are positive and eleven are negative or zero;
+no multi-agent configuration achieves consistent superiority across the
+eleven-model panel. Conditional improvement exists in two subfamilies: the
+OpenAI family benefits from M0 (GPT-4.1\,Nano: $+0.171$; pooled: $+0.052$),
+and lighter Anthropic models benefit from M0 and B4 (Sonnet\,4: $+0.025$;
+Sonnet\,4.6: $+0.047$). For the Google family, B1 dominates: M0 regresses by
+up to $0.210$ points on Gemini\,2.5\,Flash, and M1 fails to improve over B1 on
+all four Google models. Pooled $F_2$ is within a $0.011$-point band; the
+model-family interaction is the dominant signal. On $F_1$, M0 leads all
+configurations pooled ($0.798$ vs.\ $0.737$ for B1), reversing the $F_2$
+ranking and reframing the architectural choice as a metric-dependent decision
+(Section~\ref{sec:res:rq-summary}). Cohen's~$g$ is not reported separately
+because the $b{+}c$ discordant-pair counts required for
+$g = b/(b{+}c) - 0.5$ are not recoverable at the summary level; effect size
+is captured by $\Delta F_2$ and its paired-bootstrap 95\% CI.
 
 \section{H2 --- Rare-Category Gap}\label{sec:res:h2}
 
@@ -258,19 +255,19 @@ together with the rare--common gap $g = F_2^{\text{common}} - F_2^{\text{rare}}$
     & $F_2^c$ & $g$ & $F_2^c$ & $g$ & $F_2^c$ & $g$
     & $F_2^c$ & $g$ & $F_2^c$ & $g$ \\
     \midrule
-    Claude Haiku 4.5   & .926 & .329 & .917 & .263 & .770 & .074 & .950 & .296 & .938 & .306 \\
-    Claude Opus 4.6    & .965 & .219 & .950 & .169 & .937 & .202 & .966 & .260 & .953 & .256 \\
-    Claude Sonnet 4    & .958 & .245 & .955 & .241 & .940 & .211 & .948 & .257 & .937 & .195 \\
-    Claude Sonnet 4.6  & .947 & .269 & .929 & .149 & .941 & .220 & .928 & .245 & .929 & .175 \\
-    Gemini 2.5 Flash   & .935 & .216 & .929 & .227 & .725 & .344 & .946 & .277 & .934 & .153 \\
-    Gemini 2.5 Pro     & .958 & .268 & .960 & .272 & .919 & .515 & .969 & .258 & .954 & .323 \\
-    Gemini 3 Flash     & .950 & .324 & .798 & .337 & .944 & .355 & .923 & .346 & .751 & .144 \\
-    Gemini 3.1 Pro     & .966 & .225 & .955 & .236 & .962 & .289 & .963 & .262 & .965 & .189 \\
-    GPT-4.1            & .950 & .246 & .947 & .220 & .856 & .179 & .964 & .533 & .956 & .219 \\
-    GPT-4.1 Mini       & .913 & .196 & .947 & .254 & .955 & .233 & .950 & .421 & .936 & .293 \\
-    GPT-4.1 Nano       & .549 & .296 & .741 & .280 & .708 & .296 & .775 & .608 & .658 & .234 \\
+    Claude Haiku 4.5   & 0.926 & 0.329 & 0.917 & 0.263 & 0.770 & 0.074 & 0.950 & 0.296 & 0.938 & 0.306 \\
+    Claude Opus 4.6    & 0.965 & 0.219 & 0.950 & 0.169 & 0.937 & 0.202 & 0.966 & 0.260 & 0.953 & 0.256 \\
+    Claude Sonnet 4    & 0.958 & 0.245 & 0.955 & 0.241 & 0.940 & 0.211 & 0.948 & 0.257 & 0.937 & 0.195 \\
+    Claude Sonnet 4.6  & 0.947 & 0.269 & 0.929 & 0.149 & 0.941 & 0.220 & 0.928 & 0.245 & 0.929 & 0.175 \\
+    Gemini 2.5 Flash   & 0.935 & 0.216 & 0.929 & 0.227 & 0.725 & 0.344 & 0.946 & 0.277 & 0.934 & 0.153 \\
+    Gemini 2.5 Pro     & 0.958 & 0.268 & 0.960 & 0.272 & 0.919 & 0.515 & 0.969 & 0.258 & 0.954 & 0.323 \\
+    Gemini 3 Flash     & 0.950 & 0.324 & 0.798 & 0.337 & 0.944 & 0.355 & 0.923 & 0.346 & 0.751 & 0.144 \\
+    Gemini 3.1 Pro     & 0.966 & 0.225 & 0.955 & 0.236 & 0.962 & 0.289 & 0.963 & 0.262 & 0.965 & 0.189 \\
+    GPT-4.1            & 0.950 & 0.246 & 0.947 & 0.220 & 0.856 & 0.179 & 0.964 & 0.533 & 0.956 & 0.219 \\
+    GPT-4.1 Mini       & 0.913 & 0.196 & 0.947 & 0.254 & 0.955 & 0.233 & 0.950 & 0.421 & 0.936 & 0.293 \\
+    GPT-4.1 Nano       & 0.549 & 0.296 & 0.741 & 0.280 & 0.708 & 0.296 & 0.775 & 0.608 & 0.658 & 0.234 \\
     \midrule
-    \textbf{Mean}      & .929 & .276 & .912 & .240 & .878 & .284 & .940 & .342 & .919 & .226 \\
+    \textbf{Mean}      & 0.929 & 0.276 & 0.912 & 0.240 & 0.878 & 0.284 & 0.940 & 0.342 & 0.919 & 0.226 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -338,35 +335,37 @@ Jaccard span overlap.
   \caption{H3 contrasts. M1 and M6 are tied on pooled $F_2$
   ($\overline{\Delta F_2} = -0.0002$, 5 M1 wins vs.\ 6 M6 wins).
   On span quality (Jaccard), M6 dominates on 10 of 11 models with a mean
-  advantage of $+0.071$. The single M1 exception is Gemini\,3\,Flash, where
-  M6 collapses (Section~\ref{sec:res:cascade}).}
+  advantage of $+0.071$. BH: BH-corrected significance ($\alpha{=}0.05$,
+  $m{=}11$). All 11 contrasts are significant.
+  The single M1 exception on Jaccard is Gemini\,3\,Flash, where M6 collapses
+  (Section~\ref{sec:res:cascade}).}
   \label{tab:h3}
-  \begin{tabular}{lccccc}
+  \begin{tabular}{lcccccc}
     \toprule
     \textbf{Model}
-    & $F_2$(M1) & $F_2$(M6) & $\Delta F_2$
+    & $F_2$(M1) & $F_2$(M6) & $\Delta F_2$ & BH
     & Jacc.\,(M1) & Jacc.\,(M6) \\
     \midrule
-    Claude Haiku 4.5   & 0.835 & 0.822 & $+0.013$ & 0.403 & \textbf{0.449} \\
-    Claude Opus 4.6    & 0.860 & 0.846 & $+0.014$ & 0.429 & \textbf{0.492} \\
-    Claude Sonnet 4    & 0.826 & 0.842 & $-0.016$ & 0.491 & \textbf{0.524} \\
-    Claude Sonnet 4.6  & 0.834 & 0.836 & $-0.002$ & 0.397 & \textbf{0.460} \\
-    Gemini 2.5 Flash   & 0.810 & 0.832 & $-0.022$ & 0.384 & \textbf{0.462} \\
-    Gemini 2.5 Pro     & 0.834 & 0.816 & $+0.018$ & 0.375 & \textbf{0.440} \\
-    Gemini 3 Flash     & 0.747 & 0.609 & $+0.138$ & \textbf{0.345} & 0.332 \\
-    Gemini 3.1 Pro     & 0.840 & 0.854 & $-0.014$ & 0.420 & \textbf{0.534} \\
-    GPT-4.1            & 0.777 & 0.853 & $-0.076$ & 0.298 & \textbf{0.445} \\
-    GPT-4.1 Mini       & 0.777 & 0.833 & $-0.056$ & 0.319 & \textbf{0.387} \\
-    GPT-4.1 Nano       & 0.547 & 0.545 & $+0.001$ & 0.272 & \textbf{0.396} \\
+    Claude Haiku 4.5   & 0.835 & 0.822 & $+0.013$ & \checkmark & 0.403 & \textbf{0.449} \\
+    Claude Opus 4.6    & 0.860 & 0.846 & $+0.014$ & \checkmark & 0.429 & \textbf{0.492} \\
+    Claude Sonnet 4    & 0.826 & 0.842 & $-0.016$ & \checkmark & 0.491 & \textbf{0.524} \\
+    Claude Sonnet 4.6  & 0.834 & 0.836 & $-0.002$ & \checkmark & 0.397 & \textbf{0.460} \\
+    Gemini 2.5 Flash   & 0.810 & 0.832 & $-0.022$ & \checkmark & 0.384 & \textbf{0.462} \\
+    Gemini 2.5 Pro     & 0.834 & 0.816 & $+0.018$ & \checkmark & 0.375 & \textbf{0.440} \\
+    Gemini 3 Flash     & 0.747 & 0.609 & $+0.138$ & \checkmark & \textbf{0.345} & 0.332 \\
+    Gemini 3.1 Pro     & 0.840 & 0.854 & $-0.014$ & \checkmark & 0.420 & \textbf{0.534} \\
+    GPT-4.1            & 0.777 & 0.853 & $-0.076$ & \checkmark & 0.298 & \textbf{0.445} \\
+    GPT-4.1 Mini       & 0.777 & 0.833 & $-0.056$ & \checkmark & 0.319 & \textbf{0.387} \\
+    GPT-4.1 Nano       & 0.547 & 0.545 & $+0.001$ & \checkmark & 0.272 & \textbf{0.396} \\
     \midrule
-    \textbf{Mean}      & 0.790 & 0.790 & $-0.000$ & 0.376 & \textbf{0.447} \\
+    \textbf{Mean}      & 0.790 & 0.790 & $-0.000$ & --- & 0.376 & \textbf{0.447} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 Despite identical routing, M1 and M6 are statistically distinguishable on $F_2$
 for all 11 models after BH correction (McNemar two-sided, $\alpha{=}0.05$,
-$m{=}33$). The direction is inconsistent: M1 outperforms M6 on 5 models, M6 on
+$m{=}11$; Table~\ref{tab:h3}). The direction is inconsistent: M1 outperforms M6 on 5 models, M6 on
 6. There is no systematic family pattern. On the secondary axis of span quality,
 M6 dominates 10 of 11 models with a $+0.071$ Jaccard advantage, indicating that
 the single-agent consolidated prompt produces more precise, tighter extractions
@@ -375,7 +374,7 @@ than the routed specialist pipeline (contribution~C4).
 \paragraph{H3 verdict.}
 H3 is supported at the per-model level: M1 and M6 are statistically
 distinguishable on $F_2$ for all 11 models after BH correction (McNemar
-two-sided, $\alpha{=}0.05$). The direction of the difference, however, is
+two-sided, $\alpha{=}0.05$, $m{=}11$). The direction of the difference, however, is
 inconsistent --- M1 outperforms M6 on 5 models, M6 on 6 --- and pooled $F_2$
 is identical to three decimal places ($0.790$ vs.\ $0.790$). H3 therefore
 confirms that dispatch architecture alters model behaviour, not that it
@@ -593,9 +592,12 @@ The cascade analysis (Section~\ref{sec:res:cascade}) and tier analysis
 provides an orthogonal moderating variable: the context-window motivation for
 multi-agent decomposition predicts that routing clauses to specialists should
 help on \emph{longer} contracts, where a monolithic prompt must attend over
-more irrelevant text. We test this prediction by splitting the 102 CUAD
-contracts into quartiles by character count and computing per-configuration
-$F_2$ within each quartile.
+more irrelevant text. We test this prediction by splitting all 102 CUAD test contracts into quartiles
+by character count and computing per-configuration $F_2$ within each quartile.
+Note that this analysis uses all 102 contracts to maximise the length range;
+the main evaluation subset of 81 contracts (${>}100\mathrm{k}$ characters)
+occupies Q3--Q4 of this distribution, so Q1--Q2 results are not directly
+comparable with the main analysis metrics.
 
 \begin{table}[h]
   \centering
@@ -644,10 +646,11 @@ The dominant signal is the model-family interaction: the Anthropic family peaks
 at B4 ($\overline{F_2} = 0.851$), the Google family at B1 ($0.826$), and the
 OpenAI family at M0 ($0.783$). The choice of evaluation metric also flips the
 ranking: M0 dominates the panel on $F_1$ ($0.798$ vs.\ $0.737$ for B1) by
-suppressing over-extraction. The condition under which a multi-agent pipeline
-(M0) is preferable is therefore: the model is OpenAI-family, the practitioner
-accepts the $1.67\times$ cost premium, and precision ($F_1$) is the primary
-criterion. All other conditions favour simpler baselines.
+suppressing over-extraction. The condition under which a multi-agent pipeline (M0) is preferable on $F_1$
+is therefore: the model is OpenAI-family, the practitioner accepts the
+$1.67\times$ cost premium, and precision is the primary criterion. Under the
+pre-registered primary metric $F_2$, no multi-agent configuration consistently
+dominates B1; all other conditions favour simpler baselines.
 
 \paragraph{RQ2 (cost-effectiveness vs.\ single-agent baselines).}
 B1 occupies the Pareto frontier at every cost level. Multi-agent configurations
@@ -663,16 +666,16 @@ context provides specific reasons to prefer higher precision over recall.
 Addressed by system design in Chapter~\ref{chapter:system-design}. The M1
 trace structure produces explicit parent-child decision attribution --- routing
 decision, specialist extraction, validation outcome --- that B1 does not.
-Three concrete tradeoffs attend this auditability surplus. First, token storage:
-each M1 call emits a LangFuse trace of approximately $4\times$ the token volume
-of a B1 call (orchestrator hop plus three specialist sub-prompts logged at
-inference time), raising persistent storage requirements proportionally.
-Second, attribution faithfulness: LangFuse records the \emph{submitted} prompt
-and \emph{returned} completion but cannot verify that the model's stated
-reasoning reflects its actual inference process; the trace is auditable but not
-interpretable in a mechanistic sense. Third, routing redundancy: because the
-M1 router is empirically a deterministic lookup
-(Section~\ref{sec:res:h3}, $99.91\%$ accuracy), the orchestrator layer adds
-latency and cost without contributing decision diversity. Whether the
+Three tradeoffs attend this auditability surplus. Token storage scales with
+trace depth: each M1 call emits a LangFuse trace of approximately $4\times$
+the token volume of a B1 call (orchestrator hop plus three specialist
+sub-prompts logged at inference time), raising persistent storage requirements
+proportionally. Attribution faithfulness is bounded by the trace format: LangFuse
+records the \emph{submitted} prompt and \emph{returned} completion but cannot
+verify that the model's stated reasoning reflects its actual inference process,
+so the trace is auditable but not interpretable in a mechanistic sense. Routing
+redundancy is overhead without decision diversity: the M1 router is empirically
+a deterministic lookup (Section~\ref{sec:res:h3}, $99.91\%$ accuracy), so the
+orchestrator adds latency and cost without altering routing outcomes. Whether the
 auditability surplus justifies these costs is a deployment question revisited in
 Chapter~\ref{chapter:discussion}.

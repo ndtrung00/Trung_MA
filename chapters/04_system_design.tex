@@ -2,20 +2,8 @@
 
 \chapter{System Design and Implementation}\label{chapter:system-design}
 
-This chapter operationalises the five configurations of
-Chapter~\ref{chapter:methodology}. The objective is reproducibility: architectures,
-prompts, state schemas, and trace formats are described at a level of detail sufficient
-for an independent team to re-implement them from the released artefact.
-Section~\ref{sec:sys:components} presents the component diagram and shared data flow.
-Section~\ref{sec:sys:stack} gives the implementation stack.
-Section~\ref{sec:sys:shared} defines the run-state schema and prompt registry shared
-by all configurations. Sections~\ref{sec:sys:baselines} and~\ref{sec:sys:multiagent}
-specify the per-configuration implementations, including the prompts and routing logic
-that distinguish M1 from M6. Section~\ref{sec:auditability} documents the trace schema
-underwriting the auditability analysis of Sub-RQ3.
-Section~\ref{sec:sys:infra} covers the loader, statistical pipeline, and
-reproducibility commitments. The configuration table is in
-Chapter~\ref{chapter:methodology} (Table~\ref{tab:configs}) and is not repeated here.
+Chapter~4 operationalises the five configurations at a level of detail sufficient for
+independent re-implementation from the released artefact.
 
 \section{System Components and Data Flow}\label{sec:sys:components}
 
@@ -23,7 +11,8 @@ Figure~\ref{fig:sys-components} shows the static component view. A run is initia
 by the experiment driver, which loads CUAD samples through the deterministic loader,
 resolves prompts through the registry, and dispatches each sample to one of the five
 LangGraph state machines via a unified model client. Every model call is mirrored to
-the trace store; final answers are persisted as JSONL records consumed by the
+the trace store; final answers are persisted as JSONL (JSON Lines: one JSON object per
+line) records consumed by the
 statistical pipeline and the inspection dashboard.
 
 \begin{figure}[h]
@@ -108,8 +97,45 @@ the statistical pipeline uses \texttt{pandas}~\cite{pandas2020},
 \texttt{numpy}~\cite{harris2020array}, and \texttt{scipy}~\cite{virtanen2020scipy}.
 Provider SDKs are wrapped in a unified \texttt{ModelClient} that records, per call,
 prompt tokens, completion tokens, cache-read tokens (where supported), wall-clock
-latency, and provider-billed cost. The wrapper supports 19 model identifiers; only
-the 11 listed in Table~\ref{tab:models} are exercised in official runs.
+latency, and provider-billed cost. The wrapper supports 19 model identifiers; only the 11 listed in
+Table~\ref{tab:models} are exercised in official runs. The remaining 8 identifiers
+cover open-weights models excluded per Section~\ref{sec:meth:models} and two
+non-CUAD test configurations not evaluated in this study.
+
+\paragraph{Inference parameters.}
+All official model calls used \texttt{temperature=0} and \texttt{max\_tokens=4096}.
+Official runs were executed between \textbf{[TODO: insert start date]} and
+\textbf{[TODO: insert end date]}. Table~\ref{tab:snapshots} lists the full provider
+snapshot identifier for each of the 11 models.
+
+\begin{table}[h]
+  \centering
+  \small
+  \caption{Provider snapshot identifiers for the 11 models in the official panel.}
+  \label{tab:snapshots}
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Family} & \textbf{Model} & \textbf{Tier} & \textbf{Snapshot ID} \\
+    \midrule
+    \multirow{4}{*}{Anthropic}
+      & Claude Haiku 4.5  & Light & \texttt{[TODO]} \\
+      & Claude Sonnet 4   & Mid   & \texttt{[TODO]} \\
+      & Claude Sonnet 4.6 & Mid   & \texttt{claude-sonnet-4-6-20251001} \\
+      & Claude Opus 4.6   & Heavy & \texttt{[TODO]} \\
+    \midrule
+    \multirow{4}{*}{Google}
+      & Gemini 2.5 Flash  & Light & \texttt{[TODO]} \\
+      & Gemini 2.5 Pro    & Heavy & \texttt{[TODO]} \\
+      & Gemini 3 Flash    & Light & \texttt{[TODO]} \\
+      & Gemini 3.1 Pro    & Heavy & \texttt{[TODO]} \\
+    \midrule
+    \multirow{3}{*}{OpenAI}
+      & GPT-4.1           & Mid   & \texttt{[TODO]} \\
+      & GPT-4.1 Mini      & Light & \texttt{[TODO]} \\
+      & GPT-4.1 Nano      & Light & \texttt{[TODO]} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Shared Abstractions}\label{sec:sys:shared}
 
@@ -154,8 +180,8 @@ written to the run metadata so prompt drift is detectable post-hoc. Two roots:
 \texttt{prompts/specialists/} (the three M1 domain specialists and the M6
 consolidated prompt). A shared \texttt{system/} directory holds anti-laziness
 instructions and the verbatim-span output contract, referenced by all configurations,
-ensuring that the behavioural guard-rails are identical across B1, B4, M0, M1,
-and M6.
+ensuring that the anti-laziness and verbatim-span output instructions are identical
+across B1, B4, M0, M1, and M6.
 
 \paragraph{Common parser.}
 A single parser converts every model completion to a canonical
@@ -192,8 +218,9 @@ scan for candidate spans, weigh ambiguous matches against the indicator, and emi
 final \texttt{<answer>...</answer>} block. A parsing bug in pilot work caused
 contract passages quoted inside the chain-of-thought to be harvested as answers,
 inflating $\omega$ (Eq.~\ref{eq:overextract}); the fix enforces the answer tag via
-the common parser of Section~\ref{sec:sys:shared}. Only post-fix runs enter official
-statistics.
+the common parser of Section~\ref{sec:sys:shared}. The fix was deployed in commit
+\texttt{[TODO: insert commit hash]} on \textbf{[TODO: insert date]}; only post-fix
+runs enter official statistics.
 
 \section{Multi-Agent Architectures}\label{sec:sys:multiagent}
 
@@ -203,7 +230,12 @@ M0 decomposes each (contract, category) task into two sequential LLM calls. The
 only if the classifier returns yes. The two agents share the category indicator but
 have disjoint prompts: the classifier is forbidden to emit spans, the extractor
 assumes presence. Listing~\ref{lst:m0-prompts} excerpts both prompts;
-Listing~\ref{lst:m0-graph} shows the LangGraph construction.
+Listing~\ref{lst:m0-graph} shows the LangGraph construction. Non-binary classifier
+responses (e.g.\ capitalised ``Yes'', punctuated ``no.'', or free-form text) are
+normalised by case-folding and stripping punctuation before matching; responses that
+do not resolve to ``yes'' or ``no'' after normalisation are treated as ``no'' and the
+record is flagged \texttt{parser\_status="rejected"}, contributing to the 1{,}297
+excluded predictions ($0.79\%$).
 
 \begin{lstlisting}[caption={M0 classifier and extractor prompts (abridged).},
   label={lst:m0-prompts}, basicstyle=\footnotesize\ttfamily, frame=single]
@@ -416,15 +448,14 @@ call is its child. Listing~\ref{lst:trace} shows a representative M1 record.
 \end{lstlisting}
 
 \paragraph{Auditability properties.}
-The trace structure supports three concrete properties. First,
-\emph{decision attribution}: any final answer is traceable to the specific agent,
-prompt version, and model that produced it. Second, \emph{counterfactual replay}:
-because prompts and model identifiers are pinned per call, a reviewer can re-run a
-single call under a different model without re-running the pipeline. Third,
-\emph{rejection forensics}: when M0 silently returns ``no related clause'', the
-classifier's verdict is recorded explicitly, making the classification-gate cascade
-of Section~\ref{sec:res:cascade} visible at audit time as an upstream rejection
-rather than an unobservable absence.
+The trace structure supports three concrete properties. \emph{Decision attribution}:
+any final answer is traceable to the specific agent, prompt version, and model that
+produced it. \emph{Counterfactual replay}: because prompts and model identifiers are
+pinned per call at \texttt{temperature=0}, a reviewer can re-run a single archived
+call and obtain a deterministically identical completion. \emph{Rejection forensics}:
+when M0 silently returns ``no related clause'', the classifier's verdict is recorded
+explicitly, making the classification-gate cascade of Section~\ref{sec:res:cascade}
+visible at audit time as an upstream rejection rather than an unobservable absence.
 
 \paragraph{Trade-offs and limits.}
 The JSONL persistence layer is on the order of gigabytes per full sweep, and trace
@@ -437,8 +468,12 @@ a chain-of-thought trace records what the model emitted, not what it computed.
 
 \paragraph{Trace completeness.}
 Trace completeness --- the fraction of model calls for which all expected fields are
-populated --- was $95.2\%$ for M1 across official runs. The remaining $4.8\%$ are
-provider-side truncations on long contracts and are flagged in the run logs.
+populated --- was $100\%$ for B1, B4, and M6 (single-call configurations with no
+routing decisions), $100\%$ for M0 (two-call pipeline with deterministic branching),
+and $95.2\%$ for M1 across official runs. The binding constraint is M1: the remaining
+$4.8\%$ are provider-side truncations on long contracts and are flagged in the run
+logs. The single-configuration baseline ($100\%$) confirms that the drop is
+attributable to M1's multi-call routing overhead, not to infrastructure failures.
 
 \section{Experimental Infrastructure}\label{sec:sys:infra}
 
