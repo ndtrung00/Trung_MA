@@ -22,14 +22,13 @@ to preserve statistical power on rare-tier categories
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{Coverage: analysed predictions per (model, configuration) cell after
   dropping malformed records. ${}^*$Partial run due to upstream sampling interruption;
   paired tests use the sample-ID intersection. Configuration names defined in
   Table~\ref{tab:configs}.}
   \label{tab:coverage}
-  \begin{tabular}{lrrrrrr}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr@{}}
     \toprule
     \textbf{Model} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} &
     \textbf{M2} & \textbf{Total} \\
@@ -49,7 +48,7 @@ to preserve statistical power on rare-tier categories
     \textbf{Total}     & 32{,}151 & 32{,}946 & 32{,}627 & 32{,}989 & 32{,}931 &
     \textbf{163{,}644} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \section{H1 --- Multi-Agent vs.\ Single-Agent Baselines}\label{sec:res:h1}
@@ -60,7 +59,6 @@ eleven models, and per provider family.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{Headline metrics by family and configuration (Cfg), mean across
   constituent models. $\omega$ = over-extraction rate (FP\,/\,negatives).
@@ -69,7 +67,7 @@ eleven models, and per provider family.
   The $F_2$ and $F_1$ rankings diverge: pooled $F_2$ favours \cfgZS\ (B0, 0.801)
   by 0.011 points; pooled $F_1$ favours \cfgCX\ (M0, 0.798) by 0.061 points.}
   \label{tab:h1-headline}
-  \begin{tabular}{llccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llccccc@{}}
     \toprule
     \textbf{Family} & \textbf{Cfg} & $\overline{F_2}$ & $\overline{F_1}$ &
     $\overline{R}$ & $\overline{P}$ & $\overline{\omega}$ \\
@@ -102,7 +100,7 @@ eleven models, and per provider family.
       & M1 & 0.790 & 0.776 & 0.801 & 0.768 & 0.179 \\
       & M2 & 0.790 & 0.724 & 0.844 & 0.642 & 0.339 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 The pooled means tell two stories. On $F_2$, \cfgZS\ (B0) is nominally best
@@ -172,7 +170,6 @@ contribution~C2.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4.5pt}
   \small
   \caption{$F_2$ by model and configuration. Bold: best per row.
   Configuration names defined in Table~\ref{tab:configs}.
@@ -180,7 +177,7 @@ contribution~C2.
   (B1), the Google family under \cfgZS\ (B0), and the OpenAI family under
   \cfgCX\ (M0).}
   \label{tab:h1-f2}
-  \begin{tabular}{lccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{Model} & $F_2$(B0) & $F_2$(B1) & $F_2$(M0) & $F_2$(M1) & $F_2$(M2) \\
     \midrule
@@ -198,7 +195,7 @@ contribution~C2.
     \midrule
     \textbf{Mean}      & \textbf{0.801} & 0.796 & 0.794 & 0.790 & 0.790 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \begin{figure}[h]
@@ -279,7 +276,6 @@ full-run values in Table~\ref{tab:h1-f2}.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{3pt}
   \small
   \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B0})$
   computed on the sample-ID intersection (so the row $\Delta F_2$ may differ
@@ -292,7 +288,7 @@ full-run values in Table~\ref{tab:h1-f2}.
   the McNemar verdict on near-zero effects where the discordant-pair
   distribution and the resampled-mean distribution diverge.}
   \label{tab:h1-stats}
-  \begin{tabular}{lcccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc@{}}
     \toprule
     & \multicolumn{3}{c}{\textbf{M0 vs.\ B0}}
     & \multicolumn{3}{c}{\textbf{M1 vs.\ B0}} \\
@@ -312,7 +308,7 @@ full-run values in Table~\ref{tab:h1-f2}.
     GPT-4.1 Mini       & $+0.025$ & $[+0.011,\,+0.035]$ & $\times$   & $-0.060$ & $[-0.081,\,-0.039]$ & $\times$ \\
     GPT-4.1 Nano       & $+0.171$ & $[+0.143,\,+0.195]$ & \checkmark & $+0.059$ & $[+0.025,\,+0.091]$ & \checkmark \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \paragraph{H1 verdict.}
@@ -339,7 +335,6 @@ $0.919$); the gap movement is driven almost entirely by rare-tier shifts.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{Rare--common gap $g = F_2^c - F_2^r$ per (model, configuration).
   Lower is better. \cfgCX's mean gap (0.284) exceeds \cfgZS's (0.276) due to
@@ -348,7 +343,7 @@ $0.919$); the gap movement is driven almost entirely by rare-tier shifts.
   categories. Only \cfgCoT\ and \cfgCP\ reduce the gap relative to \cfgZS\
   (means 0.240 and 0.226).}
   \label{tab:h2-tier}
-  \begin{tabular}{lccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{Model} & $g$(B0) & $g$(B1) & $g$(M0) & $g$(M1) & $g$(M2) \\
     \midrule
@@ -366,7 +361,7 @@ $0.919$); the gap movement is driven almost entirely by rare-tier shifts.
     \midrule
     \textbf{Mean}      & 0.276 & 0.240 & 0.284 & 0.342 & \textbf{0.226} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \paragraph{H2 verdict.}
@@ -477,7 +472,6 @@ Jaccard span overlap.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{H3 contrasts: \cfgMA\ (M1) vs.\ \cfgCP\ (M2). Both configurations are
   tied on pooled $F_2$ ($\overline{\Delta F_2} = -0.0002$; 5 M1 wins, 6 M2 wins).
@@ -486,7 +480,7 @@ Jaccard span overlap.
   All 11 contrasts are significant. The single M1 exception on Jaccard is
   Gemini\,3\,Flash, where \cfgCP\ collapses (Section~\ref{sec:res:cascade}).}
   \label{tab:h3}
-  \begin{tabular}{lcccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc@{}}
     \toprule
     \textbf{Model}
     & $F_2$(M1) & $F_2$(M2) & $\Delta F_2$ & BH
@@ -506,7 +500,7 @@ Jaccard span overlap.
     \midrule
     \textbf{Mean}      & 0.790 & 0.790 & $-0.000$ & --- & 0.376 & \textbf{0.447} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Despite identical routing, \cfgMA\ (M1) and \cfgCP\ (M2) are statistically
@@ -553,7 +547,7 @@ extraction failure.
   Gemini\,2.5\,Flash and Pro lose ${\geq}97.8\%$ of their recall to upstream
   rejection.}
   \label{tab:cascade}
-  \begin{tabular}{lccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{Model}
     & \textbf{B0 FN-rate} & \textbf{M0 FN-rate} & \textbf{M0 FN}
@@ -573,7 +567,7 @@ extraction failure.
     \midrule
     \textbf{Mean}      & 14.7\% & 20.7\% & 256 & 218 & 82.7\% \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 The cascade is the dominant cause of M0's $F_2$ regression on the Google
@@ -609,7 +603,7 @@ a question revisited in Chapter~\ref{chapter:discussion}.
   it inherits the same specialist scaffold; \cfgCP\ (M2) reverts to the
   free-text baseline.}
   \label{tab:omega}
-  \begin{tabular}{lccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{Model} & $\omega$(B0) & $\omega$(B1) & $\omega$(M0) & $\omega$(M1) & $\omega$(M2) \\
     \midrule
@@ -627,7 +621,7 @@ a question revisited in Chapter~\ref{chapter:discussion}.
     \midrule
     \textbf{Mean}      & .320 & .385 & \textbf{.130} & .179 & .339 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \paragraph{Cascade predictability.}
@@ -718,7 +712,6 @@ restricted to instances on which the model emitted at least one span.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{Mean grounding rate by configuration. \emph{All}: pooled over all
   $\approx\!2{,}999$ samples per cell, including ``no related clause'' returns
@@ -729,14 +722,14 @@ restricted to instances on which the model emitted at least one span.
   \cfgCP\ (M2), which return free-text extractions, leave $44$--$58\%$ of
   predicted spans ungrounded.}
   \label{tab:grounding}
-  \begin{tabular}{lccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lccccc@{}}
     \toprule
     \textbf{Config} & \textbf{B0} & \textbf{B1} & \textbf{M0} & \textbf{M1} & \textbf{M2} \\
     \midrule
     All samples            & 0.299 & 0.373 & 0.375 & \textbf{0.456} & 0.248 \\
     Predicted-clause only  & 0.543 & 0.594 & 0.893 & \textbf{1.000} & 0.415 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 The predicted-clause column is the audit-relevant denominator: a missed clause
@@ -759,13 +752,12 @@ B0.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \small
   \caption{Provider cost per run (${\approx}2{,}999$ samples) and per-model
   mean ratio relative to B0. M0's $1.67\times$ premium reflects the additional
   classifier call; M1's $1.23\times$ reflects the orchestrator hop.}
   \label{tab:cost}
-  \begin{tabular}{lrrrrr}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrr@{}}
     \toprule
     \textbf{Model} & B0 (\$) & B1 (\$) & M0 (\$) & M1 (\$) & M2 (\$) \\
     \midrule
@@ -784,7 +776,7 @@ B0.
     \textbf{Mean ratio} & $1.00\times$ & $1.30\times$ & $1.67\times$ &
                           $1.23\times$ & $1.27\times$ \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Figure~\ref{fig:pareto} plots all 55 cells in the $(F_2, \text{cost})$ plane.
@@ -873,7 +865,7 @@ envelope.
   $-4.1$ percentage points. The pattern is opposite to the context-window
   motivation.}
   \label{tab:length-quartile}
-  \begin{tabular}{lcccccc}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lcccccc@{}}
     \toprule
     \textbf{Quartile} & \textbf{Range (chars)} & \textbf{B0} & \textbf{B1} &
     \textbf{M0} & \textbf{M1} & \textbf{Best} \\
@@ -883,7 +875,7 @@ envelope.
     Q3            & 25{,}923--62{,}272 & 0.806 & 0.793 & 0.801 & 0.799 & B0 \\
     Q4 (longest)  & ${>}62{,}272$  & \textbf{0.849} & 0.819 & 0.817 & 0.808 & B0 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Table~\ref{tab:length-quartile} shows the opposite of the predicted pattern.

@@ -1,6 +1,6 @@
 % !TeX root = ../main.tex
 
-\chapter{Conclusion and Outlook}\label{chapter:conclusion}
+\chapter{Conclusion}\label{chapter:conclusion}
 
 Model identity dominates architectural choice: switching configurations moves pooled $F_2$ by at most $0.011$ points, while moving across the model panel moves it by ${\approx}0.4$; the family $\times$ configuration interaction explains the residual.
 
@@ -18,8 +18,9 @@ A cross-family cross-architecture comparison on CUAD at this scale:
 five architectural configurations, eleven frontier models, 55 official runs,
 analysed with paired McNemar exact tests, paired bootstrap confidence
 intervals, and Benjamini--Hochberg correction. The benchmark, prompt
-registry, run artefacts, and statistical pipeline are released alongside the
-thesis (Section~\ref{sec:sys:infra}).
+registry, run artefacts, and statistical pipeline are released as
+open source at \url{https://github.com/ndtrung00/agentic-ai-for-clm}
+(Section~\ref{sec:sys:opensource}).
 
 \paragraph{C2 --- Capability-tier gradient.}
 Architectural ranking is not constant across the model panel. Pooled $F_2$
@@ -115,7 +116,44 @@ computation. \emph{Routing redundancy} adds latency without decision
 diversity --- the $99.91\%$ deterministic routing result means the
 orchestrator layer can be replaced by a static dictionary at zero LLM cost.
 
-\section{Outlook}\label{sec:concl:outlook}
+\section{Limitations}\label{sec:concl:limitations}\label{sec:disc:threats}
+
+The limitations below bound the generalisation of these findings; they
+expand the threats formalised in Section~\ref{sec:meth:threats}.
+
+\paragraph{Single benchmark.}
+The evaluation is on the 102-contract CUAD test split under the upsampled-positive
+class distribution (\S\ref{sec:meth:sampling}). The findings may not extrapolate
+to non-CUAD clause taxonomies, to non-English contracts, or to non-U.S.\
+jurisdictions.
+The contract-length moderation result
+(Section~\ref{sec:res:length}, Table~\ref{tab:length-quartile}) shows that
+the architectural ranking is not stable across document lengths within CUAD
+itself: multi-agent helps on short contracts and hurts on long ones.
+The architectural ranking observed here is therefore a ranking on this
+evaluation envelope, not a universal ranking.
+
+\paragraph{Pinned model snapshots.}
+Model identifiers are pinned to specific snapshots in the run metadata.
+Provider behaviour can shift under silent model updates; the family
+interaction observed here may not be stable across future provider releases.
+The qualitative pattern --- that architecture choice interacts with model
+family more than with any within-architecture variable --- is consistent
+with findings reported across task domains in the recent
+literature~\cite{gao2025single,cemri2025why}, suggesting the pattern
+generalises even where specific point estimates do not.
+
+\paragraph{Closed proprietary panel.}
+Open-weights models are excluded (Section~\ref{sec:meth:models}).
+The proprietary--open-source gap reported by \textcite{liu2025contracteval} is
+not re-examined here. The finding that multi-agent decomposition does not
+improve pooled $F_2$ may not transfer to a panel of weaker open-weights
+models, where decomposition's capability-equalisation effect
+(Section~\ref{sec:disc:headline}) might be larger. Open-weights extension
+is identified in Section~\ref{sec:concl:outlook} as the most consequential
+extension of the present work.
+
+\section{Future Work}\label{sec:concl:outlook}
 
 Three axes under-determine the conclusion: untested architectural patterns,
 evaluation beyond CUAD, and cost mechanisms not exercised in the experiments.

@@ -40,14 +40,14 @@ empirical question of which multi-agent pattern is preferable for clause-level c
 analysis under a fixed model and task remains unresolved.
 
 Recent cross-domain work questions whether multi-agent designs confer measurable benefit once
-base-model capability is high. Gao et al.\ show diminishing returns for frontier models
-whose long-context reasoning absorbs the workload that previously required
-decomposition~\cite{gao2025single}. Cemri et al.\ construct a 14-mode failure taxonomy
+base-model capability is high. \textcite{gao2025single} show diminishing returns for frontier
+models whose long-context reasoning absorbs the workload that previously required
+decomposition. \textcite{cemri2025why} construct a 14-mode failure taxonomy
 across seven multi-agent frameworks and report only modest 14--15\% recovery from simple
-interventions, suggesting structural rather than prompt-level causes~\cite{cemri2025why}.
-Bogavelli et al.\ find no universally optimal architecture across frontier models on
-enterprise tasks, with model--architecture interaction dominating absolute architectural
-ranking~\cite{bogavelli2025agentarch}.
+interventions, suggesting structural rather than prompt-level causes.
+\textcite{bogavelli2025agentarch} find no universally optimal architecture across frontier
+models on enterprise tasks, with model--architecture interaction dominating absolute
+architectural ranking.
 
 Prior CUAD evaluations~\cite{liu2025contracteval} have used inconsistent sampling
 designs: inflated positive ratios produce optimistic precision estimates and mask
@@ -113,6 +113,12 @@ properties of the implementation are documented in \S\ref{sec:auditability}.
     and the consolidated ablation matches it on $F_2$ while producing tighter
     spans (\S\ref{sec:res:h3}).
 \end{description}
+
+\noindent
+The full source code, prompt registry, experiment configurations, and run
+artefacts underlying every table and figure are released at
+\url{https://github.com/ndtrung00/agentic-ai-for-clm}
+(\S\ref{sec:sys:opensource}).
 
 \section{Thesis Outline}\label{sec:outline}
 

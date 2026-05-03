@@ -458,9 +458,17 @@ $\lambda$, $\omega$), the loader (filter, sampling determinism, tier
 assignment), the agent topologies (each of B0, B1, M0, M1, M2 has at least one
 end-to-end test against a stub model), and the statistical pipelines
 (McNemar, bootstrap, BH correction). The full suite passes prior to every
-official run; the repository (\texttt{agentic-ai-for-clm}) is publicly
-released alongside the thesis with full source, prompts, configs, and the
-experiment-results JSONL bundle.
+official run.
+
+\paragraph{Open-source release.}\label{sec:sys:opensource}
+The full source code, prompt registry, experiment configurations, and the
+experiment-results JSONL bundle are released as the open-source repository
+\texttt{agentic-ai-for-clm} at
+\url{https://github.com/ndtrung00/agentic-ai-for-clm}. The repository contains
+every component referenced in this chapter: the LangGraph topologies for
+B0--M2, the YAML prompt files, the model client, the statistical pipeline,
+the dashboard, and the run logs underlying every table and figure in
+Chapter~\ref{chapter:results}.
 
 \paragraph{Reproducibility.}
 Three commitments support reproducibility: deterministic sampling under

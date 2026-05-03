@@ -193,39 +193,5 @@ seams that the benchmark does not measure. This is a defensible reason to
 build multi-agent CLM systems --- weaker than ``decomposition wins on
 accuracy'', but cleanly stated.
 
-\section{Threats to Validity}\label{sec:disc:threats}
-
-The threats formalised in Section~\ref{sec:meth:threats} bound the
-generalisation of these findings. Three are most consequential.
-
-\paragraph{Single benchmark.}
-The evaluation is on the 102-contract CUAD test split under the upsampled-positive
-class distribution (\S\ref{sec:meth:sampling}). The findings may not extrapolate
-to non-CUAD clause taxonomies, to non-English contracts, or to non-U.S.\
-jurisdictions.
-The contract-length moderation result
-(Section~\ref{sec:res:length}, Table~\ref{tab:length-quartile}) shows that
-the architectural ranking is not stable across document lengths within CUAD
-itself: multi-agent helps on short contracts and hurts on long ones.
-The architectural ranking observed here is therefore a ranking on this
-evaluation envelope, not a universal ranking.
-
-\paragraph{Pinned model snapshots.}
-Model identifiers are pinned to specific snapshots in the run metadata.
-Provider behaviour can shift under silent model updates; the family
-interaction observed here may not be stable across future provider releases.
-The qualitative pattern --- that architecture choice interacts with model
-family more than with any within-architecture variable --- is consistent
-with findings reported across task domains in the recent
-literature~\cite{gao2025single,cemri2025why}, suggesting the pattern
-generalises even where specific point estimates do not.
-
-\paragraph{Closed proprietary panel.}
-Open-weights models are excluded (Section~\ref{sec:meth:models}).
-The proprietary--open-source gap reported by \textcite{liu2025contracteval} is
-not re-examined here. The finding that multi-agent decomposition does not
-improve pooled $F_2$ may not transfer to a panel of weaker open-weights
-models, where decomposition's capability-equalisation effect
-(Section~\ref{sec:disc:headline}) might be larger. Open-weights extension
-is identified in Section~\ref{sec:concl:outlook} as the most consequential
-extension of the present work.
+% Limitations and threats to validity are consolidated alongside the future-work
+% directions in Chapter~\ref{chapter:conclusion}, Section~\ref{sec:concl:limitations}.

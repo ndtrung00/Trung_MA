@@ -409,7 +409,7 @@ Table~\ref{tab:datasets} compares the main contract-analysis benchmarks.
   \begin{tabular}{lllll}
     \toprule
     \textbf{Dataset} & \textbf{Task} & \textbf{Size} & \textbf{Categories} &
-    \textbf{Used here} \\
+    \textbf{In evaluation} \\
     \midrule
     CUAD~\cite{hendrycks2021cuad}           & Span extraction & 510 contracts  & 41  & \checkmark \\
     ContractNLI~\cite{koreeda2021contractnli} & Doc-level NLI  & 607 NDAs      & 17  & --- \\
@@ -495,18 +495,18 @@ cross-architecture ablation on a fixed CUAD evaluation harness.
 
 \section{Conditions for Multi-Agent Effectiveness}\label{sec:lit:when}
 
-Gao et al.~\cite{gao2025single} show on a battery of
+\textcite{gao2025single} show on a battery of
 reasoning and tool-use tasks that single, well-prompted LLMs frequently match or exceed
 multi-agent configurations once the latter are corrected for cost and prompting parity,
 and that observed multi-agent gains often disappear under stronger single-agent baselines.
-Cemri et al.~\cite{cemri2025why} taxonomise multi-agent failure modes —
+\textcite{cemri2025why} taxonomise multi-agent failure modes —
 specification drift between agents, inter-agent verification gaps, lossy summarisation
 across hand-offs — and document that these failures account for the majority of
-regressions in the systems they audit. Bogavelli et al.~\cite{bogavelli2025agentarch}
+regressions in the systems they audit. \textcite{bogavelli2025agentarch}
 run a large architectural sweep across orchestration patterns and base models and find
 substantial model-family $\times$ architecture interactions: an architecture that is
 optimal under one model family is often dominated under another.
-Sanwal~\cite{sanwal2025layered} demonstrates that layered single-agent chain-of-thought
+\textcite{sanwal2025layered} demonstrates that layered single-agent chain-of-thought
 can recover much of the benefit attributed to multi-agent decomposition without paying
 the coordination cost.
 
@@ -585,7 +585,7 @@ with $B{=}300$ resamples handles span-level continuous
 metrics~\cite{efron1979bootstrap,riezler2005pitfalls}. Multiple-comparison control
 across the architecture grid uses Benjamini--Hochberg false-discovery-rate correction
 at $q{=}0.05$~\cite{benjamini1995controlling}. Sample-size and power considerations
-follow Dror et al.~\cite{dror2018hitchhikers} and Card et al.~\cite{card2020little};
+follow \textcite{dror2018hitchhikers} and \textcite{card2020little};
 the 102-contract test split gives $\geq 0.8$ power to detect absolute $F_2$
 differences of $\approx\!2.5$ percentage points at the instance level under the
 bootstrap.
@@ -620,7 +620,7 @@ and adds over-extraction (Eq.~\eqref{eq:overextract}) and a model-family
 interaction term as first-class evaluation axes.
 
 \paragraph{Prompt sensitivity as a validity threat.}
-The prompt-sensitivity index of \citeauthor{chatterjee2024posix}~\cite{chatterjee2024posix}
+The prompt-sensitivity index of \textcite{chatterjee2024posix}
 quantifies the sensitivity of LLM outputs to semantically equivalent prompt
 rewrites and reports non-trivial sensitivity even on well-defined tasks.
 Prompt sensitivity is therefore a first-order validity threat for any
