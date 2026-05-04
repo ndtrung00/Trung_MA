@@ -152,8 +152,8 @@ ranking varies systematically across model families with different
 documented training cut-offs (Anthropic peaks under \cfgCoT, Google under
 \cfgZS, OpenAI under \cfgCX; \S\ref{sec:disc:headline}), which uniform
 memorisation would not predict. Second, the M0 classification-gate cascade
-(\S\ref{sec:disc:cascade}) is a recall-loss mechanism --- silent upstream
-rejection on positive instances --- that contamination cannot generate;
+(\S\ref{sec:disc:cascade}) is a recall-loss mechanism (silent upstream
+rejection on positive instances) that contamination cannot generate;
 memorised content would, if anything, raise recall rather than collapse it.
 A held-out non-CUAD evaluation (e.g.\ a clause subset from
 LegalBench or ContractNLI~\cite{koreeda2021contractnli}) is identified in
@@ -163,11 +163,11 @@ Section~\ref{sec:concl:outlook} as the highest-priority extension.
 Model identifiers are pinned to specific snapshots in the run metadata.
 Provider behaviour can shift under silent model updates; the family
 interaction observed here may not be stable across future provider releases.
-The qualitative pattern --- that architecture choice interacts with model
-family more than with any within-architecture variable --- is consistent
-with findings reported across task domains in the recent
-literature~\cite{gao2025single,cemri2025why}, suggesting the pattern
-generalises even where specific point estimates do not.
+The qualitative pattern is consistent with findings reported across task
+domains in the recent literature~\cite{gao2025single,cemri2025why}:
+architecture choice interacts with model family more than with any
+within-architecture variable, suggesting the pattern generalises even where
+specific point estimates do not.
 
 \paragraph{Closed proprietary panel.}
 Open-weights models are excluded (Section~\ref{sec:meth:models}).
@@ -205,8 +205,8 @@ production-relevant generalisation of M0; document-quality stress tests
 (OCR noise, redactions, mixed-format inputs) that probe whether the
 ranking survives preprocessing degradation; and formal user studies with
 practising reviewers, which would close the loop on RQ3 by measuring
-whether M0/M1 trace primitives actually shorten review time --- the
-property treated here as a system feature rather than an outcome.
+whether M0/M1 trace primitives actually shorten review time. The thesis
+treats this property as a system feature, not as an outcome.
 
 \paragraph{Cost mechanisms.}
 Two cost mechanisms not exercised here would re-form the Pareto frontier

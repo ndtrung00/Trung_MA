@@ -74,8 +74,8 @@ to preserve statistical power on rare-tier categories
 
 \section{H1 --- Multi-Agent vs.\ Single-Agent Baselines}\label{sec:res:h1}
 
-Table~\ref{tab:h1-headline} reports the headline metrics --- $F_2$, $F_1$,
-recall, precision, and over-extraction rate $\omega$ --- pooled across all
+Table~\ref{tab:h1-headline} reports the headline metrics ($F_2$, $F_1$,
+recall, precision, and over-extraction rate $\omega$) pooled across all
 eleven models, and per provider family.
 
 \begin{table}[h]
@@ -191,9 +191,9 @@ family peaks under a different configuration.
     \end{axis}
   \end{tikzpicture}
   \caption{Mean $F_2$ by provider family $\times$ configuration. Each family
-  peaks under a different configuration --- Anthropic under \cfgCoT\ (B1,
+  peaks under a different configuration: Anthropic under \cfgCoT\ (B1,
   $0.851$), Google under \cfgZS\ (B0, $0.826$), OpenAI under \cfgCX\ (M0,
-  $0.783$) --- so no single architecture is universally optimal. The
+  $0.783$). No single architecture is universally optimal. The
   family-by-configuration interaction is the dominant signal in the H1
   results.}
   \label{fig:family-config}
@@ -317,7 +317,7 @@ full-run values in Table~\ref{tab:h1-f2}.
   \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B0})$
   computed on the sample-ID intersection (so the row $\Delta F_2$ may differ
   from the full-run difference implied by Table~\ref{tab:h1-f2} when one of the
-  pair is a partial run --- Claude~Sonnet~4 and GPT-4.1). Paired-bootstrap
+  pair is a partial run, namely Claude~Sonnet~4 and GPT-4.1). Paired-bootstrap
   95\% CIs ($B{=}300$, \texttt{seed=42}), BH-corrected significance
   ($\alpha{=}0.05$, $m{=}22$). \checkmark: BH-reject $H_0$.
   Note: BH significance is decided by the McNemar exact $p$-value; the
@@ -413,7 +413,7 @@ H2 is rejected. Under the pre-registered decision rule (\S\ref{sec:meth:hypothes
 upper bound of the 95\% paired-bootstrap CI on $\Delta\mathrm{Gap}$ strictly
 $<0$), only 1 of the 22 multi-agent vs.\ B0 contrasts satisfies the rule
 (Claude\,Haiku\,4.5 under M0, $\Delta\mathrm{Gap}{=}-0.256$, CI $[-0.308,\,-0.211]$);
-6 contrasts have CIs strictly above zero --- M0 and M1 \emph{widen} the gap
+6 contrasts have CIs strictly above zero: M0 and M1 \emph{widen} the gap
 significantly on the Gemini and GPT-family models. Because the decision
 rule is a one-sided CI inclusion criterion rather than a $p$-value, the
 Benjamini--Hochberg procedure (Eq.~\ref{eq:bh}) does not apply mechanically
@@ -507,10 +507,10 @@ The \cfgMA\ (M1) router agreed with the deterministic category-to-specialist map
 $100.00\%$ of requests for ten of eleven models, and on $99.03\%$ for
 GPT-4.1\,Nano (29 mis-routes out of 2{,}999), yielding $99.91\%$ routing
 accuracy across the panel. The routed-call distribution across specialists is
-uneven --- \texttt{ip\_commercial} 11{,}802 calls, \texttt{temporal\_renewal}
-11{,}364, \texttt{risk\_liability} 9{,}068 --- reflecting the per-specialist
-category populations (17, 11, 13) and CUAD's prevalence-weighted sampling rather
-than a routing defect. Routing is empirically a deterministic lookup: the
+uneven: \texttt{ip\_commercial} 11{,}802 calls, \texttt{temporal\_renewal}
+11{,}364, \texttt{risk\_liability} 9{,}068. The pattern reflects the
+per-specialist category populations (17, 11, 13) and CUAD's prevalence-weighted
+sampling rather than a routing defect. Routing is empirically a deterministic lookup: the
 router's decisions can be replicated by a static dictionary mapping category
 names to specialist labels at zero LLM cost. We therefore present no figure for
 routing accuracy and treat M1 vs.\ M2 as a test of whether dispatch architecture
@@ -631,8 +631,8 @@ Section~\ref{sec:res:h2}.
 \paragraph{The cascade is a recall--precision exchange, not pure regression.}
 The complement of lost recall is gained precision. Table~\ref{tab:omega} reports
 $\omega$, the over-extraction rate (Eq.~\ref{eq:overextract}). Across the panel,
-M0 cuts mean $\omega$ from $0.320$ (B0) to $0.130$ --- a $59\%$ reduction in
-false positives on negatively-labelled instances. The Gemini family benefits
+M0 cuts mean $\omega$ from $0.320$ (B0) to $0.130$ (a $59\%$ reduction in
+false positives on negatively-labelled instances). The Gemini family benefits
 most ($\omega$ drops from $0.352$ to $0.099$) but pays the steepest recall
 cost. M0 therefore trades recall for precision via the gate. The trade is
 favourable on $F_1$ (M0 leads pooled, Table~\ref{tab:h1-headline}) and
@@ -740,7 +740,7 @@ Flash/Pro is the cascade.
   \caption{Recall--precision exchange under \cfgCX. Each B0 model
   ($\bullet$) maps to its M0 counterpart ($\blacktriangle$); arrows show the
   per-model trajectory in the $(\omega, \lambda)$ plane. Most models move
-  \emph{left and slightly up} --- a moderate precision gain (lower $\omega$)
+  \emph{left and slightly up}: a moderate precision gain (lower $\omega$)
   paid with a small recall loss (higher $\lambda$). On Gemini~2.5~Flash and
   Pro (orange arrows) the recall loss is severe: $\lambda$ jumps to $>0.32$,
   the cascade documented in Table~\ref{tab:cascade}. On GPT-4.1~Nano (green

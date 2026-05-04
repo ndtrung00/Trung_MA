@@ -19,9 +19,9 @@ individual (model, configuration) cells (\cfgCX\ (M0) on the OpenAI family
 and lighter Anthropic models), but the pooled signal is dominated by the
 model-family interaction. H2 is rejected: both pipeline decomposition
 (\cfgCX, M0) and specialist routing (\cfgMA, M1) widen the rare--common $F_2$
-gap relative to \cfgZS\ (B0). H3 is supported per model --- \cfgMA\ (M1) and
+gap relative to \cfgZS\ (B0). H3 is supported per model: \cfgMA\ (M1) and
 \cfgCP\ (M2) are statistically distinguishable on every model after BH
-correction --- but the direction is inconsistent across the panel and the
+correction. The direction, however, is inconsistent across the panel, and the
 pooled $F_2$ difference is zero to three decimals.
 
 The single most informative pattern is the model-family interaction.
@@ -32,7 +32,7 @@ The Anthropic family achieves its peak under \cfgCoT\
 Figure~\ref{fig:tier-heatmap} is consistent with this: light- and mid-tier
 models gain from M0's calibration, while heavy-tier models are better served
 by B0, with the $F_2$ capability gap between Heavy and Light tiers narrowing
-from $0.106$ under B0 to $0.054$ under M0 --- a $49\%$ reduction. Decomposition acts partly as a capability-equalising effect, but at a cost
+from $0.106$ under B0 to $0.054$ under M0 (a $49\%$ reduction). Decomposition acts partly as a capability-equalising effect, but at a cost
 (Section~\ref{sec:disc:cascade}) that is not recovered for heavy models
 that already absorb long-context load in a single call. Prior work has observed
 that a well-prompted single agent matches multi-agent decomposition under
@@ -176,8 +176,8 @@ workflows), M0's calibration advantage widens further.
 
 \section{Benchmark-to-Production Gaps}\label{sec:disc:practitioner}
 
-CUAD measures one axis --- extraction accuracy under a fixed forty-one-category
-taxonomy on clean born-digital text with expert ground truth --- that is
+CUAD measures one axis: extraction accuracy under a fixed forty-one-category
+taxonomy on clean born-digital text with expert ground truth. This axis is
 necessary but not sufficient for production deployment. Three deployment axes
 relocate the architectural argument.
 
@@ -188,7 +188,8 @@ quality, redactions, and partial digitisations; document-preprocessing
 quality is the primary performance ceiling, set before any extraction
 architecture is invoked. CUAD's one-to-one (contract, category) framing
 also omits the retrieve-then-extract pipeline production reviewers actually
-run --- which contracts contain uncapped liability across the repository?
+run, in which a query (e.g.\ ``which contracts contain uncapped liability'')
+is dispatched across the repository before per-contract extraction.
 The classification-gate cascade (\S\ref{sec:disc:cascade}) is the
 single-contract analogue of that retrieval failure: the same
 upstream-rejection dynamics that suppress M0 recall on Gemini~2.5 will
@@ -200,8 +201,8 @@ contracts (variation orders, retention, defects liability), SaaS agreements
 (SLA penalties, sub-processor notice), and jurisdictional clause variants
 do not map cleanly onto the schema. The fixed three-domain specialist
 partition tested here (M1, M2) is not extensible to an open taxonomy without
-re-routing. Cross-contract questions --- consistency of liability caps
-across vendor agreements; impact analysis on a counterparty acquisition ---
+re-routing. Cross-contract questions (consistency of liability caps
+across vendor agreements; impact analysis on a counterparty acquisition)
 require portfolio-level orchestration over per-contract agents that no
 public benchmark currently evaluates and that this thesis identifies as
 future work (\S\ref{sec:concl:outlook}).

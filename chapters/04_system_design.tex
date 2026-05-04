@@ -418,8 +418,8 @@ The trace is faithful to the call graph, not to the model's internal computation
 a chain-of-thought trace records what the model emitted, not what it computed.
 
 \paragraph{Trace completeness.}
-Trace completeness --- the fraction of model calls for which all expected fields are
-populated --- was $100\%$ for B0, B1, and M2 (single-call configurations with no
+Trace completeness (the fraction of model calls for which all expected fields are
+populated) was $100\%$ for B0, B1, and M2 (single-call configurations with no
 routing decisions), $100\%$ for M0 (two-call pipeline with deterministic branching),
 and $95.2\%$ for M1 across official runs. The binding constraint is M1: the remaining
 $4.8\%$ are provider-side truncations on long contracts and are flagged in the run

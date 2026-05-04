@@ -3,3 +3,4 @@
 samples_qualitative.jsonl
 review
 .DS_Store
+.fuse_hidden*
