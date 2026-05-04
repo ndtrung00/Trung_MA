@@ -1,43 +1,37 @@
 \chapter{\abstractname}
 
-Contract Lifecycle Management platforms increasingly rely on large language models to
-automate clause extraction from commercial contracts.
-Both research and vendor communities have advocated multi-agent architectures as a
-superior alternative to single-prompt deployments. The empirical case is thin: every existing legal multi-agent system evaluates a single
-architecture on a single benchmark, and no published work ablates multi-agent patterns
-against single-agent baselines across frontier-model families.
-Recent cross-domain evidence (Gao et al.\ 2025; Bogavelli et al.\ 2025)
-reports diminishing multi-agent gains as base-model capability rises.
+Contract Lifecycle Management platforms increasingly use large language models
+(LLMs) to extract clauses from commercial contracts, and multi-agent architectures
+are claimed to outperform single-prompt deployments. Existing legal multi-agent
+systems each evaluate a single architecture on a single benchmark, and no published
+work ablates multi-agent patterns against single-agent baselines on contract clause
+extraction across frontier-model families.
 
-This thesis presents a controlled cross-architecture cross-model comparison of
-multi-agent designs for clause extraction on the CUAD benchmark. Five configurations
-spanning zero-shot, chain-of-thought, pipeline decomposition, LLM-routed specialists,
-and a consolidated single-agent ablation are evaluated across eleven frontier models from
-three providers, yielding 163{,}644 paired predictions on the 102-contract CUAD test
-split, analysed with McNemar exact tests, paired bootstrap confidence intervals, and
+This thesis evaluates five configurations: zero-shot, chain-of-thought,
+classify-then-extract pipeline, routed domain specialists, and a consolidated
+single-agent ablation that combines all specialist prompts. The configurations
+are evaluated across eleven frontier models from three providers (Anthropic,
+Google, OpenAI) on the 102-contract test split of the Contract Understanding
+Atticus Dataset (CUAD), yielding 163{,}644 paired predictions analysed with
+McNemar exact tests, paired bootstrap confidence intervals, and
 Benjamini--Hochberg correction.
 
-No multi-agent configuration consistently outperforms the strongest single-agent
-baseline. Pooled accuracy falls within a $0.011$-point band. Each provider
-family peaks under a different configuration: Anthropic under
-chain-of-thought, Google under zero-shot, OpenAI under classify-then-extract.
-Lighter models gain from decomposition where heavier ones do not,
-across the eleven-model frontier-proprietary panel evaluated here.
-Two mechanisms explain the null result. The pipeline architecture
-exhibits a \emph{classification-gate rejection cascade} (its upstream classifier
-silently overrejects on some models), and the LLM router in the specialist
-architecture is empirically redundant: it converges to a deterministic category
-lookup and produces lower-quality span outputs than the consolidated ablation.
-Multi-agent configurations carry a $23\%$--$67\%$ cost premium under per-call
-provider billing without prompt caching, and this premium is not offset by
-aggregate accuracy gains.
-
-The results identify which model--architecture combinations gain, lose, or are
-unchanged on $F_2$, and quantify the auditability surplus
-(M1: $1.000$ verbatim grounding) that survives the null result.
+No multi-agent configuration consistently beats the strongest single-agent
+baseline: pooled $F_2$ spans a $0.011$-point band ($0.790$--$0.801$), and each
+provider peaks under a different configuration (Anthropic under chain-of-thought,
+Google under zero-shot, OpenAI under classify-then-extract). Two mechanisms
+explain the null result. The pipeline's classifier silently overrejects on
+Gemini~2.5 Flash and Pro, where ${\geq}97.8\%$ of false negatives originate at
+the gate. The LLM router agrees with a deterministic category-to-specialist
+mapping on $99.91\%$ of requests, and the consolidated single-agent ablation
+matches the routed specialists on $F_2$ with tighter spans. Multi-agent
+configurations carry a $23\%$--$67\%$ cost premium uncompensated by $F_2$ gains;
+their surviving advantage is schema-enforced verbatim grounding ($100\%$ citation
+on predicted clauses, against $54\%$ for zero-shot).
 
 \medskip
 \noindent
-For teams building contract-review software, this means a well-prompted
-single model is usually the right default, and the case for adding agents
-rests on auditability and traceable review rather than on accuracy gains.
+For legal teams and the software companies that build their AI tools, one
+well-prompted model usually reviews contracts as accurately as elaborate
+multi-agent systems; the extra agents are only worth their cost when a
+regulator or client asks how each clause was found.
