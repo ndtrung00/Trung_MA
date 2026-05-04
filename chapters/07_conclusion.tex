@@ -13,7 +13,7 @@ statistical pipeline. The four contributions stated in
 Chapter~\ref{chapter:introduction} are restated here with pointers to the
 evidence that supports them.
 
-\paragraph{C1 --- Cross-architecture benchmark.}
+\paragraph{C1: Cross-architecture benchmark.}
 A cross-family cross-architecture comparison on CUAD at this scale:
 five architectural configurations, eleven frontier models, 55 official runs,
 analysed with paired McNemar exact tests, paired bootstrap confidence
@@ -22,7 +22,7 @@ registry, run artefacts, and statistical pipeline are released as
 open source at \url{https://github.com/ndtrung00/agentic-ai-for-clm}
 (Section~\ref{sec:sys:opensource}).
 
-\paragraph{C2 --- Capability-tier gradient.}
+\paragraph{C2: Capability-tier gradient.}
 Architectural ranking is not constant across the model panel. Pooled $F_2$
 across the five configurations spans a $0.011$-point band and per-model
 winners are split four ways (Table~\ref{tab:h1-f2}). The capability-tier
@@ -33,7 +33,7 @@ frontier-proprietary panel evaluated here; the choice is conditional on
 model family, capability tier, and the chosen $\beta$ of the $F_\beta$
 metric.
 
-\paragraph{C3 --- Classification-gate cascade.}
+\paragraph{C3: Classification-gate cascade.}
 The pipeline-decomposition pattern (\cfgCX, M0) suffers a recall--precision
 exchange mediated by the classification gate. On Gemini~2.5~Flash and Pro,
 $97.8$--$97.9\%$ of M0 false negatives originate at the gate rather than at
@@ -44,7 +44,7 @@ gain $F_1$ from it. Section~\ref{sec:disc:cascade} formalises the heuristic
 and connects it to the inter-agent verification gap taxonomy of
 \textcite{cemri2025why}.
 
-\paragraph{C4 --- Routing redundancy with span-quality and grounding tradeoffs.}
+\paragraph{C4: Routing redundancy with span-quality and grounding tradeoffs.}
 The LLM router agreed with a deterministic category-to-specialist dictionary
 on $99.91\%$ of requests across the panel and on $100\%$ for ten of eleven
 models. \cfgCP\ (M2) matches \cfgMA\ (M1) on $F_2$ pooled to three decimals
@@ -73,7 +73,7 @@ produce the trace primitives that production review needs
 argument for multi-agent architectures rests
 (Section~\ref{sec:disc:practitioner}).
 
-\paragraph{RQ1 --- Architectural pattern by condition.}
+\paragraph{RQ1: Architectural pattern by condition.}
 No pattern wins universally. Pooled $F_2$ ranks \cfgZS\ $>$ \cfgCoT\ $>$
 \cfgCX\ $>$ \cfgMA\ $\approx$ \cfgCP\ within a $0.011$-point band. The
 model-family interaction is the dominant signal: the Anthropic family peaks
@@ -87,7 +87,7 @@ when the model is OpenAI-family or light-tier,
 $F_1$ is the primary metric, and the practitioner accepts the $1.67\times$
 cost premium.
 
-\paragraph{RQ2 --- Multi-agent vs.\ single-agent on accuracy and cost.}
+\paragraph{RQ2: Multi-agent vs.\ single-agent on accuracy and cost.}
 Multi-agent configurations carry mean cost premiums of $1.23\times$
 (\cfgMA, M1) to $1.67\times$ (\cfgCX, M0) over \cfgZS\ (B0) without
 compensating $F_2$ gains pooled across the panel. \cfgZS\ occupies the Pareto
@@ -103,7 +103,7 @@ and may invert the frontier on long-contract repeated-category workloads
 where the system prompt and contract text are amortised across many
 extraction calls (\S\ref{sec:concl:outlook}); under that cost model, RQ2 is open.
 
-\paragraph{RQ3 --- Auditable reasoning traces.}
+\paragraph{RQ3: Auditable reasoning traces.}
 The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
 decision attribution (routing decision, specialist extraction, validation
 outcome) that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). Trace

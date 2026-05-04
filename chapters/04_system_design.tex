@@ -170,7 +170,7 @@ statistics (1{,}297 of 164{,}941 predictions, $0.79\%$).
 
 \section{Baseline Architectures}\label{sec:sys:baselines}
 
-\paragraph{B0 --- Zero-shot single agent.}
+\paragraph{B0: Zero-shot single agent.}
 B0 replicates the zero-shot prompt protocol of~\cite{liu2025contracteval}. The model
 receives one user message containing the contract text, the target category name, the
 category indicator, and an explicit instruction to return verbatim span(s) or the
@@ -187,7 +187,7 @@ must appear exactly as in the contract. If no, return exactly: ``no related clau
 \textbf{Contract:} \{\{contract\_text\}\}
 \end{promptbox}
 
-\paragraph{B1 --- Chain-of-thought single agent.}
+\paragraph{B1: Chain-of-thought single agent.}
 B1 retains B0's task framing but elicits explicit step-by-step reasoning before a
 final structured answer. The model is instructed to restate what the category covers,
 scan for candidate spans, weigh ambiguous matches against the indicator, and emit a
@@ -200,7 +200,7 @@ runs enter official statistics.
 
 \section{Multi-Agent Architectures}\label{sec:sys:multiagent}
 
-\paragraph{M0 --- Classify-then-extract.}
+\paragraph{M0: Classify-then-extract.}
 M0 decomposes each (contract, category) task into two sequential LLM calls. The
 \emph{classifier} returns a single yes/no token; the \emph{extractor} is invoked
 only if the classifier returns yes. The two agents share the category indicator but
@@ -241,7 +241,7 @@ g.add_conditional_edges(
 g.add_edge("extract", END)
 \end{lstlisting}
 
-\paragraph{M1 --- Orchestrator with three specialists.}
+\paragraph{M1: Orchestrator with three specialists.}
 M1 routes each request to one of three domain specialists via an LLM router. The
 category-to-specialist assignment is documented in Table~\ref{tab:specialist-map};
 it is fixed before any model is run and is committed as \texttt{CATEGORY\_ROUTING}
@@ -363,7 +363,7 @@ call structure reproduced in the Langfuse trace.
   \label{fig:m1-sequence}
 \end{figure}
 
-\paragraph{M2 --- Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
+\paragraph{M2: Consolidated specialist (architectural ablation).}\label{sec:sys:m6}\label{sec:sys:m1-vs-m6}
 Its prompt is the textual union of the three M1 specialist prompts, concatenated
 into a single agent with no router, no orchestrator, and no per-category branching:
 %
