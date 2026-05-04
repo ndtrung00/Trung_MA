@@ -30,7 +30,7 @@ upsampling positives relative to CUAD's natural $\approx\!30\%$ prior in order
 to preserve statistical power on rare-tier categories
 (\S\ref{sec:meth:sampling}).
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Coverage: analysed predictions per (model, configuration) cell after
@@ -78,7 +78,7 @@ Table~\ref{tab:h1-headline} reports the headline metrics ($F_2$, $F_1$,
 recall, precision, and over-extraction rate $\omega$) pooled across all
 eleven models, and per provider family.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Headline metrics by family and configuration (Cfg), mean across
@@ -151,7 +151,7 @@ rewards \cfgZS's recall; $F_1$'s equal weighting rewards \cfgCX's calibration.
 Figure~\ref{fig:family-config} visualises the model-family interaction: each
 family peaks under a different configuration.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -205,7 +205,7 @@ varies with model compute tier (Figure~\ref{fig:tier-heatmap}): \cfgCX\ leads
 on light- and mid-tier models, while \cfgZS\ leads on heavy models, qualifying
 contribution~C2.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{$F_2$ by model and configuration. Bold: best per row.
@@ -235,7 +235,7 @@ contribution~C2.
   \end{tabular*}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}[
     cell/.style={
@@ -311,7 +311,7 @@ computed on the paired sample-ID intersection; for models with partial runs
 so the intersection-based $\Delta F_2$ may differ slightly from the
 full-run values in Table~\ref{tab:h1-f2}.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{H1 paired tests: $\Delta F_2 = F_2(\text{multi}) - F_2(\text{B0})$
@@ -377,7 +377,7 @@ cell. Mean common-tier $F_2$ stays in a narrow band across configurations
 (\cfgZS\ $0.929$, \cfgCoT\ $0.912$, \cfgCX\ $0.878$, \cfgMA\ $0.940$, \cfgCP\
 $0.919$); the gap movement is driven almost entirely by rare-tier shifts.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Rare--common gap $g = F_2^c - F_2^r$ per (model, configuration).
@@ -444,7 +444,7 @@ Customers} ($+0.233$). The tier-mean ranking is dominated by Gemini-family
 cascade collapse on a subset of rare categories
 (\S\ref{sec:res:cascade}), not by uniform M0 weakness across the rare tier.}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -520,7 +520,7 @@ prompt containing the same specialist text.
 Table~\ref{tab:h3} reports the M1--M2 contrasts on $F_2$ and on average
 Jaccard span overlap.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{H3 contrasts: \cfgMA\ (M1) vs.\ \cfgCP\ (M2). Both configurations are
@@ -587,7 +587,7 @@ related clause'' as the final answer. We report the FN-rate
 false negatives attributable to a gate rejection rather than a downstream
 extraction failure.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{M0 classification-gate rejection cascade. FN-rate $= \mathrm{FN}/(\mathrm{TP}+\mathrm{FN})$.
@@ -640,7 +640,7 @@ unfavourable on $F_2$ (B0 leads pooled). Which side of the trade is preferable
 depends on the deployment cost ratio of missed clauses vs.\ false extractions,
 a question revisited in Chapter~\ref{chapter:discussion}.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Over-extraction rate $\omega$ (Eq.~\ref{eq:overextract}): fraction of
@@ -687,7 +687,7 @@ cascade as a movement in the $(\omega, \lambda)$ plane: arrows connect each
 model's B0 cell to its M0 cell, and the up-and-leftward shift on Gemini
 Flash/Pro is the cascade.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -760,7 +760,7 @@ includes the $\approx\!58\%$ negative-label cases where the model returns ``no
 related clause'' and grounding is undefined, conventionally scored~$0$), and
 restricted to instances on which the model emitted at least one span.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Mean grounding rate by configuration. \emph{All}: pooled over all
@@ -799,7 +799,7 @@ auditability surplus comes from two mechanisms, the trace structure
 Table~\ref{tab:cost} reports per-run provider costs and mean ratios relative to
 B0.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Provider cost per run (${\approx}2{,}999$ samples) and per-model
@@ -833,7 +833,7 @@ B0 occupies the Pareto frontier at every cost level at which it appears. The
 three Gemini M0 cells are strictly Pareto-dominated: lower $F_2$ \emph{and}
 higher cost than B0 Gemini alternatives.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -907,7 +907,7 @@ quartile analysis here is a length-stratified view of the headline results in
 Sections~\ref{sec:res:h1}--\ref{sec:res:cascade} rather than a separate evaluation
 envelope.
 
-\begin{table}[h]
+\begin{table}[htbp]
   \centering
   \small
   \caption{Mean $F_2$ by contract-length quartile (102 contracts, ${\approx}26$

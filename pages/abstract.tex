@@ -1,37 +1,34 @@
 \chapter{\abstractname}
 
-Contract Lifecycle Management platforms increasingly use large language models
-(LLMs) to extract clauses from commercial contracts, and multi-agent architectures
-are claimed to outperform single-prompt deployments. Existing legal multi-agent
-systems each evaluate a single architecture on a single benchmark, and no published
-work ablates multi-agent patterns against single-agent baselines on contract clause
-extraction across frontier-model families.
+Contract Lifecycle Management platforms increasingly rely on large language
+models (LLMs) to extract clauses from commercial contracts. Vendors and recent
+academic systems claim that splitting the task across several specialised agents
+outperforms a single well-prompted model, but no published study tests this
+claim head-to-head across modern model families on a shared benchmark.
 
-This thesis evaluates five configurations: zero-shot, chain-of-thought,
-classify-then-extract pipeline, routed domain specialists, and a consolidated
-single-agent ablation that combines all specialist prompts. The configurations
-are evaluated across eleven frontier models from three providers (Anthropic,
-Google, OpenAI) on the 102-contract test split of the Contract Understanding
-Atticus Dataset (CUAD), yielding 163{,}644 paired predictions analysed with
-McNemar exact tests, paired bootstrap confidence intervals, and
-Benjamini--Hochberg correction.
+This thesis compares five extraction setups: zero-shot, chain-of-thought, a
+classify-then-extract pipeline, a router that dispatches to three domain
+specialists, and a single agent that consolidates the specialist prompts.
+Each setup is run with eleven frontier models from Anthropic, Google, and
+OpenAI on the 102-contract test split of the Contract Understanding Atticus
+Dataset (CUAD), producing 163{,}644 paired predictions compared with
+established statistical tests.
 
-No multi-agent configuration consistently beats the strongest single-agent
-baseline: pooled $F_2$ spans a $0.011$-point band ($0.790$--$0.801$), and each
-provider peaks under a different configuration (Anthropic under chain-of-thought,
-Google under zero-shot, OpenAI under classify-then-extract). Two mechanisms
-explain the null result. The pipeline's classifier silently overrejects on
-Gemini~2.5 Flash and Pro, where ${\geq}97.8\%$ of false negatives originate at
-the gate. The LLM router agrees with a deterministic category-to-specialist
-mapping on $99.91\%$ of requests, and the consolidated single-agent ablation
-matches the routed specialists on $F_2$ with tighter spans. Multi-agent
-configurations carry a $23\%$--$67\%$ cost premium uncompensated by $F_2$ gains;
-their surviving advantage is schema-enforced verbatim grounding ($100\%$ citation
-on predicted clauses, against $54\%$ for zero-shot).
+No multi-agent setup consistently beats the strongest single-agent baseline.
+Overall $F_2$ scores fall within roughly one percentage point of one another
+(0.790--0.801), and each provider peaks under a different configuration.
+Two findings explain the flat result. The pipeline's first-stage classifier
+silently rejects valid clauses on the Gemini models, where it accounts for
+nearly all false negatives. The LLM router, in turn, almost always reproduces
+a simple category-to-specialist lookup, so the orchestration adds little that
+prompt engineering does not. Multi-agent setups also cost 23--67\% more per
+contract without a matching accuracy gain. Their one durable advantage is
+verbatim grounding: every predicted clause is cited from the contract,
+compared with about half under zero-shot prompting.
 
 \medskip
 \noindent
-For legal teams and the software companies that build their AI tools, one
-well-prompted model usually reviews contracts as accurately as elaborate
-multi-agent systems; the extra agents are only worth their cost when a
-regulator or client asks how each clause was found.
+For legal teams and the vendors building their tools, one well-prompted model
+usually reviews contracts as accurately as a more elaborate multi-agent system.
+The extra agents earn their cost mainly when a regulator or client needs to
+see exactly where each clause came from.

@@ -42,6 +42,13 @@
 \usepackage[final]{microtype}
 \usepackage{caption}
 \setlength{\belowcaptionskip}{6pt}   % space between caption and table body
+\usepackage[section]{placeins}       % auto \FloatBarrier before each \section
+% Relax LaTeX's default float-placement fractions so floats stay near their reference
+% instead of being deferred to the end of the chapter.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.8}
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 
 \bibliography{bibliography}
