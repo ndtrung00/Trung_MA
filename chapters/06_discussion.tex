@@ -207,19 +207,21 @@ require portfolio-level orchestration over per-contract agents that no
 public benchmark currently evaluates and that this thesis identifies as
 future work (\S\ref{sec:concl:outlook}).
 
-\paragraph{Trace primitives under no ground truth.}
+\paragraph{Schema-enforced grounding under no ground truth.}
 A production deployment cannot compute $F_2$, Jaccard, or $\omega$;
 evaluation proceeds through user feedback, spot-checking, and exception
-triage. The single architectural property the benchmark does measure that
-production review cannot reproduce from a single-agent system is
-schema-enforced grounding: \cfgMA's $1.000$ verbatim-citation rate on every
-predicted clause (Table~\ref{tab:grounding}, predicted-clause column) versus
-$0.543$ for \cfgZS\ and $0.415$ for \cfgCP\ means that under M1, every emitted
-span is locatable in the source contract by exact string match, and under
-B0/M2 roughly half are paraphrased or hallucinated. This is the one
-auditability finding the benchmark supports without auxiliary measurement,
-and is the measured basis for preferring a multi-agent topology in deployments
-where extraction provenance is a regulatory or contractual requirement
+triage. The structural auditability property the benchmark measures and
+that no single-call configuration reproduces---not chain-of-thought
+prompting and not reasoning-mode model variants, both of which emit
+rationale tokens but no verbatim-citation guarantee---is schema-enforced
+grounding. \cfgMA's $1.000$ verbatim-citation rate on every predicted clause
+(Table~\ref{tab:grounding}, predicted-clause column) versus $0.543$ for
+\cfgZS\ and $0.415$ for \cfgCP\ means that under M1, every emitted span is
+locatable in the source contract by exact string match, and under B0/M2
+roughly half are paraphrased or hallucinated. This is the one auditability
+finding the benchmark supports without auxiliary measurement, and the
+measured basis for preferring a multi-agent topology in deployments where
+extraction provenance is a regulatory or contractual requirement
 (EU AI Act Art.~13~\cite{euaiact2024}, GDPR Art.~22~\cite{gdpr2016}).
 On grounding (the one production-relevant axis the benchmark does measure),
 multi-agent dominates (Table~\ref{tab:grounding}).

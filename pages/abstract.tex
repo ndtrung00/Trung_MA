@@ -19,9 +19,11 @@ Overall $F_2$ scores fall within roughly one percentage point of one another
 (0.790--0.801), and each provider peaks under a different configuration.
 Two findings explain the flat result. The pipeline's first-stage classifier
 silently rejects valid clauses on the Gemini models, where it accounts for
-nearly all false negatives. The LLM router, in turn, almost always reproduces
-a simple category-to-specialist lookup, so the orchestration adds little that
-prompt engineering does not. Multi-agent setups also cost 23--67\% more per
+nearly all false negatives. The LLM router, in turn, almost always
+picks the same specialist that a static category-to-specialist lookup would
+have picked, and the single agent given all specialist instructions at once
+matches the routed version's $F_2$. The orchestration layer therefore adds
+runtime and cost without changing what the model does. Multi-agent setups also cost 23--67\% more per
 contract without a matching accuracy gain. Their one durable advantage is
 verbatim grounding: every predicted clause is cited from the contract,
 compared with about half under zero-shot prompting.

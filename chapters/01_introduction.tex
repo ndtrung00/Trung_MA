@@ -70,8 +70,11 @@ systems, and which architectural patterns are most effective?
     prompting) achieve the highest $F_2$?
   \item[\textbf{RQ2.}] How do multi-agent configurations compare to single-agent baselines
     in $F_2$ and provider cost across clause categories and contract lengths?
-  \item[\textbf{RQ3.}] Which auditability properties (trace completeness, decision
-    attribution, span grounding) does each architectural configuration enable?
+  \item[\textbf{RQ3.}] Which \emph{structural} auditability properties---decomposed
+    per-agent decision attribution, machine-checkable routing transitions, and
+    schema-enforced span grounding---does each architectural configuration provide
+    beyond the unstructured rationale text that chain-of-thought prompting and
+    reasoning-mode model variants already emit within a single call?
 \end{description}
 
 \section{Hypotheses}\label{sec:hypotheses}
@@ -88,11 +91,15 @@ systems, and which architectural patterns are most effective?
     from \cfgCP\ (M2) on $F_2$ (two-sided McNemar exact).
 \end{description}
 
-RQ3 is descriptive: it asks which auditability properties each configuration
-enables, and is therefore addressed by system-design documentation rather
-than statistical hypothesis test. The per-configuration trace primitives are
-catalogued in \S\ref{sec:auditability} and the schema-enforced grounding rates
-are reported in Table~\ref{tab:grounding}.
+RQ3 is descriptive: it asks which \emph{structural} auditability properties
+each configuration provides and is therefore addressed by system-design
+documentation rather than a statistical hypothesis test. The presence of
+rationale text is not a structural property: chain-of-thought prompting
+(\cfgCoT, B1) elicits it, and reasoning-mode model variants emit it natively
+within a single fused completion. The discriminating axes are decomposed
+per-agent attribution, machine-checkable routing transitions, and
+schema-enforced grounding; these are catalogued per configuration in
+\S\ref{sec:auditability} with grounding rates in Table~\ref{tab:grounding}.
 
 \section{Contributions}\label{sec:contributions}
 

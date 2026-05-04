@@ -398,15 +398,27 @@ plus its \texttt{parent\_id}, the model snapshot string, and a
 \texttt{parser\_status} marker. A representative JSONL record is included
 verbatim in the released artefact bundle (\S\ref{sec:sys:infra}).
 
-\paragraph{Auditability properties.}\label{sec:sys:trace-properties}
-The trace structure supports three concrete properties. \emph{Decision attribution}:
-any final answer is traceable to the specific agent, prompt version, and model that
-produced it. \emph{Counterfactual replay}: because prompts and model identifiers are
-pinned per call at \texttt{temperature=0}, a reviewer can re-run a single archived
-call and obtain a deterministically identical completion. \emph{Rejection forensics}:
-when M0 silently returns ``no related clause'', the classifier's verdict is recorded
-explicitly, making the classification-gate cascade of Section~\ref{sec:res:cascade}
-visible at audit time as an upstream rejection rather than an unobservable absence.
+\paragraph{Structural auditability properties.}\label{sec:sys:trace-properties}
+The parent--child schema supports four properties that single-call configurations
+do not produce by emitting rationale text alone, including chain-of-thought prompts
+(\cfgCoT, B1) and reasoning-mode model variants whose ``thinking'' tokens are part
+of one fused completion. \emph{Decomposed decision attribution}: routing,
+extraction, and validation are separate calls with their own inputs, outputs,
+and prompts, so a wrong final answer is attributable to a specific agent rather
+than to a single fused stream. A chain-of-thought trace records what the model
+emitted, not which sub-decision produced what. \emph{Machine-checkable routing}:
+M1's routing verdict is a typed state transition logged independently of the
+specialist call, so a downstream verifier can re-derive it from the recorded
+category-to-specialist mapping without parsing free-text rationales.
+\emph{Counterfactual replay}: because prompts and model identifiers are pinned
+per call at \texttt{temperature=0}, a reviewer can re-run a single archived call
+and obtain a deterministically identical completion. \emph{Rejection forensics}:
+when M0 silently returns ``no related clause'', the classifier's verdict is
+recorded explicitly, making the classification-gate cascade of
+Section~\ref{sec:res:cascade} visible at audit time as an upstream rejection
+rather than an unobservable absence. These properties hold by construction of
+the call graph and are independent of whether the underlying model emits
+reasoning tokens.
 
 \paragraph{Trade-offs and limits.}
 The JSONL persistence layer is on the order of gigabytes per full sweep, and trace
@@ -418,12 +430,16 @@ The trace is faithful to the call graph, not to the model's internal computation
 a chain-of-thought trace records what the model emitted, not what it computed.
 
 \paragraph{Trace completeness.}
-Trace completeness (the fraction of model calls for which all expected fields are
-populated) was $100\%$ for B0, B1, and M2 (single-call configurations with no
-routing decisions), $100\%$ for M0 (two-call pipeline with deterministic branching),
-and $95.2\%$ for M1 across official runs. The binding constraint is M1: the remaining
-$4.8\%$ are provider-side truncations on long contracts and are flagged in the run
-logs. The single-configuration baseline ($100\%$) confirms that the drop is
+Trace completeness here is schema conformance: the fraction of model calls for
+which the expected typed fields (configuration ID, prompt template ID and version,
+rendered prompt, completion, parsed answer, parser status, model snapshot, and---
+for M1---parent ID and routing verdict) are all populated. It does not measure
+whether the model emitted reasoning text. Completeness was $100\%$ for B0, B1,
+and M2 (single-call configurations with no routing decisions), $100\%$ for M0
+(two-call pipeline with deterministic branching), and $95.2\%$ for M1 across
+official runs. The binding constraint is M1: the remaining $4.8\%$ are
+provider-side truncations on long contracts and are flagged in the run logs.
+The single-configuration baseline ($100\%$) confirms that the drop is
 attributable to M1's multi-call routing overhead, not to infrastructure failures.
 
 \section{Experimental Infrastructure}\label{sec:sys:infra}

@@ -791,8 +791,11 @@ generative configurations \cfgZS\ and \cfgCP\ leave roughly half of their
 extractions paraphrased or hallucinated. The dominant failure mode is
 extraction of \emph{plausible} legal text that cannot be located verbatim
 in the source contract. This finding qualifies contribution~C4: M1's
-auditability surplus comes from two mechanisms, the trace structure
-(Section~\ref{sec:auditability}) and schema-enforced grounding.
+auditability surplus comes from two structural mechanisms---the
+parent--child call-graph schema (Section~\ref{sec:auditability}) and
+schema-enforced verbatim grounding---neither of which is reproduced by
+chain-of-thought prompting or reasoning-mode model variants emitting
+rationale text within a single call.
 
 \section{Cost-Efficiency Frontier}\label{sec:res:cost}
 
@@ -963,7 +966,11 @@ $F_2$. Under prompt-caching cost models, the premium shrinks toward the
 orchestrator-hop overhead and the frontier may invert
 (\S\ref{sec:concl:outlook}).
 
-\paragraph{RQ3.} M0 and M1 produce the trace primitives B0 cannot
-(\S\ref{sec:auditability}, Table~\ref{tab:grounding}); the $4\times$ token
-volume, the routing redundancy ($99.91\%$ deterministic), and the bounded
-attribution faithfulness are the costs.
+\paragraph{RQ3.} M0 and M1 provide structural auditability properties---decomposed
+per-agent decision attribution and machine-checkable routing transitions---that
+no single-call configuration produces, including chain-of-thought prompting
+(\cfgCoT, B1) and reasoning-mode model variants whose rationale tokens are
+part of one fused completion (\S\ref{sec:auditability}). \cfgMA\ additionally
+enforces verbatim grounding on every emitted span (Table~\ref{tab:grounding}).
+The $4\times$ token volume, the $99.91\%$-deterministic routing redundancy, and
+the call-graph-bounded attribution faithfulness are the costs.

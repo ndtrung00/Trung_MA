@@ -68,9 +68,12 @@ OpenAI family and on lighter capability tiers. On efficiency
 (cost-adjusted $F_2$), multi-agent configurations are Pareto-dominated by B0
 deployments on cheaper models (Figure~\ref{fig:pareto}). On explainability,
 the pipeline (\cfgCX, M0) and routed-specialist (\cfgMA, M1) topologies
-produce the trace primitives that production review needs
-(Section~\ref{sec:auditability}), which is the axis on which the practitioner
-argument for multi-agent architectures rests
+provide structural auditability properties---decomposed per-agent
+attribution and (under M1) schema-enforced grounding---that single-call
+configurations do not produce, including chain-of-thought prompts and
+reasoning-mode model variants whose rationale tokens are part of one
+fused completion (Section~\ref{sec:auditability}). This is the axis on
+which the practitioner argument for multi-agent architectures rests
 (Section~\ref{sec:disc:practitioner}).
 
 \paragraph{RQ1: Architectural pattern by condition.}
@@ -103,25 +106,32 @@ and may invert the frontier on long-contract repeated-category workloads
 where the system prompt and contract text are amortised across many
 extraction calls (\S\ref{sec:concl:outlook}); under that cost model, RQ2 is open.
 
-\paragraph{RQ3: Auditable reasoning traces.}
-The parent--child trace structure of \cfgCX\ (M0) and \cfgMA\ (M1) produces
-decision attribution (routing decision, specialist extraction, validation
-outcome) that \cfgZS\ (B0) cannot (Section~\ref{sec:auditability}). Trace
-completeness is $100\%$ on B0/B1/M2/M0 and $95.2\%$ on M1, with the residual
-$4.8\%$ attributable to provider-side truncation on long contracts
-(\S\ref{sec:sys:trace-properties}). The trace structure is paired with
-schema-enforced grounding: \cfgMA\ reaches $100\%$ verbatim contract-text
-citation on every predicted clause and \cfgCX\ reaches $89\%$, against
-$54\%$ for \cfgZS\ and $42\%$ for \cfgCP\ (Table~\ref{tab:grounding}).
+\paragraph{RQ3: Structural auditability properties.}
+The parent--child call-graph schema of \cfgCX\ (M0) and \cfgMA\ (M1) provides
+decomposed per-agent decision attribution (routing decision, specialist
+extraction, validation outcome) and machine-checkable routing transitions
+that no single-call configuration produces. The discriminating property is
+structural, not the presence of rationale text: chain-of-thought prompting
+(\cfgCoT, B1) and reasoning-mode model variants both emit rationale tokens,
+but inside a single fused completion that lacks per-sub-decision typing
+(Section~\ref{sec:auditability}). Schema conformance, measured as the
+fraction of model calls for which all expected typed fields are populated,
+is $100\%$ on B0/B1/M2/M0 and $95.2\%$ on M1; the residual $4.8\%$ is
+attributable to provider-side truncation on long contracts
+(\S\ref{sec:sys:trace-properties}). The schema is paired with enforced
+grounding: \cfgMA\ reaches $100\%$ verbatim contract-text citation on every
+predicted clause and \cfgCX\ reaches $89\%$, against $54\%$ for \cfgZS\ and
+$42\%$ for \cfgCP\ (Table~\ref{tab:grounding}).
 
 Three practitioner-relevant tradeoffs attend this auditability surplus.
 \emph{Storage cost} scales approximately $4\times$ per M1 call (orchestrator
 hop plus three specialist sub-prompts logged at inference time).
-\emph{Attribution faithfulness} is bounded by the trace format: the record
-is faithful to the call graph but does not certify the model's internal
-computation. \emph{Routing redundancy} adds latency without decision
-diversity: the $99.91\%$ deterministic routing result means the
-orchestrator layer can be replaced by a static dictionary at zero LLM cost.
+\emph{Attribution faithfulness} is bounded by the call graph: the record is
+faithful to the sequence of agent calls but does not certify the model's
+internal computation within any single call. \emph{Routing redundancy} adds
+latency without decision diversity: the $99.91\%$ deterministic routing
+result means the orchestrator layer can be replaced by a static dictionary
+at zero LLM cost.
 
 \section{Limitations}\label{sec:concl:limitations}\label{sec:disc:threats}
 
@@ -205,8 +215,8 @@ production-relevant generalisation of M0; document-quality stress tests
 (OCR noise, redactions, mixed-format inputs) that probe whether the
 ranking survives preprocessing degradation; and formal user studies with
 practising reviewers, which would close the loop on RQ3 by measuring
-whether M0/M1 trace primitives actually shorten review time. The thesis
-treats this property as a system feature, not as an outcome.
+whether M0/M1's structural trace properties actually shorten review time.
+The thesis treats these properties as a system feature, not as an outcome.
 
 \paragraph{Cost mechanisms.}
 Two cost mechanisms not exercised here would re-form the Pareto frontier
